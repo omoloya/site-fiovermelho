@@ -2,10 +2,14 @@
    SUPABASE CENTRAL CONFIGURATION & CLIENT INITIALIZATION
    ========================================================================== */
 
-// As credenciais devem ser carregadas a partir do arquivo js/config.js (ignorado no Git).
-// Se o arquivo js/config.js não foi criado ou carregado, definimos fallbacks vazios.
-if (typeof window.SUPABASE_URL === 'undefined') window.SUPABASE_URL = "";
-if (typeof window.SUPABASE_ANON_KEY === 'undefined') window.SUPABASE_ANON_KEY = "";
+// As credenciais devem ser carregadas a partir do arquivo js/env.js (ignorado no Git).
+// Se o arquivo js/env.js não foi criado ou carregado, definimos fallbacks vazios.
+if (typeof window.env === 'undefined') window.env = {};
+if (typeof window.env.SUPABASE_URL === 'undefined') window.env.SUPABASE_URL = "";
+if (typeof window.env.SUPABASE_ANON_KEY === 'undefined') window.env.SUPABASE_ANON_KEY = "";
+
+window.SUPABASE_URL = window.env.SUPABASE_URL;
+window.SUPABASE_ANON_KEY = window.env.SUPABASE_ANON_KEY;
 
 window.supabase = null;
 window.isOfflineMode = true;
