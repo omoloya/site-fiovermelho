@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fio Vermelho | Acesso Restrito</title>
+    
+    <!-- Meta Tags para SEO & Redes Sociais -->
+    <meta name="description" content="Leia o quadrinho digital Fio Vermelho. Acesso restrito para maiores de 18 anos. Verificação rápida e segura.">
+    <meta property="og:title" content="Fio Vermelho | Acesso Restrito">
+    <meta property="og:description" content="Entre na história do Fio Vermelho do destino. Verificação de maioridade necessária.">
+    <meta property="og:type" content="website">
+    
+    <!-- Google Fonts & FontAwesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Linha Decorativa do Fio Vermelho do Destino -->
+    <div class="auth-thread-line"></div>
+
+    <div class="auth-container">
+        
+        <main class="auth-card glass-card">
+            
+            <header>
+                <h1 class="auth-logo">Fio <span>Vermelho</span></h1>
+                <p class="auth-subtitle">Quadrinho Digital • Acesso Exclusivo</p>
+            </header>
+
+            <!-- ==================== PASSO 1: AVISO 18+ ==================== -->
+            <section id="step-age-gate" class="auth-step active" aria-labelledby="age-gate-title">
+                <div class="age-gate-icon">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                </div>
+                <h2 id="age-gate-title" class="age-gate-title">Aviso de Maioridade</h2>
+                <p class="age-gate-text">
+                    Este site contém material artístico e literário destinado exclusivamente a maiores de 18 anos (conteúdo maduro, violência gráfica leve e drama psicológico). 
+                </p>
+                <div class="age-gate-buttons">
+                    <button id="btn-agree-age" class="btn btn-primary" type="button">
+                        <i class="fa-solid fa-key" style="margin-right: 8px;"></i> Sou Maior de 18 Anos - Validar Idade
+                    </button>
+                    <button id="btn-go-to-login" class="btn btn-secondary" type="button">
+                        Já possuo uma conta verificada
+                    </button>
+                </div>
+            </section>
+
+            <!-- ==================== PASSO 2: SIMULAÇÃO PIX GATEWAY ==================== -->
+            <section id="step-pix-payment" class="auth-step" aria-labelledby="pix-title">
+                <h2 id="pix-title" class="age-gate-title">Validação de Identidade</h2>
+                <p class="age-gate-text">
+                    Para garantir que você é maior de idade, realize um pagamento simbólico de <strong>R$ 0,10</strong> via Pix. A validação é integrada ao <strong>ECA Digital</strong> para conferência de CPF.
+                </p>
+                
+                <div class="pix-amount">R$ <span>0,10</span></div>
+
+                <!-- QR Code Container com linha de escaneamento animada -->
+                <div class="pix-qr-container" id="pix-qr-box">
+                    <img src="" alt="QR Code Pix" class="pix-qr-img" id="pix-qr-element">
+                </div>
+
+                <p class="input-label" style="text-align: center; margin-bottom: 12px;">Copia e Cola do Pix</p>
+                <div class="pix-copypaste-container">
+                    <input type="text" id="pix-code-field" class="input-field pix-code-input" readonly value="">
+                    <button id="btn-copy-pix" class="btn btn-primary" style="padding: 12px 20px;" type="button" title="Copiar código Pix">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                </div>
+
+                <!-- Caixa de Status da Transação -->
+                <div class="pix-status-box" id="pix-status-container">
+                    <div class="pix-status-spinner" id="pix-spinner"></div>
+                    <span id="pix-status-text">Aguardando confirmação do pagamento...</span>
+                    <span class="pix-status-success" id="pix-success-text">
+                        <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> Pagamento Confirmado!
+                    </span>
+                </div>
+
+                <div class="age-gate-buttons">
+                    <button id="btn-cancel-pix" class="btn btn-secondary" type="button">
+                        <i class="fa-solid fa-arrow-left" style="margin-right: 8px;"></i> Voltar
+                    </button>
+                </div>
+            </section>
+
+            <!-- ==================== PASSO 3: CADASTRO ==================== -->
+            <section id="step-signup" class="auth-step" aria-labelledby="signup-title">
+                <h2 id="signup-title" class="age-gate-title">Criar Sua Conta</h2>
+                <p class="age-gate-text">
+                    Identidade validada com sucesso! Crie seus dados de acesso para entrar no site diretamente nos próximos acessos.
+                </p>
+
+                <form id="signup-form" autocomplete="off">
+                    <div class="input-group">
+                        <label for="signup-email" class="input-label">E-mail</label>
+                        <input type="email" id="signup-email" class="input-field" placeholder="seu-email@exemplo.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="signup-password" class="input-label">Senha</label>
+                        <input type="password" id="signup-password" class="input-field" placeholder="No mínimo 6 caracteres" minlength="6" required>
+                    </div>
+                    <div class="age-gate-buttons" style="margin-top: 24px;">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> Concluir Cadastro & Entrar
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- ==================== PASSO 4: LOGIN ==================== -->
+            <section id="step-login" class="auth-step" aria-labelledby="login-title">
+                <h2 id="login-title" class="age-gate-title">Acessar Conta</h2>
+                <p class="age-gate-text">
+                    Entre com suas credenciais cadastradas. Caso não tenha feito o Pix de validação ainda, o sistema irá direcioná-lo automaticamente.
+                </p>
+
+                <form id="login-form" autocomplete="off">
+                    <div class="input-group">
+                        <label for="login-email" class="input-label">E-mail</label>
+                        <input type="email" id="login-email" class="input-field" placeholder="seu-email@exemplo.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="login-password" class="input-label">Senha</label>
+                        <input type="password" id="login-password" class="input-field" placeholder="Sua senha" required>
+                    </div>
+                    <div class="age-gate-buttons" style="margin-top: 24px;">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-arrow-right-to-bracket" style="margin-right: 8px;"></i> Entrar no Painel
+                        </button>
+                        <button id="btn-back-to-gate" class="btn btn-secondary" type="button">
+                            Voltar para o Início
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+        </main>
+        
+    </div>
+
+    <!-- Modais de Notificação (Opcional, usando toast padrão) -->
+    
+    <!-- Supabase JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Scripts da Aplicação -->
+    <script src="js/config.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/services/pixService.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

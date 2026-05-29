@@ -1,0 +1,14 @@
+# Configurações confidenciais (Credenciais do Supabase)
+js/config.js
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Diretórios de deploy e temporários
+.vercel/
+.netlify/
+dist/
+node_modules/
+*.log

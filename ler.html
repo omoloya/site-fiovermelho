@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fio Vermelho | Leitor Webtoon</title>
+    
+    <!-- Meta Tags para SEO -->
+    <meta name="description" content="Leitor oficial do quadrinho Fio Vermelho. Acompanhe a história em formato vertical de alta qualidade.">
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Proteção Rápida de Rota (Prevenir piscada de conteúdo privado) -->
+    <script>
+        (function() {
+            const session = localStorage.getItem('sb-fiovermelho-session') || sessionStorage.getItem('sb-fiovermelho-session');
+            if (!session) {
+                window.location.replace('index.html');
+            }
+        })();
+    </script>
+</head>
+<body class="reader-container">
+
+    <!-- ==================== HEADER DO LEITOR (STICKY) ==================== -->
+    <header class="reader-header">
+        <div class="reader-header-content">
+            <div class="reader-title-info">
+                <div class="reader-comic-title">Fio Vermelho</div>
+                <div class="reader-chapter-title" id="current-chapter-title">Carregando capítulo...</div>
+            </div>
+            
+            <!-- Seletor Rápido de Capítulos -->
+            <div class="input-group" style="margin-bottom: 0; min-width: 140px;">
+                <select id="reader-chapter-select" class="input-field" style="padding: 6px 12px; font-size: 0.85rem; background: rgba(0, 0, 0, 0.6); border-color: rgba(255,255,255,0.1);">
+                    <option value="1">Capítulo 01</option>
+                    <option value="2">Capítulo 02</option>
+                    <option value="3">Capítulo 03</option>
+                </select>
+            </div>
+            
+            <a href="dashboard.html" class="btn btn-secondary reader-nav-btn">
+                <i class="fa-solid fa-house" style="margin-right: 6px;"></i> Painel
+            </a>
+        </div>
+    </header>
+
+    <!-- ==================== CANVAS DO LEITOR VERTICAL ==================== -->
+    <main class="webtoon-canvas" id="webtoon-canvas-container" aria-label="Páginas do Quadrinho">
+        <!-- As imagens do Webtoon serão injetadas dinamicamente aqui pelo JS.
+             Em caso de atraso de carregamento, teremos placeholders ultra elegantes -->
+        <div class="webtoon-placeholder" id="canvas-initial-loader">
+            <div class="pix-status-spinner" style="width: 32px; height: 32px;"></div>
+            <span>Tecendo o fio do destino... Carregando imagens</span>
+        </div>
+    </main>
+
+    <!-- ==================== RODAPÉ DO LEITOR & NAVEGAÇÃO ==================== -->
+    <footer class="reader-footer">
+        <nav class="reader-footer-nav" aria-label="Navegação entre capítulos">
+            <div class="reader-chapter-actions">
+                <button id="btn-prev-chapter" class="btn btn-secondary">
+                    <i class="fa-solid fa-chevron-left" style="margin-right: 8px;"></i> Anterior
+                </button>
+                <button id="btn-next-chapter" class="btn btn-primary">
+                    Próximo <i class="fa-solid fa-chevron-right" style="margin-left: 8px;"></i>
+                </button>
+            </div>
+            
+            <a href="dashboard.html" class="reader-footer-back">
+                <i class="fa-solid fa-arrow-left-long" style="margin-right: 6px;"></i> Voltar para a Capa do Quadrinho
+            </a>
+        </nav>
+    </footer>
+
+    <!-- Supabase JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Scripts do Leitor -->
+    <script src="js/config.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/ler.js"></script>
+</body>
+</html>

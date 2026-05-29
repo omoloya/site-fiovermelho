@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fio Vermelho | Painel do Leitor</title>
+    
+    <!-- Meta Tags para SEO -->
+    <meta name="description" content="Acesse o hub do leitor de Fio Vermelho. Acompanhe os capítulos, marque seus lidos e receba atualizações exclusivas.">
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Proteção Rápida de Rota (Prevenir piscada de conteúdo privado) -->
+    <script>
+        // Verificação imediata síncrona com localStorage local para evitar carregamento visual antes do JS completo
+        (function() {
+            const session = localStorage.getItem('sb-fiovermelho-session') || sessionStorage.getItem('sb-fiovermelho-session');
+            // Nota: sb-fiovermelho-session é a chave mock/Supabase que salvaremos ao logar.
+            if (!session) {
+                // Redireciona imediatamente
+                window.location.replace('index.html');
+            }
+        })();
+    </script>
+</head>
+<body>
+
+    <!-- ==================== HEADER & NAVEGAÇÃO ==================== -->
+    <header class="nav-container">
+        <a href="dashboard.html" class="nav-logo">Fio <span>Vermelho</span></a>
+        
+        <div class="nav-actions">
+            <!-- E-mail do usuário ativo -->
+            <span id="user-display-email" style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; display: none;">
+                <i class="fa-regular fa-user" style="margin-right: 6px;"></i> leitor@exemplo.com
+            </span>
+            <button id="btn-logout" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;" type="button">
+                <i class="fa-solid fa-arrow-right-from-bracket" style="margin-right: 6px;"></i> Sair
+            </button>
+        </div>
+    </header>
+
+    <!-- ==================== HERO / BANNER PRINCIPAL ==================== -->
+    <section class="hero-wrapper" aria-label="Apresentação do Quadrinho">
+        <!-- Banner de fundo escurecido -->
+        <div class="hero-banner-bg">
+            <img src="assets/cover_banner.jpg" alt="Fio Vermelho Banner Art" id="hero-banner-image">
+        </div>
+        
+        <div class="hero-content">
+            <!-- Capa estilo livro/quadrinho com sombra e rotação -->
+            <div class="hero-cover-container">
+                <img src="assets/cover_portrait.jpg" alt="Fio Vermelho Capa Oficial" class="hero-cover-img" id="hero-portrait-image">
+            </div>
+            
+            <div class="hero-info">
+                <div class="tag-list">
+                    <span class="tag-badge">Drama</span>
+                    <span class="tag-badge">Mistério</span>
+                    <span class="tag-badge">Sobrenatural</span>
+                    <span class="tag-badge" style="background: rgba(255, 42, 59, 0.2); color: var(--primary-red); border-color: var(--primary-red);">18+</span>
+                </div>
+                
+                <h1 class="hero-title">Fio <span>Vermelho</span></h1>
+                <p class="hero-author">Por <strong>Miles</strong> • Atualizado Quinzenalmente</p>
+                
+                <p class="hero-synopsis">
+                    Dizem que um fio vermelho invisível conecta aqueles que estão destinados a se encontrar, não importa o tempo, lugar ou circunstâncias. Mas o que acontece quando esse fio é cortado por um mistério sangrento? Siga a jornada psicológica de duas almas presas em um ciclo sobrenatural repleto de drama, obsessão e suspense.
+                </p>
+                
+                <div class="hero-buttons">
+                    <button id="btn-start-reading" class="btn btn-primary">
+                        <i class="fa-solid fa-book-open" style="margin-right: 8px;"></i> Começar a Ler
+                    </button>
+                    <a href="#chapters-list" class="btn btn-secondary">
+                        <i class="fa-solid fa-list" style="margin-right: 8px;"></i> Ver Capítulos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== LISTA DE CAPÍTULOS ==================== -->
+    <section class="chapters-section" id="chapters-list">
+        <header class="section-header">
+            <h2 class="section-title">Capítulos <span>Disponíveis</span></h2>
+            <div class="reading-progress-text" id="progress-indicator">
+                Lidos: 0 / 3 (0%)
+            </div>
+        </header>
+        
+        <!-- Grid de Cards de Capítulos -->
+        <div class="chapter-grid" id="chapter-list-container">
+            <!-- Capítulo 1 -->
+            <article class="chapter-card glass-card">
+                <div class="chapter-card-thumb-container">
+                    <span class="chapter-card-status-badge chapter-badge-unread" id="badge-cap-1">Não Lido</span>
+                    <img src="assets/chapter1_thumb.jpg" alt="Capítulo 1 Thumbnail" class="chapter-card-thumb" id="thumb-cap-1">
+                </div>
+                <div class="chapter-card-info">
+                    <div>
+                        <div class="chapter-number">Capítulo 01</div>
+                        <h3 class="chapter-card-title">O Elo Perdido</h3>
+                    </div>
+                    <div class="chapter-card-meta">
+                        <span class="chapter-date">20 de Maio, 2026</span>
+                        <label class="read-checkbox-label">
+                            <input type="checkbox" class="read-checkbox" data-chapter-id="1">
+                            Lido
+                        </label>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Capítulo 2 -->
+            <article class="chapter-card glass-card">
+                <div class="chapter-card-thumb-container">
+                    <span class="chapter-card-status-badge chapter-badge-unread" id="badge-cap-2">Não Lido</span>
+                    <img src="assets/chapter2_thumb.jpg" alt="Capítulo 2 Thumbnail" class="chapter-card-thumb" id="thumb-cap-2">
+                </div>
+                <div class="chapter-card-info">
+                    <div>
+                        <div class="chapter-number">Capítulo 02</div>
+                        <h3 class="chapter-card-title">Cortes no Destino</h3>
+                    </div>
+                    <div class="chapter-card-meta">
+                        <span class="chapter-date">25 de Maio, 2026</span>
+                        <label class="read-checkbox-label">
+                            <input type="checkbox" class="read-checkbox" data-chapter-id="2">
+                            Lido
+                        </label>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Capítulo 3 -->
+            <article class="chapter-card glass-card">
+                <div class="chapter-card-thumb-container">
+                    <span class="chapter-card-status-badge chapter-badge-unread" id="badge-cap-3">Não Lido</span>
+                    <img src="assets/chapter3_thumb.jpg" alt="Capítulo 3 Thumbnail" class="chapter-card-thumb" id="thumb-cap-3">
+                </div>
+                <div class="chapter-card-info">
+                    <div>
+                        <div class="chapter-number">Capítulo 03</div>
+                        <h3 class="chapter-card-title">O Laço Carmim</h3>
+                    </div>
+                    <div class="chapter-card-meta">
+                        <span class="chapter-date">29 de Maio, 2026</span>
+                        <label class="read-checkbox-label">
+                            <input type="checkbox" class="read-checkbox" data-chapter-id="3">
+                            Lido
+                        </label>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <!-- ==================== CAPTURA DE LEADS (NEWSLETTER) ==================== -->
+    <section class="lead-section">
+        <div class="lead-card glass-card">
+            <h2 class="lead-title">Não perca o próximo <span>capítulo</span>!</h2>
+            <p class="lead-text">
+                Inscreva-se na nossa newsletter carmim para receber avisos imediatos por e-mail quando novos capítulos forem publicados, além de artes exclusivas de bastidores.
+            </p>
+            
+            <form id="lead-capture-form" class="lead-form" autocomplete="off">
+                <input type="email" id="lead-email" class="input-field" placeholder="Digite seu melhor e-mail" required>
+                <button type="submit" class="btn btn-primary" id="btn-subscribe">
+                    <i class="fa-solid fa-paper-plane" style="margin-right: 8px;"></i> Quero Receber Avisos
+                </button>
+            </form>
+            
+            <div id="lead-success-message" class="lead-success-msg">
+                <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> Inscrição efetuada! Prepare-se para as novidades.
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== RODAPÉ PRINCIPAL ==================== -->
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div class="nav-logo" style="font-size: 1.2rem;">Fio <span>Vermelho</span></div>
+            <div class="footer-socials">
+                <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#" aria-label="Webtoon"><i class="fa-solid fa-scroll"></i></a>
+                <a href="#" aria-label="Twitter/X"><i class="fa-brands fa-x-twitter"></i></a>
+            </div>
+            <div class="footer-copy">
+                &copy; 2026 Fio Vermelho. Todos os direitos reservados. Ilustrado por Miles.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Supabase JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Scripts da Rota -->
+    <script src="js/config.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
