@@ -16,13 +16,22 @@ window.isOfflineMode = true;
 
 // Inicialização segura do cliente Supabase
 try {
+    console.log("🔍 [Supabase Diagnóstico]:");
+    console.log("   - URL:", window.SUPABASE_URL ? "Preenchida (OK)" : "Vazia (MOCK)");
+    console.log("   - Key:", window.SUPABASE_ANON_KEY ? "Preenchida (OK)" : "Vazia (MOCK)");
+    
+    const hasCdn = (typeof window.supabase !== 'undefined' && (typeof window.supabase.createClient === 'function' || typeof window.supabase === 'function')) || typeof supabaseJs !== 'undefined';
+    console.log("   - CDN Biblioteca:", hasCdn ? "Carregada (OK)" : "Não detectada (BLOQUEADA ou ERRO)");
+
     if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.SUPABASE_URL !== "") {
-        // Se as credenciais estiverem preenchidas e a biblioteca CDN estiver disponível
-        const creator = (window.supabase && window.supabase.createClient) || (typeof supabaseJs !== 'undefined' && supabaseJs.createClient);
+        const creator = (window.supabase && window.supabase.createClient) || (typeof supabaseJs !== 'undefined' && supabaseJs.createClient) || window.supabase;
         if (creator) {
-            window.supabase = creator(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+            const clientCreator = typeof creator === 'function' ? creator : creator.createClient;
+            window.supabase = clientCreator(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
             window.isOfflineMode = false;
             console.log("🧶 Supabase: Conectado com sucesso ao banco remoto.");
+        } else {
+            console.warn("⚠️ A biblioteca CDN do Supabase não forneceu o criador de cliente.");
         }
     }
 } catch (error) {
