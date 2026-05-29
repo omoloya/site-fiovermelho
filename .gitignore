@@ -1,4 +1,5 @@
 # Configurações confidenciais (Credenciais do Supabase)
+env.js
 js/env.js
 js/config.js
 
