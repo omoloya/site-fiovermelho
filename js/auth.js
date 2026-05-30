@@ -350,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     // Condição de parada flexível (seja por status aprovado ou flag de verificação ativa)
-                    if (data.status === 'pago' || data.status === 'approved' || data.status === true) {
+                    if (data.status === 'pago' || data.status === 'approved' || data.status === 'verificado' || data.status === true) {
                         // Limpa o intervalo IMEDIATAMENTE para evitar chamadas órfãs
                         clearInterval(interval);
                         

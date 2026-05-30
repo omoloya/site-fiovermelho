@@ -85,7 +85,7 @@ module.exports = async (req, res) => {
                                     'Authorization': `Bearer ${supabaseServiceKey}`,
                                     'Content-Type': 'application/json'
                                 },
-                                body: JSON.stringify({ status: 'pago' })
+                                body: JSON.stringify({ status: 'verificado' })
                             });
 
                             if (updateResponse.ok) {

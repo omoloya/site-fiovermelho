@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             .maybeSingle();
 
                         const data = profile;
-                        if (!error && data && (data.status === 'pago' || data.status === 'approved' || data.status === true)) {
+                        if (!error && data && (data.status === 'pago' || data.status === 'approved' || data.status === 'verificado' || data.status === true)) {
                             status = 'pago';
                         } else if (data) {
                             status = data.status;
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const data = profile;
                         // Depuração explícita a cada 4 segundos no polling do dashboard
                         console.log("Rodando Polling...", data);
-                        if (!error && data && (data.status === 'pago' || data.status === 'approved' || data.status === true)) {
+                        if (!error && data && (data.status === 'pago' || data.status === 'approved' || data.status === 'verificado' || data.status === true)) {
                             // 1. Parar o bombardeio de requisições imediatamente!
                             clearInterval(statusPollInterval);
                             
@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 .maybeSingle();
 
                             const data = profile;
-                            if (!error && data && (data.status === 'pago' || data.status === 'approved' || data.status === true)) {
+                            if (!error && data && (data.status === 'pago' || data.status === 'approved' || data.status === 'verificado' || data.status === true)) {
                                 clearInterval(statusPollInterval);
                                 
                                 if (window.sessionHelper) {
