@@ -44,6 +44,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // Sobregravação automática de verificação para e-mails administradores autorizados!
+        const adminEmails = (window.env && window.env.ADMIN_EMAILS) || [];
+        if (session && session.user && adminEmails.includes(session.user.email)) {
+            status = 'verificado';
+        }
+
         // Se o status for pendente_verificacao, expulsa do leitor de volta para o dashboard lock
         if (status === 'pendente_verificacao') {
             window.location.replace('dashboard.html');
