@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             .from('profiles')
                             .select('status')
                             .eq('id', userId)
+                            .headers({ 'cache-control': 'no-cache, no-store, must-revalidate', 'pragma': 'no-cache' })
                             .maybeSingle();
 
                         const data = profile;
@@ -124,9 +125,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             .from('profiles')
                             .select('status')
                             .eq('id', pollUserId)
+                            .headers({ 'cache-control': 'no-cache, no-store, must-revalidate', 'pragma': 'no-cache' })
                             .maybeSingle();
 
                         const data = profile;
+                        // Depuração explícita a cada 4 segundos no polling do dashboard
+                        console.log("Rodando Polling...", data);
                         if (!error && data && (data.status === 'pago' || data.status === 'approved' || data.status === true)) {
                             // 1. Parar o bombardeio de requisições imediatamente!
                             clearInterval(statusPollInterval);
@@ -185,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 .from('profiles')
                                 .select('status')
                                 .eq('id', revUserId)
+                                .headers({ 'cache-control': 'no-cache, no-store, must-revalidate', 'pragma': 'no-cache' })
                                 .maybeSingle();
 
                             const data = profile;

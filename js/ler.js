@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             .from('profiles')
                             .select('status')
                             .eq('id', userId)
+                            .headers({ 'cache-control': 'no-cache, no-store, must-revalidate', 'pragma': 'no-cache' })
                             .maybeSingle();
 
                         if (!error && profile) {

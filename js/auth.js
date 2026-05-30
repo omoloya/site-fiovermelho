@@ -337,12 +337,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const interval = setInterval(async () => {
             try {
-                const res = await fetch(`/api/checar-pix?payment_id=${transactionId}&user_id=${userId}`);
+                const res = await fetch(`/api/checar-pix?payment_id=${transactionId}&user_id=${userId}&_t=${Date.now()}`);
                 if (res.ok) {
                     const data = await res.json();
                     
-                    // Log da resposta no console do navegador para depuração
-                    console.log("🧶 [auth.js] Resposta checar-pix:", data);
+                    // Depuração explícita a cada 3 segundos para acompanhar a batida do relógio
+                    console.log("Rodando Polling...", data);
 
                     // Restaura o texto original de aguardando se a requisição voltou a funcionar
                     if (pixStatusText) {
