@@ -54,24 +54,94 @@ document.addEventListener('DOMContentLoaded', () => {
             status = 'verificado';
         }
 
-        // Se o status for pendente_verificacao, bloqueia com o modal
+        // Se o status for pendente_verificacao, bloqueia com o modal e inicia checagem ativa
         if (status === 'pendente_verificacao') {
             if (lockOverlay) {
                 lockOverlay.style.display = 'flex';
                 document.body.style.overflow = 'hidden'; // Impede rolagem
             }
 
+            // Polling periódico seguro a cada 4 segundos no dashboard
+            const statusPollInterval = setInterval(async () => {
+                if (window.isOfflineMode) return;
+                try {
+                    if (window.supabase) {
+                        const { data: profile, error } = await window.supabase
+                            .from('profiles')
+                            .select('status')
+                            .eq('id', session.user.id)
+                            .maybeSingle();
+
+                        if (!error && profile && profile.status === 'verificado') {
+                            clearInterval(statusPollInterval);
+                            
+                            // Atualiza a sessão
+                            if (window.sessionHelper) {
+                                window.sessionHelper.setSession(session.user.email, true);
+                            }
+                            
+                            // Destrava o dashboard
+                            if (lockOverlay) {
+                                lockOverlay.style.display = 'none';
+                                document.body.style.overflow = '';
+                            }
+                            
+                            alert("🎉 Pagamento confirmado! Seu acesso de maioridade foi verificado com sucesso.");
+                            loadChaptersAndRenderGrid();
+                        }
+                    }
+                } catch (pollErr) {
+                    console.error("Erro no polling de status:", pollErr);
+                }
+            }, 4000);
+
             if (btnLockLogout) {
                 btnLockLogout.addEventListener('click', () => {
+                    clearInterval(statusPollInterval);
                     window.sessionHelper.clearSession();
                     window.location.replace('index.html');
                 });
             }
 
             if (btnLockReverify) {
-                btnLockReverify.addEventListener('click', () => {
-                    window.sessionHelper.clearSession();
-                    window.location.replace('index.html');
+                btnLockReverify.addEventListener('click', async () => {
+                    const originalBtnText = btnLockReverify.innerHTML;
+                    btnLockReverify.innerHTML = '<div class="pix-status-spinner" style="width:14px; height:14px; margin-right:8px; border-top-color:#fff; display:inline-block; vertical-align:middle;"></div> Verificando Pix...';
+                    btnLockReverify.setAttribute('disabled', 'true');
+
+                    try {
+                        if (window.supabase) {
+                            const { data: profile, error } = await window.supabase
+                                .from('profiles')
+                                .select('status')
+                                .eq('id', session.user.id)
+                                .maybeSingle();
+
+                            if (!error && profile && profile.status === 'verificado') {
+                                clearInterval(statusPollInterval);
+                                
+                                if (window.sessionHelper) {
+                                    window.sessionHelper.setSession(session.user.email, true);
+                                }
+                                
+                                if (lockOverlay) {
+                                    lockOverlay.style.display = 'none';
+                                    document.body.style.overflow = '';
+                                }
+                                
+                                alert("🎉 Pagamento confirmado! Seu acesso de maioridade foi verificado com sucesso.");
+                                loadChaptersAndRenderGrid();
+                                return;
+                            }
+                        }
+                        alert("⚠️ Ainda não detectamos a aprovação do Pix. \n\nSe você acabou de pagar, o processamento bancário pode levar de 10 a 60 segundos. Por favor, aguarde um momento e tente novamente!");
+                    } catch (err) {
+                        console.error("Erro na verificação manual:", err);
+                        alert("Erro ao conectar com o banco. Tente novamente.");
+                    } finally {
+                        btnLockReverify.innerHTML = originalBtnText;
+                        btnLockReverify.removeAttribute('disabled');
+                    }
                 });
             }
         } else {
