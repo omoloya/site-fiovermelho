@@ -341,6 +341,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (res.ok) {
                     const data = await res.json();
                     
+                    // Restaura o texto original de aguardando se a requisição voltou a funcionar
+                    if (pixStatusText) {
+                        pixStatusText.innerHTML = 'Aguardando confirmação do pagamento real...';
+                    }
+
                     if (data.status === 'approved' && data.verificado === true) {
                         // Limpa o intervalo IMEDIATAMENTE para evitar chamadas órfãs
                         clearInterval(interval);
@@ -357,9 +362,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         alert("O pagamento Pix foi cancelado ou recusado pelo banco. Tente novamente.");
                         showStep(stepSignup);
                     }
+                } else {
+                    const errData = await res.json().catch(() => ({}));
+                    const errMsg = errData.error || "Erro na conexão com o gateway de pagamento.";
+                    console.error("Erro retornado pelo backend:", errMsg);
+                    if (pixStatusText) {
+                        pixStatusText.innerHTML = `<span style="color: var(--primary-red); font-weight: 600;"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i> Erro Vercel: ${errMsg}</span>`;
+                    }
                 }
             } catch (err) {
                 console.error("Erro ao verificar Pix no backend:", err);
+                if (pixStatusText) {
+                    pixStatusText.innerHTML = `<span style="color: var(--primary-red); font-weight: 600;"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i> Falha de rede. Tentando reconectar...</span>`;
+                }
             }
         }, 3000); // Polling a cada 3 segundos
 

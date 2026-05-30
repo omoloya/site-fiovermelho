@@ -45,10 +45,21 @@ module.exports = async (req, res) => {
                 if (supabaseUrl && supabaseKey) {
                     try {
                         const payerEmail = data.payer && data.payer.email;
+                        const payerCpf = data.payer && data.payer.identification && data.payer.identification.number;
                         
-                        if (payerEmail) {
+                        // Busca por CPF limpo (altamente recomendado, livre de problemas de maiúsculas/minúsculas)
+                        // com fallback para busca por email
+                        let filterQuery = "";
+                        if (payerCpf) {
+                            const cleanCpf = payerCpf.replace(/[^\d]+/g, '');
+                            filterQuery = `cpf=eq.${cleanCpf}`;
+                        } else if (payerEmail) {
+                            filterQuery = `email=eq.${encodeURIComponent(payerEmail)}`;
+                        }
+
+                        if (filterQuery) {
                             // Faz a requisição PATCH para a REST API do Supabase de forma nativa e leve
-                            const updateResponse = await fetch(`${supabaseUrl}/rest/v1/profiles?email=eq.${encodeURIComponent(payerEmail)}`, {
+                            const updateResponse = await fetch(`${supabaseUrl}/rest/v1/profiles?${filterQuery}`, {
                                 method: 'PATCH',
                                 headers: {
                                     'apikey': supabaseKey,
@@ -59,7 +70,7 @@ module.exports = async (req, res) => {
                             });
 
                             if (updateResponse.ok) {
-                                console.log(`[checar-pix] Perfil de ${payerEmail} atualizado para 'verificado' via REST API.`);
+                                console.log(`[checar-pix] Perfil (${filterQuery}) atualizado para 'verificado' via REST API.`);
                                 verificado = true;
                             } else {
                                 const errBody = await updateResponse.text();
