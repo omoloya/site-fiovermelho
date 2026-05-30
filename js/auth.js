@@ -342,19 +342,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     const data = await res.json();
                     
                     if (data.status === 'approved') {
+                        // Limpa o intervalo IMEDIATAMENTE para evitar chamadas órfãs
                         clearInterval(interval);
                         
-                        // 1. Atualiza o status na tabela do Supabase de forma imediata e transparente
-                        if (!window.isOfflineMode && window.supabase) {
-                            await window.supabase
-                                .from('profiles')
-                                .update({ status: 'verificado' })
-                                .eq('id', userId);
-                        } else {
-                            // Atualiza localmente no mock
+                        // Atualiza localmente no mock caso esteja em modo offline
+                        if (window.isOfflineMode) {
                             updateMockUserStatus(email, 'verificado');
                         }
 
+                        // Redireciona e libera o acesso de forma segura
                         handleSuccessfulPayment(email);
                     } else if (data.status === 'rejected' || data.status === 'cancelled') {
                         clearInterval(interval);
