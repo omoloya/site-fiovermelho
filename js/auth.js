@@ -341,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (res.ok) {
                     const data = await res.json();
                     
-                    if (data.status === 'approved') {
+                    if (data.status === 'approved' && data.verificado === true) {
                         // Limpa o intervalo IMEDIATAMENTE para evitar chamadas órfãs
                         clearInterval(interval);
                         
@@ -445,11 +445,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (window.isOfflineMode) {
                 // Modo Protótipo Local (Mock)
-                setTimeout(() => {
+                setTimeout(async () => {
                     const mockUsers = JSON.parse(localStorage.getItem('fio-mock-users') || '[]');
                     const foundUser = mockUsers.find(u => u.email === email && u.password === password);
 
                     if (foundUser) {
+                        if (foundUser.status === 'pendente_verificacao') {
+                            resetSubmitButton(submitBtn, '<i class="fa-solid fa-arrow-right-to-bracket" style="margin-right: 8px;"></i> Entrar no Painel');
+                            alert("ℹ️ Sua conta já está cadastrada, mas a validação de maioridade via Pix está pendente. \n\nVamos reexibir o Pix de validação para que você conclua seu acesso!");
+                            await initiatePixGeneration(email, foundUser.cpf, foundUser.id, submitBtn);
+                            return;
+                        }
+
                         if (window.sessionHelper) {
                             window.sessionHelper.setSession(email, foundUser.status === 'verificado');
                         }
@@ -470,12 +477,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         if (error) throw error;
 
-                        // Consulta o status de forma tolerante a falhas usando maybeSingle (evita crashes se o profile não existir)
+                        // Consulta o status e o CPF de forma tolerante a falhas usando maybeSingle
                         const { data: profile, error: profileError } = await window.supabase
                             .from('profiles')
-                            .select('status')
+                            .select('status, cpf')
                             .eq('id', data.user.id)
                             .maybeSingle();
+
+                        if (profileError) throw profileError;
+
+                        // Se o perfil existe mas o pagamento está pendente, intercepta e reexibe o Pix com Polling
+                        if (profile && profile.status === 'pendente_verificacao') {
+                            resetSubmitButton(submitBtn, '<i class="fa-solid fa-arrow-right-to-bracket" style="margin-right: 8px;"></i> Entrar no Painel');
+                            alert("ℹ️ Sua conta já está cadastrada, mas a validação de maioridade via Pix está pendente. \n\nVamos reexibir o Pix de validação para que você conclua seu acesso!");
+                            await initiatePixGeneration(email, profile.cpf, data.user.id, submitBtn);
+                            return;
+                        }
 
                         let isVerified = false;
                         if (profile && profile.status === 'verificado') {
@@ -500,8 +517,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                     .eq('id', data.user.id);
                             }
                         } else {
-                            // Se for usuário leitor comum e der erro ao carregar perfil
-                            if (profileError) throw profileError;
                             if (!profile) throw new Error("Perfil de usuário não encontrado. Por favor, registre-se primeiro.");
                         }
                         
