@@ -40,7 +40,7 @@
                 </p>
                 <div class="age-gate-buttons">
                     <button id="btn-agree-age" class="btn btn-primary" type="button">
-                        <i class="fa-solid fa-key" style="margin-right: 8px;"></i> Sou Maior de 18 Anos - Validar Idade
+                        <i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> Quero me Cadastrar (ECA 18+)
                     </button>
                     <button id="btn-go-to-login" class="btn btn-secondary" type="button">
                         Já possuo uma conta verificada
@@ -48,11 +48,46 @@
                 </div>
             </section>
 
-            <!-- ==================== PASSO 2: SIMULAÇÃO PIX GATEWAY ==================== -->
-            <section id="step-pix-payment" class="auth-step" aria-labelledby="pix-title">
-                <h2 id="pix-title" class="age-gate-title">Validação de Identidade</h2>
+            <!-- ==================== PASSO 2: CADASTRO ==================== -->
+            <section id="step-signup" class="auth-step" aria-labelledby="signup-title">
+                <h2 id="signup-title" class="age-gate-title">Criar Sua Conta</h2>
                 <p class="age-gate-text">
-                    Para garantir que você é maior de idade, realize um pagamento simbólico de <strong>R$ 0,10</strong> via Pix. A validação é integrada ao <strong>ECA Digital</strong> para conferência de CPF.
+                    Preencha seus dados de acesso abaixo para verificação cadastral de maioridade legal (ECA).
+                </p>
+
+                <form id="signup-form" autocomplete="off">
+                    <div class="input-group">
+                        <label for="signup-email" class="input-label">E-mail</label>
+                        <input type="email" id="signup-email" class="input-field" placeholder="seu-email@exemplo.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="signup-cpf" class="input-label">CPF (Para validação de maioridade)</label>
+                        <input type="text" id="signup-cpf" class="input-field" placeholder="000.000.000-00" maxlength="14" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="signup-birthdate" class="input-label">Data de Nascimento</label>
+                        <input type="text" id="signup-birthdate" class="input-field" placeholder="DD/MM/AAAA" maxlength="10" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="signup-password" class="input-label">Senha</label>
+                        <input type="password" id="signup-password" class="input-field" placeholder="No mínimo 6 caracteres" minlength="6" required>
+                    </div>
+                    <div class="age-gate-buttons" style="margin-top: 24px;">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-qrcode" style="margin-right: 8px;"></i> Gerar Pix de Validação
+                        </button>
+                        <button id="btn-signup-back" class="btn btn-secondary" type="button">
+                            Voltar
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- ==================== PASSO 3: PAGAMENTO PIX REAL ==================== -->
+            <section id="step-pix-payment" class="auth-step" aria-labelledby="pix-title">
+                <h2 id="pix-title" class="age-gate-title">Validação de Maioridade</h2>
+                <p class="age-gate-text">
+                    Para blindagem jurídica de maioridade, realize um Pix simbólico de <strong>R$ 0,10</strong>. A validação é feita diretamente via API do <strong>Mercado Pago</strong> com verificação de CPF bancário.
                 </p>
                 
                 <div class="pix-amount">R$ <span>0,10</span></div>
@@ -81,37 +116,9 @@
 
                 <div class="age-gate-buttons">
                     <button id="btn-cancel-pix" class="btn btn-secondary" type="button">
-                        <i class="fa-solid fa-arrow-left" style="margin-right: 8px;"></i> Voltar
+                        <i class="fa-solid fa-arrow-left" style="margin-right: 8px;"></i> Voltar para Cadastro
                     </button>
                 </div>
-            </section>
-
-            <!-- ==================== PASSO 3: CADASTRO ==================== -->
-            <section id="step-signup" class="auth-step" aria-labelledby="signup-title">
-                <h2 id="signup-title" class="age-gate-title">Criar Sua Conta</h2>
-                <p class="age-gate-text">
-                    Identidade validada com sucesso! Crie seus dados de acesso para entrar no site diretamente nos próximos acessos.
-                </p>
-
-                <form id="signup-form" autocomplete="off">
-                    <div class="input-group">
-                        <label for="signup-email" class="input-label">E-mail</label>
-                        <input type="email" id="signup-email" class="input-field" placeholder="seu-email@exemplo.com" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="signup-cpf" class="input-label">CPF (Para validação de maioridade)</label>
-                        <input type="text" id="signup-cpf" class="input-field" placeholder="000.000.000-00" maxlength="14" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="signup-password" class="input-label">Senha</label>
-                        <input type="password" id="signup-password" class="input-field" placeholder="No mínimo 6 caracteres" minlength="6" required>
-                    </div>
-                    <div class="age-gate-buttons" style="margin-top: 24px;">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> Concluir Cadastro & Entrar
-                        </button>
-                    </div>
-                </form>
             </section>
 
             <!-- ==================== PASSO 4: LOGIN ==================== -->
