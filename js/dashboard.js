@@ -17,7 +17,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 1.1 Verificação de Maioridade / Status do Perfil (ECA) ---
-    checkProfileStatus();
+    try {
+        checkProfileStatus();
+    } catch (criticalErr) {
+        console.error("Erro crítico ao checar status de maioridade:", criticalErr);
+        // Garantia de destravamento de emergência caso o usuário já esteja marcado como verificado na sessão local
+        if (session && session.is_verified) {
+            const lockOverlay = document.getElementById('dashboard-lock-overlay');
+            if (lockOverlay) {
+                lockOverlay.style.display = 'none';
+                lockOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            loadChaptersAndRenderGrid();
+        }
+    }
 
     async function checkProfileStatus() {
         const lockOverlay = document.getElementById('dashboard-lock-overlay');
