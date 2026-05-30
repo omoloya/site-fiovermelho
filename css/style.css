@@ -205,9 +205,11 @@ a {
 .auth-container {
     min-height: 100vh;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    gap: 32px;
+    padding: 48px 24px;
     position: relative;
     overflow: hidden;
 }
@@ -1091,4 +1093,70 @@ a {
 @keyframes fadeInLock {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+/* ==========================================================================
+   NEWSLETTER SECTION (NOIR & MINIMALIST)
+   ========================================================================== */
+.newsletter-section {
+    width: 100%;
+    max-width: 480px;
+    padding: 24px 32px;
+    text-align: center;
+    position: relative;
+    z-index: 10;
+    margin-top: 8px;
+}
+
+.newsletter-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.5;
+    letter-spacing: 0.02em;
+}
+
+.newsletter-form {
+    width: 100%;
+}
+
+.newsletter-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+@media (min-width: 480px) {
+    .newsletter-input-group {
+        flex-direction: row;
+        gap: 8px;
+    }
+    .newsletter-input {
+        flex: 1;
+    }
+    .btn-newsletter {
+        white-space: nowrap;
+    }
+}
+
+.newsletter-message {
+    font-size: 0.85rem;
+    margin-top: 12px;
+    min-height: 20px;
+    transition: var(--transition-fast);
+    display: none;
+}
+
+.newsletter-message.success {
+    display: block;
+    color: var(--success-green);
+    text-shadow: 0 0 10px var(--success-green-glow);
+}
+
+.newsletter-message.error {
+    display: block;
+    color: var(--primary-red);
+    text-shadow: 0 0 10px var(--primary-red-glow);
 }

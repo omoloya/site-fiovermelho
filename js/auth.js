@@ -488,4 +488,80 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.classList.remove('btn-disabled');
         btn.innerHTML = originalHTML;
     }
+
+    // --- FORMULÁRIO DA NEWSLETTER (SUPABASE / LOCAL STORAGE) ---
+    const newsletterForm = document.getElementById('newsletter-form');
+    const newsletterEmailInput = document.getElementById('newsletter-email');
+    const newsletterMessage = document.getElementById('newsletter-message');
+    const btnNewsletterSubscribe = document.getElementById('btn-newsletter-subscribe');
+
+    if (newsletterForm && newsletterEmailInput && newsletterMessage && btnNewsletterSubscribe) {
+        newsletterForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = newsletterEmailInput.value.trim();
+            if (!email) return;
+
+            // Feedback visual de carregamento
+            btnNewsletterSubscribe.classList.add('btn-disabled');
+            const originalBtnHTML = btnNewsletterSubscribe.innerHTML;
+            btnNewsletterSubscribe.innerHTML = '<div class="pix-status-spinner" style="margin-right: 8px; width: 14px; height: 14px;"></div>';
+
+            newsletterMessage.style.display = 'none';
+            newsletterMessage.className = 'newsletter-message';
+            newsletterMessage.textContent = '';
+
+            if (window.isOfflineMode) {
+                // Modo Protótipo Local (Mock)
+                setTimeout(() => {
+                    let mockNewsletter = JSON.parse(localStorage.getItem('fio-mock-newsletter') || '[]');
+                    
+                    if (mockNewsletter.includes(email)) {
+                        newsletterMessage.textContent = 'Este e-mail já está cadastrado na nossa lista!';
+                        newsletterMessage.classList.add('error');
+                    } else {
+                        mockNewsletter.push(email);
+                        localStorage.setItem('fio-mock-newsletter', JSON.stringify(mockNewsletter));
+                        
+                        newsletterMessage.textContent = 'E-mail cadastrado! Você será avisado assim que o primeiro capítulo for liberado.';
+                        newsletterMessage.classList.add('success');
+                        newsletterForm.reset();
+                    }
+                    
+                    btnNewsletterSubscribe.classList.remove('btn-disabled');
+                    btnNewsletterSubscribe.innerHTML = originalBtnHTML;
+                }, 800);
+            } else {
+                // Modo Produção Remoto (Supabase)
+                try {
+                    if (window.supabase) {
+                        // Faz a inserção direta na tabela 'newsletter'
+                        const { error } = await window.supabase
+                            .from('newsletter')
+                            .insert([{ email: email }]);
+
+                        if (error) {
+                            // Se for erro de duplicidade (código 23505 no Postgres)
+                            if (error.code === '23505') {
+                                throw new Error('Este e-mail já está cadastrado na nossa lista!');
+                            }
+                            throw error;
+                        }
+
+                        newsletterMessage.textContent = 'E-mail cadastrado! Você será avisado assim que o primeiro capítulo for liberado.';
+                        newsletterMessage.classList.add('success');
+                        newsletterForm.reset();
+                    } else {
+                        throw new Error('Supabase não foi inicializado corretamente.');
+                    }
+                } catch (err) {
+                    console.error("Erro na inscrição da newsletter:", err);
+                    newsletterMessage.textContent = err.message || 'Falha ao cadastrar e-mail. Tente novamente mais tarde.';
+                    newsletterMessage.classList.add('error');
+                } finally {
+                    btnNewsletterSubscribe.classList.remove('btn-disabled');
+                    btnNewsletterSubscribe.innerHTML = originalBtnHTML;
+                }
+            }
+        });
+    }
 });
