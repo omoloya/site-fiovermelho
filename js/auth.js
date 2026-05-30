@@ -459,16 +459,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         if (error) throw error;
 
-                        // Consulta o status real na tabela profiles
+                        // Consulta o status de forma tolerante a falhas usando maybeSingle (evita crashes se o profile não existir)
                         const { data: profile, error: profileError } = await window.supabase
                             .from('profiles')
                             .select('status')
                             .eq('id', data.user.id)
-                            .single();
+                            .maybeSingle();
 
-                        if (profileError) throw profileError;
+                        let isVerified = false;
+                        if (profile && profile.status === 'verificado') {
+                            isVerified = true;
+                        }
 
-                        const isVerified = profile.status === 'verificado';
+                        // Sobregravação/Override de Conveniência e Segurança para administradores!
+                        const adminEmails = (window.env && window.env.ADMIN_EMAILS) || [];
+                        if (adminEmails.includes(email)) {
+                            isVerified = true;
+                            
+                            // Se o profile do admin não existir no banco (ex: criado direto no painel auth), cria agora
+                            if (!profile) {
+                                await window.supabase
+                                    .from('profiles')
+                                    .insert([{ id: data.user.id, email: email, status: 'verificado' }]);
+                            } else if (profile.status !== 'verificado') {
+                                // Se existir mas estiver pendente, promove automaticamente a verificado
+                                await window.supabase
+                                    .from('profiles')
+                                    .update({ status: 'verificado' })
+                                    .eq('id', data.user.id);
+                            }
+                        } else {
+                            // Se for usuário leitor comum e der erro ao carregar perfil
+                            if (profileError) throw profileError;
+                            if (!profile) throw new Error("Perfil de usuário não encontrado. Por favor, registre-se primeiro.");
+                        }
                         
                         if (window.sessionHelper) {
                             window.sessionHelper.setSession(email, isVerified);
