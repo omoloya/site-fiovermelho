@@ -21,6 +21,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function checkProfileStatus() {
         let status = 'pendente_verificacao';
+        let userId = session && session.user && session.user.id;
+
+        // Recuperação defensiva de ID no Supabase caso não esteja na sessão ativa
+        if (!userId && !window.isOfflineMode && window.supabase) {
+            try {
+                if (typeof window.supabase.auth.getUser === 'function') {
+                    const { data } = await window.supabase.auth.getUser();
+                    if (data && data.user) userId = data.user.id;
+                }
+                if (!userId && typeof window.supabase.auth.user === 'function') {
+                    const u = window.supabase.auth.user();
+                    if (u) userId = u.id;
+                }
+                if (userId && window.sessionHelper) {
+                    window.sessionHelper.setSession(session.user.email, session.is_verified, userId);
+                }
+            } catch (e) {
+                console.error("[ler.js] Falha ao recuperar ID do usuário:", e);
+            }
+        }
 
         if (window.isOfflineMode) {
             const mockUsers = JSON.parse(localStorage.getItem('fio-mock-users') || '[]');
@@ -29,14 +49,19 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             try {
                 if (window.supabase) {
-                    const { data: profile, error } = await window.supabase
-                        .from('profiles')
-                        .select('status')
-                        .eq('id', session.user.id)
-                        .maybeSingle();
+                    if (!userId) {
+                        console.error("[ler.js] ID do usuário está undefined na sessão. Bloqueando por segurança.");
+                        status = 'pendente_verificacao';
+                    } else {
+                        const { data: profile, error } = await window.supabase
+                            .from('profiles')
+                            .select('status')
+                            .eq('id', userId)
+                            .maybeSingle();
 
-                    if (!error && profile) {
-                        status = profile.status;
+                        if (!error && profile) {
+                            status = profile.status;
+                        }
                     }
                 }
             } catch (err) {

@@ -47,9 +47,37 @@ if (window.isOfflineMode) {
 
 // Utilitário para salvar informações de sessão mockadas ou reais
 window.sessionHelper = {
-    setSession: function(userEmail, isVerified = true) {
+    setSession: function(userEmail, isVerified = true, userId = null) {
+        // Tenta obter o ID existente da sessão anterior para preservá-lo caso não tenha sido fornecido
+        let finalUserId = userId;
+        if (!finalUserId) {
+            const oldSession = this.getSession();
+            if (oldSession && oldSession.user && oldSession.user.id) {
+                finalUserId = oldSession.user.id;
+            }
+        }
+        
+        // Se ainda estiver vazio e não for modo offline, tenta obter do cliente Supabase
+        if (!finalUserId && !window.isOfflineMode && window.supabase) {
+            try {
+                if (typeof window.supabase.auth.user === 'function') {
+                    const u = window.supabase.auth.user();
+                    if (u) finalUserId = u.id;
+                }
+                if (!finalUserId && typeof window.supabase.auth.session === 'function') {
+                    const s = window.supabase.auth.session();
+                    if (s && s.user) finalUserId = s.user.id;
+                }
+            } catch (e) {
+                console.warn("Erro ao ler usuário do Supabase em setSession:", e);
+            }
+        }
+
         const sessionData = {
-            user: { email: userEmail },
+            user: { 
+                email: userEmail,
+                id: finalUserId
+            },
             is_verified: isVerified,
             loginTime: new Date().getTime()
         };

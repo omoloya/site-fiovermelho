@@ -25,6 +25,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnLockLogout = document.getElementById('btn-lock-logout');
 
         let status = 'pendente_verificacao';
+        let userId = session && session.user && session.user.id;
+
+        // Recuperação defensiva de ID no Supabase caso não esteja na sessão ativa
+        if (!userId && !window.isOfflineMode && window.supabase) {
+            try {
+                if (typeof window.supabase.auth.getUser === 'function') {
+                    const { data } = await window.supabase.auth.getUser();
+                    if (data && data.user) userId = data.user.id;
+                }
+                if (!userId && typeof window.supabase.auth.user === 'function') {
+                    const u = window.supabase.auth.user();
+                    if (u) userId = u.id;
+                }
+                if (userId && window.sessionHelper) {
+                    window.sessionHelper.setSession(session.user.email, session.is_verified, userId);
+                }
+            } catch (e) {
+                console.error("[dashboard.js] Falha ao recuperar ID do usuário:", e);
+            }
+        }
 
         if (window.isOfflineMode) {
             const mockUsers = JSON.parse(localStorage.getItem('fio-mock-users') || '[]');
@@ -33,14 +53,19 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             try {
                 if (window.supabase) {
-                    const { data: profile, error } = await window.supabase
-                        .from('profiles')
-                        .select('status')
-                        .eq('id', session.user.id)
-                        .maybeSingle();
+                    if (!userId) {
+                        console.error("[dashboard.js] ID do usuário está undefined na sessão. Bloqueando por segurança.");
+                        status = 'pendente_verificacao';
+                    } else {
+                        const { data: profile, error } = await window.supabase
+                            .from('profiles')
+                            .select('status')
+                            .eq('id', userId)
+                            .maybeSingle();
 
-                    if (!error && profile) {
-                        status = profile.status;
+                        if (!error && profile) {
+                            status = profile.status;
+                        }
                     }
                 }
             } catch (err) {
@@ -65,11 +90,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const statusPollInterval = setInterval(async () => {
                 if (window.isOfflineMode) return;
                 try {
+                    let pollUserId = session && session.user && session.user.id;
+                    if (!pollUserId && window.supabase && typeof window.supabase.auth.user === 'function') {
+                        const u = window.supabase.auth.user();
+                        if (u) pollUserId = u.id;
+                    }
+
+                    if (!pollUserId) {
+                        console.error("[dashboard.js] Polling: ID do usuário está undefined.");
+                        return;
+                    }
+
                     if (window.supabase) {
                         const { data: profile, error } = await window.supabase
                             .from('profiles')
                             .select('status')
-                            .eq('id', session.user.id)
+                            .eq('id', pollUserId)
                             .maybeSingle();
 
                         if (!error && profile && profile.status === 'verificado') {
@@ -77,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             
                             // Atualiza a sessão
                             if (window.sessionHelper) {
-                                window.sessionHelper.setSession(session.user.email, true);
+                                window.sessionHelper.setSession(session.user.email, true, pollUserId);
                             }
                             
                             // Destrava o dashboard
@@ -110,18 +146,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnLockReverify.setAttribute('disabled', 'true');
 
                     try {
+                        let revUserId = session && session.user && session.user.id;
+                        if (!revUserId && window.supabase && typeof window.supabase.auth.user === 'function') {
+                            const u = window.supabase.auth.user();
+                            if (u) revUserId = u.id;
+                        }
+
+                        if (!revUserId) {
+                            alert("⚠️ ID do usuário não encontrado. Por favor, tente fazer login novamente.");
+                            return;
+                        }
+
                         if (window.supabase) {
                             const { data: profile, error } = await window.supabase
                                 .from('profiles')
                                 .select('status')
-                                .eq('id', session.user.id)
+                                .eq('id', revUserId)
                                 .maybeSingle();
 
                             if (!error && profile && profile.status === 'verificado') {
                                 clearInterval(statusPollInterval);
                                 
                                 if (window.sessionHelper) {
-                                    window.sessionHelper.setSession(session.user.email, true);
+                                    window.sessionHelper.setSession(session.user.email, true, revUserId);
                                 }
                                 
                                 if (lockOverlay) {
@@ -149,6 +196,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 lockOverlay.style.display = 'none';
                 document.body.style.overflow = '';
             }
+            // Só carrega os capítulos se os dados do perfil indicarem verificação com sucesso
+            loadChaptersAndRenderGrid();
         }
     }
 
@@ -379,8 +428,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Dispara a carga inicial dinâmica dos capítulos
-    loadChaptersAndRenderGrid();
+    // A carga dos capítulos agora é disparada apenas se o perfil estiver verificado em checkProfileStatus()
+    // loadChaptersAndRenderGrid();
 
     // --- 5. Captura de Leads (Newsletter) ---
     if (leadForm) {

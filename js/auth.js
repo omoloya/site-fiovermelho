@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('fio-mock-users', JSON.stringify(mockUsers));
                 
                 if (window.sessionHelper) {
-                    window.sessionHelper.setSession(email, isAdminEmail);
+                    window.sessionHelper.setSession(email, isAdminEmail, userId);
                 }
                 
                 if (isAdminEmail) {
@@ -263,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (profileError) throw profileError;
 
                         if (window.sessionHelper) {
-                            window.sessionHelper.setSession(email, isAdminEmail);
+                            window.sessionHelper.setSession(email, isAdminEmail, userId);
                         }
 
                         if (isAdminEmail) {
@@ -319,7 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (pixCodeField) pixCodeField.value = charge.copyPasteCode;
                 
                 showStep(stepPixPayment);
-                startMockPixMonitoring(email);
+                startMockPixMonitoring(email, userId);
             }
         } finally {
             resetSubmitButton(submitBtn, '<i class="fa-solid fa-qrcode" style="margin-right: 8px;"></i> Gerar Pix de Validação');
@@ -359,8 +359,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             updateMockUserStatus(email, 'verificado');
                         }
 
-                        // Redireciona e libera o acesso de forma segura
-                        handleSuccessfulPayment(email);
+                        // Redireciona e libera o acesso de forma segura com o ID do usuário
+                        handleSuccessfulPayment(email, userId);
                     } else if (data.status === 'rejected' || data.status === 'cancelled') {
                         clearInterval(interval);
                         alert("O pagamento Pix foi cancelado ou recusado pelo banco. Tente novamente.");
@@ -386,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- MONITORAMENTO MOCK: SIMULAÇÃO PARA TESTES LOCAIS ---
-    function startMockPixMonitoring(email) {
+    function startMockPixMonitoring(email, userId) {
         let elapsedTime = 0;
         const intervalTime = 1000;
         
@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (elapsedTime >= 6000) {
                 clearInterval(interval);
                 updateMockUserStatus(email, 'verificado');
-                handleSuccessfulPayment(email);
+                handleSuccessfulPayment(email, userId);
             }
         }, intervalTime);
 
@@ -414,9 +414,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Ação: Sucesso no Pagamento e Redirecionamento
-    function handleSuccessfulPayment(email) {
+    async function handleSuccessfulPayment(email, userId = null) {
+        let finalUserId = userId;
+        
+        // Se o userId não foi passado ou está ausente, tenta recuperar direto da sessão ativa do Supabase
+        if (!finalUserId && !window.isOfflineMode && window.supabase) {
+            try {
+                if (typeof window.supabase.auth.getUser === 'function') {
+                    const { data } = await window.supabase.auth.getUser();
+                    if (data && data.user) finalUserId = data.user.id;
+                }
+                if (!finalUserId && typeof window.supabase.auth.getSession === 'function') {
+                    const { data } = await window.supabase.auth.getSession();
+                    if (data && data.session && data.session.user) finalUserId = data.session.user.id;
+                }
+                if (!finalUserId && typeof window.supabase.auth.user === 'function') {
+                    const u = window.supabase.auth.user();
+                    if (u) finalUserId = u.id;
+                }
+            } catch (e) {
+                console.error("Erro ao recuperar ID do usuário logado na verificação do pagamento:", e);
+            }
+        }
+
         if (window.sessionHelper) {
-            window.sessionHelper.setSession(email, true); // true = verificado!
+            window.sessionHelper.setSession(email, true, finalUserId); // true = verificado!
         }
         
         if (pixSpinner) pixSpinner.style.display = 'none';
