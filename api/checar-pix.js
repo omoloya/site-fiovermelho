@@ -12,7 +12,7 @@ module.exports = async (req, res) => {
         return res.status(405).json({ error: 'Método não permitido' });
     }
 
-    const { id } = req.query;
+    const id = req.query.id || req.query.payment_id;
     const token = process.env.MERCADO_PAGO_ACCESS_TOKEN;
 
     if (!token) {
