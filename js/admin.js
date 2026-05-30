@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ADMIN.HTML PORTAL LOGIC - REAL-TIME WEBP COMPRESSOR & SUPABASE STORAGE UPLOADER
+   ADMIN.HTML PORTAL LOGIC - WEBP COMPRESSOR & ADVANCED CHAPTERS/PAGES MANAGER
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chapterIdInput = document.getElementById('chapter-id');
     const chapterTitleInput = document.getElementById('chapter-title');
     const chapterDateInput = document.getElementById('chapter-date');
+    const btnCancelEdit = document.getElementById('btn-cancel-edit');
     
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('upload-file-input');
@@ -46,9 +47,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressPercentage = document.getElementById('progress-percentage');
     const successBanner = document.getElementById('success-banner');
 
-    // Fila de arquivos selecionados
+    // Novos Elementos do Gerenciador de Capítulos e Páginas
+    const adminChaptersList = document.getElementById('admin-chapters-list');
+    const pageManagerCard = document.getElementById('page-manager-card');
+    const pageManagerTitle = document.getElementById('page-manager-title');
+    const pageManagerGrid = document.getElementById('page-manager-grid');
+    const replacePageFileInput = document.getElementById('replace-page-file-input');
+
+    // Variáveis de Estado Geral
     let fileQueue = [];
     let isUploading = false;
+    
+    // Variáveis de Estado de Edição
+    let isEditMode = false;
+    let editingChapterId = null;
+    let replacingPageIndex = null;
+    let chaptersListCache = [];
+
+    const defaultChapters = [
+        { id: 1, title: "O Elo Perdido", pages_count: 4, release_date: "20 de Maio, 2026" },
+        { id: 2, title: "Cortes no Destino", pages_count: 4, release_date: "25 de Maio, 2026" },
+        { id: 3, title: "O Laço Carmim", pages_count: 4, release_date: "29 de Maio, 2026" }
+    ];
 
     // Inicializa a data atual como valor padrão no input
     if (chapterDateInput) {
@@ -57,12 +77,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 2. Interações de Drag & Drop ---
     if (dropZone && fileInput) {
-        // Clicar na zona abre o seletor de arquivos
         dropZone.addEventListener('click', () => {
             if (!isUploading) fileInput.click();
         });
 
-        // Eventos de arrastar
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             if (!isUploading) dropZone.classList.add('dragover');
@@ -83,7 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Evento de alteração de arquivo padrão
         fileInput.addEventListener('change', (e) => {
             const files = e.target.files;
             if (files.length > 0) {
@@ -98,7 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
         successBanner.style.display = 'none';
         btnViewChapter.style.display = 'none';
 
-        // Converte FileList para Array e filtra apenas imagens
         const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
 
         if (imageFiles.length === 0) {
@@ -106,7 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Ordena arquivos alfabeticamente pelo nome para garantir ordem correta das páginas
         imageFiles.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
 
         imageFiles.forEach(file => {
@@ -118,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 file: file,
                 name: file.name,
                 tempUrl: tempUrl,
-                status: 'compressing', // status: compressing, compressed, uploading, success, error
+                status: 'compressing',
                 originalSize: file.size,
                 compressedSize: 0,
                 compressedBlob: null,
@@ -129,8 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             fileQueue.push(queueItem);
             renderQueueItem(queueItem);
-            
-            // Dispara compressão local assíncrona imediatamente em background
             compressImageToWebP(queueItem);
         });
 
@@ -149,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 let height = img.height;
                 const maxWidth = 1600;
 
-                // Redimensionamento proporcional se passar de 1600px de largura
                 if (width > maxWidth) {
                     height = Math.round((maxWidth * height) / width);
                     width = maxWidth;
@@ -161,7 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Converte para WebP com 85% de qualidade
                 canvas.toBlob((blob) => {
                     if (blob) {
                         item.compressedBlob = blob;
@@ -243,7 +254,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Libera o botão de Upload apenas se todos os arquivos foram comprimidos
     function checkQueueReadyStatus() {
         const allCompressedOrError = fileQueue.every(item => item.status === 'compressed' || item.status === 'error');
         const hasValidFiles = fileQueue.some(item => item.status === 'compressed');
@@ -257,11 +267,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 6. Evento de Envio e Publicação do Capítulo ---
+    // --- 6. Evento de Envio e Publicação/Edição do Capítulo ---
     btnStartUpload.addEventListener('click', async () => {
         if (isUploading) return;
 
-        // Validação de Dados Cadastrais
         const chapterIdVal = chapterIdInput.value.trim();
         const chapterTitleVal = chapterTitleInput.value.trim();
         const chapterDateVal = chapterDateInput.value.trim();
@@ -277,10 +286,18 @@ document.addEventListener('DOMContentLoaded', () => {
         btnStartUpload.setAttribute('disabled', 'true');
         dropZone.style.pointerEvents = 'none';
 
-        // Exibe a barra de progresso
         progressBox.style.display = 'block';
         successBanner.style.display = 'none';
         updateProgressBar(0, "Iniciando processamento e envio...");
+
+        // Se estiver em modo de edição, começamos a numeração após as páginas já existentes do capítulo
+        let startPageIndex = 0;
+        if (isEditMode) {
+            const currentEditingChapter = chaptersListCache.find(c => c.id === chapterId);
+            if (currentEditingChapter) {
+                startPageIndex = currentEditingChapter.pages_count;
+            }
+        }
 
         const totalFiles = fileQueue.length;
         let successfulUploadsCount = 0;
@@ -292,34 +309,30 @@ document.addEventListener('DOMContentLoaded', () => {
             item.status = 'uploading';
             updateQueueItemUI(item);
 
-            const pageIndex = i + 1;
+            const pageIndex = startPageIndex + i + 1;
             const fileName = `pagina-${pageIndex}.webp`;
             const filePath = `capitulo-${chapterId}/${fileName}`;
 
             updateProgressBar(
                 Math.round((i / totalFiles) * 100),
-                `Enviando página ${pageIndex} de ${totalFiles}...`
+                `Enviando página ${pageIndex} de ${startPageIndex + totalFiles}...`
             );
 
             let uploadSuccess = false;
 
             if (window.isOfflineMode) {
-                // --- MODO PROTÓTIPO LOCAL (Mock em sessionStorage/localStorage) ---
-                await delay(600); // Simula latência de rede
-                
+                // --- MODO PROTÓTIPO LOCAL ---
+                await delay(500);
                 try {
-                    // Armazena a Blob URL temporária na sessionStorage para exibição live no mesmo navegador
                     const sessionKey = `fio-temp-page-${chapterId}-${pageIndex}`;
                     const tempBlobUrl = URL.createObjectURL(item.compressedBlob);
                     sessionStorage.setItem(sessionKey, tempBlobUrl);
-
-                    console.log(`🔌 [Mock Storage]: Salvo temporário ${sessionKey} ➔ ${tempBlobUrl}`);
                     uploadSuccess = true;
                 } catch (err) {
                     console.error(err);
                 }
             } else {
-                // --- MODO PRODUÇÃO SUPABASE REAL (Storage Upload) ---
+                // --- MODO PRODUÇÃO SUPABASE Storage Upload ---
                 try {
                     if (window.supabase) {
                         const { data, error } = await window.supabase.storage
@@ -332,8 +345,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         if (error) throw error;
                         uploadSuccess = true;
-                    } else {
-                        throw new Error("Supabase não inicializado.");
                     }
                 } catch (err) {
                     console.error(`Erro ao subir página ${pageIndex}:`, err);
@@ -349,28 +360,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // --- Salva os metadados do capítulo ---
-        if (successfulUploadsCount > 0) {
+        const finalPagesCount = startPageIndex + successfulUploadsCount;
+
+        if (successfulUploadsCount > 0 || isEditMode) {
             updateProgressBar(90, "Salvando dados do capítulo...");
 
             if (window.isOfflineMode) {
-                // Salva metadados no localStorage
                 let mockChapters = JSON.parse(localStorage.getItem('fio-mock-chapters') || '[]');
-                
-                // Remove existente se for re-upload do mesmo ID (Upsert Mock)
                 mockChapters = mockChapters.filter(c => c.id !== chapterId);
                 
                 mockChapters.push({
                     id: chapterId,
                     title: chapterTitleVal,
-                    pages_count: successfulUploadsCount,
+                    pages_count: isEditMode ? finalPagesCount : successfulUploadsCount,
                     release_date: chapterDateVal || getFormattedDate()
                 });
 
                 localStorage.setItem('fio-mock-chapters', JSON.stringify(mockChapters));
                 await delay(400);
             } else {
-                // Insere ou atualiza (Upsert) no Supabase Database
                 try {
                     if (window.supabase) {
                         const { error } = await window.supabase
@@ -378,38 +386,33 @@ document.addEventListener('DOMContentLoaded', () => {
                             .upsert({
                                 id: chapterId,
                                 title: chapterTitleVal,
-                                pages_count: successfulUploadsCount,
+                                pages_count: isEditMode ? finalPagesCount : successfulUploadsCount,
                                 release_date: chapterDateVal || getFormattedDate()
                             });
 
                         if (error) throw error;
                     }
                 } catch (err) {
-                    console.error("Erro ao salvar metadados do capítulo no banco:", err);
-                    alert("⚠️ Páginas enviadas, mas falha ao registrar o capítulo no banco: " + err.message);
+                    console.error("Erro ao registrar capítulo:", err);
+                    alert("⚠️ Falha ao registrar capítulo no banco: " + err.message);
                 }
             }
 
-            // --- Conclusão com Sucesso ---
             updateProgressBar(100, "Publicação concluída!");
             await delay(500);
             progressBox.style.display = 'none';
             successBanner.style.display = 'block';
             
-            // Exibe e configura o botão de visualização
             btnViewChapter.style.display = 'inline-flex';
             btnViewChapter.onclick = () => {
                 window.location.href = `ler.html?cap=${chapterId}`;
             };
 
-            // Reseta formulário e fila após sucesso parcial para novas publicações
-            chapterForm.reset();
-            if (chapterDateInput) chapterDateInput.value = getFormattedDate();
-            fileQueue = [];
-            fileQueueEl.innerHTML = '';
-            queueContainer.style.display = 'none';
+            // Recarrega listagem e reseta painel
+            await loadChaptersList();
+            exitEditMode();
         } else {
-            alert("❌ Falha crítica: Nenhuma página pôde ser publicada.");
+            alert("❌ Falha crítica: Nenhuma nova página pôde ser publicada.");
             progressBox.style.display = 'none';
         }
 
@@ -418,7 +421,520 @@ document.addEventListener('DOMContentLoaded', () => {
         checkQueueReadyStatus();
     });
 
-    // --- Auxiliares ---
+    // --- 7. GERENCIAMENTO DE CAPÍTULOS EXISTENTES (Edição e Exclusão) ---
+
+    async function loadChaptersList() {
+        let chapters = [];
+
+        if (window.isOfflineMode) {
+            // Mock Offline
+            const mockChapters = JSON.parse(localStorage.getItem('fio-mock-chapters') || '[]');
+            const merged = [...defaultChapters];
+            mockChapters.forEach(mc => {
+                const idx = merged.findIndex(c => c.id === mc.id);
+                if (idx !== -1) {
+                    merged[idx] = mc;
+                } else {
+                    merged.push(mc);
+                }
+            });
+            merged.sort((a, b) => a.id - b.id);
+            chapters = merged;
+        } else {
+            // Produção Supabase
+            try {
+                if (window.supabase) {
+                    const { data, error } = await window.supabase
+                        .from('chapters')
+                        .select('*')
+                        .order('id', { ascending: true });
+
+                    if (!error && data && data.length > 0) {
+                        chapters = data;
+                    } else {
+                        chapters = [...defaultChapters];
+                    }
+                }
+            } catch (err) {
+                console.error("Erro ao buscar lista de capítulos:", err);
+                chapters = [...defaultChapters];
+            }
+        }
+
+        chaptersListCache = chapters;
+        renderChaptersListUI(chapters);
+    }
+
+    function renderChaptersListUI(chapters) {
+        if (!adminChaptersList) return;
+        adminChaptersList.innerHTML = '';
+
+        if (chapters.length === 0) {
+            adminChaptersList.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 20px 0;">Nenhum capítulo publicado.</div>`;
+            return;
+        }
+
+        chapters.forEach(chap => {
+            const item = document.createElement('div');
+            item.className = 'admin-chapter-item';
+            item.innerHTML = `
+                <div class="admin-chapter-item-info">
+                    <div class="admin-chapter-item-title">Cap. ${chap.id.toString().padStart(2, '0')} - ${chap.title}</div>
+                    <div class="admin-chapter-item-meta">${chap.pages_count} página(s) • Lançamento: ${chap.release_date}</div>
+                </div>
+                <div class="admin-chapter-item-actions">
+                    <button class="btn btn-secondary btn-action-icon btn-edit-chap" data-id="${chap.id}" title="Editar capítulo e páginas">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button class="btn btn-secondary btn-action-icon delete btn-delete-chap" data-id="${chap.id}" title="Excluir capítulo inteiro">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            `;
+
+            // Clique no botão Editar
+            item.querySelector('.btn-edit-chap').addEventListener('click', () => {
+                enterEditMode(chap.id);
+            });
+
+            // Clique no botão Excluir
+            item.querySelector('.btn-delete-chap').addEventListener('click', () => {
+                confirmDeleteChapter(chap.id);
+            });
+
+            adminChaptersList.appendChild(item);
+        });
+    }
+
+    // Ativa o Modo de Edição de Capítulo
+    function enterEditMode(chapterId) {
+        const chap = chaptersListCache.find(c => c.id === chapterId);
+        if (!chap) return;
+
+        isEditMode = true;
+        editingChapterId = chapterId;
+        successBanner.style.display = 'none';
+
+        // Preenche campos do formulário
+        chapterIdInput.value = chap.id;
+        chapterIdInput.setAttribute('disabled', 'true'); // Desabilita ID
+        chapterTitleInput.value = chap.title;
+        chapterDateInput.value = chap.release_date;
+
+        // Exibe botão de Cancelar Edição
+        if (btnCancelEdit) btnCancelEdit.style.display = 'block';
+
+        // Ajusta títulos
+        const leftCardTitle = document.querySelector('.admin-grid section:first-child .admin-card-title');
+        if (leftCardTitle) {
+            leftCardTitle.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Editar Capítulo ${chap.id.toString().padStart(2, '0')}`;
+        }
+
+        const rightCardTitle = document.querySelector('.admin-grid section:nth-child(2) .admin-card-title');
+        if (rightCardTitle) {
+            rightCardTitle.innerHTML = `<i class="fa-solid fa-plus"></i> Adicionar Páginas ao Capítulo ${chap.id.toString().padStart(2, '0')}`;
+        }
+
+        const dropZoneText = document.querySelector('.drop-zone-text');
+        if (dropZoneText) {
+            dropZoneText.innerHTML = `Arraste <span style="color: var(--primary-red); font-weight: 600;">páginas adicionais</span> aqui para incluir ao final, ou clique para navegar`;
+        }
+
+        btnStartUpload.innerHTML = '<i class="fa-solid fa-floppy-disk" style="margin-right: 8px;"></i> Salvar Alterações';
+
+        // Exibe e renderiza o Gerenciador de Páginas Existentes
+        if (pageManagerCard && pageManagerTitle) {
+            pageManagerCard.style.display = 'block';
+            pageManagerTitle.innerHTML = `<i class="fa-solid fa-photo-film"></i> Gerenciador de Páginas: Capítulo ${chap.id.toString().padStart(2, '0')}`;
+            renderPageManagerGrid(chap.id, chap.pages_count);
+        }
+
+        // Rola até o formulário de edição para feedback visual
+        chapterForm.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Desativa o Modo de Edição
+    function exitEditMode() {
+        isEditMode = false;
+        editingChapterId = null;
+
+        // Reseta formulário
+        chapterForm.reset();
+        chapterIdInput.removeAttribute('disabled');
+        if (chapterDateInput) chapterDateInput.value = getFormattedDate();
+
+        // Oculta botão Cancelar
+        if (btnCancelEdit) btnCancelEdit.style.display = 'none';
+
+        // Restaura títulos padrões
+        const leftCardTitle = document.querySelector('.admin-grid section:first-child .admin-card-title');
+        if (leftCardTitle) {
+            leftCardTitle.innerHTML = `<i class="fa-solid fa-folder-plus"></i> Dados do Capítulo`;
+        }
+
+        const rightCardTitle = document.querySelector('.admin-grid section:nth-child(2) .admin-card-title');
+        if (rightCardTitle) {
+            rightCardTitle.innerHTML = `<i class="fa-solid fa-images"></i> Upload & Otimização de Páginas`;
+        }
+
+        const dropZoneText = document.querySelector('.drop-zone-text');
+        if (dropZoneText) {
+            dropZoneText.innerHTML = `Arraste as páginas do quadrinho aqui ou <span style="color: var(--primary-red); font-weight: 600;">clique para navegar</span>`;
+        }
+
+        btnStartUpload.innerHTML = '<i class="fa-solid fa-upload" style="margin-right: 8px;"></i> Publicar Capítulo';
+
+        // Oculta Gerenciador de Páginas
+        if (pageManagerCard) {
+            pageManagerCard.style.display = 'none';
+        }
+
+        // Reseta a Fila de Uploads
+        fileQueue = [];
+        fileQueueEl.innerHTML = '';
+        queueContainer.style.display = 'none';
+        checkQueueReadyStatus();
+    }
+
+    if (btnCancelEdit) {
+        btnCancelEdit.addEventListener('click', () => {
+            exitEditMode();
+        });
+    }
+
+    // --- 8. GERENCIADOR DE PÁGINAS INDIVIDUAIS (Substituição e Exclusão) ---
+
+    // Renderiza a grade de páginas atuais do capítulo selecionado para edição
+    function renderPageManagerGrid(chapterId, pagesCount) {
+        if (!pageManagerGrid) return;
+        pageManagerGrid.innerHTML = '';
+
+        if (pagesCount === 0) {
+            pageManagerGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 20px 0;">Este capítulo não possui páginas cadastradas.</div>`;
+            return;
+        }
+
+        for (let i = 1; i <= pagesCount; i++) {
+            // Define a url da thumbnail da página do Storage do Supabase (remoto) ou de blobs temporários (local)
+            let thumbUrl = `assets/cap${chapterId}_pag${i}.jpg`; // Fallback físico original
+            
+            if (!window.isOfflineMode && window.supabase && chapterId > 3) {
+                const { data } = window.supabase.storage
+                    .from('paginas-quadrinho')
+                    .getPublicUrl(`capitulo-${chapterId}/pagina-${i}.webp`);
+                thumbUrl = data.publicUrl;
+            } else {
+                const sessionKey = `fio-temp-page-${chapterId}-${i}`;
+                const tempBlob = sessionStorage.getItem(sessionKey);
+                if (tempBlob) thumbUrl = tempBlob;
+            }
+
+            const pageItem = document.createElement('div');
+            pageItem.className = 'page-manager-item';
+            pageItem.id = `page-item-wrapper-${i}`;
+            pageItem.innerHTML = `
+                <div class="page-manager-thumb-container">
+                    <img src="${thumbUrl}" class="page-manager-thumb" alt="Página ${i}" onerror="this.src='assets/chapter1_thumb.jpg'">
+                </div>
+                <div class="page-manager-label" id="page-label-${i}">Página ${i}</div>
+                <div class="page-manager-actions" id="page-actions-${i}">
+                    <button class="btn btn-secondary btn-page-replace" data-index="${i}" title="Substituir imagem da página">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </button>
+                    <button class="btn btn-secondary btn-page-delete" data-index="${i}" title="Apagar página e reordenar">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            `;
+
+            // Clique no botão Substituir
+            pageItem.querySelector('.btn-page-replace').addEventListener('click', (e) => {
+                const index = parseInt(e.currentTarget.getAttribute('data-index'));
+                replacingPageIndex = index;
+                if (replacePageFileInput) replacePageFileInput.click();
+            });
+
+            // Clique no botão Apagar
+            pageItem.querySelector('.btn-page-delete').addEventListener('click', (e) => {
+                const index = parseInt(e.currentTarget.getAttribute('data-index'));
+                confirmDeletePage(chapterId, index, pagesCount);
+            });
+
+            pageManagerGrid.appendChild(pageItem);
+        }
+    }
+
+    // Substituição de página específica com compressão Canvas
+    if (replacePageFileInput) {
+        replacePageFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file || replacingPageIndex === null || editingChapterId === null) return;
+
+            const chapterId = editingChapterId;
+            const pageIndex = replacingPageIndex;
+
+            // Visual feedback - Mostra spinner no card de miniatura
+            const itemWrapper = document.getElementById(`page-item-wrapper-${pageIndex}`);
+            const actionsContainer = document.getElementById(`page-actions-${pageIndex}`);
+            const labelContainer = document.getElementById(`page-label-${pageIndex}`);
+            
+            if (actionsContainer) actionsContainer.style.display = 'none';
+            if (labelContainer) {
+                labelContainer.innerHTML = '<div class="pix-status-spinner" style="width:16px; height:16px; margin:0 auto; border-top-color:var(--primary-red);"></div> Comprimindo...';
+            }
+
+            try {
+                // 1. Comprime a nova imagem via Canvas para WebP
+                const tempUrl = URL.createObjectURL(file);
+                const compressed = await compressSingleFileWebP(file, tempUrl);
+
+                if (labelContainer) {
+                    labelContainer.innerHTML = '<div class="pix-status-spinner" style="width:16px; height:16px; margin:0 auto; border-top-color:var(--primary-red);"></div> Enviando...';
+                }
+
+                if (window.isOfflineMode) {
+                    // --- MODO OFFLINE (SessionStorage Blob URL) ---
+                    await delay(600);
+                    const sessionKey = `fio-temp-page-${chapterId}-${pageIndex}`;
+                    const tempBlobUrl = URL.createObjectURL(compressed.blob);
+                    sessionStorage.setItem(sessionKey, tempBlobUrl);
+                } else {
+                    // --- MODO SUPABASE REAL ---
+                    if (window.supabase) {
+                        const filePath = `capitulo-${chapterId}/pagina-${pageIndex}.webp`;
+                        const { error } = await window.supabase.storage
+                            .from('paginas-quadrinho')
+                            .upload(filePath, compressed.blob, {
+                                contentType: 'image/webp',
+                                cacheControl: '3600',
+                                upsert: true
+                            });
+
+                        if (error) throw error;
+                    }
+                }
+
+                // Limpa input
+                replacePageFileInput.value = '';
+                replacingPageIndex = null;
+
+                // Re-renderiza e atualiza o gerenciador
+                renderPageManagerGrid(chapterId, chaptersListCache.find(c => c.id === chapterId).pages_count);
+                alert(`Página ${pageIndex} substituída com sucesso!`);
+
+            } catch (err) {
+                console.error("Erro ao substituir página:", err);
+                alert("Erro ao substituir página: " + err.message);
+                if (actionsContainer) actionsContainer.style.display = 'flex';
+                if (labelContainer) labelContainer.textContent = `Página ${pageIndex}`;
+            }
+        });
+    }
+
+    // Auxiliar: Compressão isolada de arquivo único
+    function compressSingleFileWebP(file, tempUrl) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.src = tempUrl;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const maxWidth = 1600;
+
+                if (width > maxWidth) {
+                    height = Math.round((maxWidth * height) / width);
+                    width = maxWidth;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        resolve({ blob: blob });
+                    } else {
+                        reject(new Error("Falha ao exportar Blob WebP."));
+                    }
+                }, 'image/webp', 0.85);
+            };
+            img.onerror = () => reject(new Error("Erro ao carregar a imagem no Canvas."));
+        });
+    }
+
+    // Algoritmo de Deleção e Deslocamento Sequencial de Páginas
+    async function confirmDeletePage(chapterId, pageIndex, totalPages) {
+        const confirmMsg = `Tem certeza que deseja apagar a Página ${pageIndex}? \n\nO sistema irá reordenar todas as páginas seguintes automaticamente para manter a sequência do leitor íntegra (Evitando quebras visuais!).`;
+        
+        if (!confirm(confirmMsg)) return;
+
+        // Visual feedback
+        if (pageManagerGrid) {
+            pageManagerGrid.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 40px 0;">
+                    <div class="pix-status-spinner" style="margin:0 auto 16px auto; border-top-color:var(--primary-red);"></div>
+                    Apagando e Reordenando páginas no Storage...
+                </div>
+            `;
+        }
+
+        try {
+            if (window.isOfflineMode) {
+                // --- MODO OFFLINE (Mock Shift no SessionStorage) ---
+                await delay(600);
+                sessionStorage.removeItem(`fio-temp-page-${chapterId}-${pageIndex}`);
+                
+                // Desloca as seguintes
+                for (let i = pageIndex + 1; i <= totalPages; i++) {
+                    const tempVal = sessionStorage.getItem(`fio-temp-page-${chapterId}-${i}`);
+                    if (tempVal) {
+                        sessionStorage.setItem(`fio-temp-page-${chapterId}-${i-1}`, tempVal);
+                        sessionStorage.removeItem(`fio-temp-page-${chapterId}-${i}`);
+                    }
+                }
+
+                // Decrementa pages_count no localStorage
+                let mockChapters = JSON.parse(localStorage.getItem('fio-mock-chapters') || '[]');
+                const chapIdx = mockChapters.findIndex(c => c.id === chapterId);
+                if (chapIdx !== -1) {
+                    mockChapters[chapIdx].pages_count = totalPages - 1;
+                    localStorage.setItem('fio-mock-chapters', JSON.stringify(mockChapters));
+                }
+            } else {
+                // --- MODO SUPABASE REAL (Deslocamento via move()) ---
+                if (window.supabase) {
+                    const bucket = 'paginas-quadrinho';
+                    
+                    // 1. Apaga a página alvo
+                    const targetPath = `capitulo-${chapterId}/pagina-${pageIndex}.webp`;
+                    const { error: removeError } = await window.supabase.storage
+                        .from(bucket)
+                        .remove([targetPath]);
+
+                    if (removeError) throw removeError;
+
+                    // 2. Desloca sequencialmente as páginas seguintes usando .move()
+                    for (let i = pageIndex + 1; i <= totalPages; i++) {
+                        const fromPath = `capitulo-${chapterId}/pagina-${i}.webp`;
+                        const toPath = `capitulo-${chapterId}/pagina-${i-1}.webp`;
+                        await window.supabase.storage.from(bucket).move(fromPath, toPath);
+                    }
+
+                    // 3. Decrementa pages_count na tabela chapters do banco de dados
+                    const { error: dbError } = await window.supabase
+                        .from('chapters')
+                        .update({ pages_count: totalPages - 1 })
+                        .eq('id', chapterId);
+
+                    if (dbError) throw dbError;
+                }
+            }
+
+            // Recarrega listagens e re-renderiza UI
+            await loadChaptersList();
+            
+            // Re-renderiza o page manager com a nova contagem reduzida
+            const updatedPagesCount = totalPages - 1;
+            renderPageManagerGrid(chapterId, updatedPagesCount);
+
+            // Ajusta o formulário de edição se ainda estiver ativo
+            const currentEditingChapter = chaptersListCache.find(c => c.id === chapterId);
+            if (currentEditingChapter) {
+                enterEditMode(chapterId);
+            }
+
+            alert(`Página ${pageIndex} excluída e sequência reordenada com sucesso!`);
+
+        } catch (err) {
+            console.error("Erro na exclusão/deslocamento de página:", err);
+            alert("Erro na exclusão de página: " + err.message);
+            loadChaptersList();
+            exitEditMode();
+        }
+    }
+
+    // Exclusão completa de Capítulo (DB + Purga de Storage)
+    async function confirmDeleteChapter(chapterId) {
+        const confirmMsg = `⚠️ ALERTA CRÍTICO: \n\nTem certeza absoluta que deseja excluir o CAPÍTULO ${chapterId.toString().padStart(2, '0')} inteiro? \n\nIsso apagará permanentemente o registro no banco de dados e TODAS as imagens das páginas no storage! Esta ação é irreversível.`;
+
+        if (!confirm(confirmMsg)) return;
+
+        if (adminChaptersList) {
+            adminChaptersList.innerHTML = `
+                <div style="text-align: center; color: var(--text-secondary); padding: 40px 0;">
+                    <div class="pix-status-spinner" style="margin:0 auto 16px auto; border-top-color:var(--primary-red);"></div>
+                    Excluindo Capítulo e Purgando arquivos do Storage...
+                </div>
+            `;
+        }
+
+        try {
+            if (window.isOfflineMode) {
+                // --- MODO OFFLINE ---
+                await delay(800);
+                let mockChapters = JSON.parse(localStorage.getItem('fio-mock-chapters') || '[]');
+                mockChapters = mockChapters.filter(c => c.id !== chapterId);
+                localStorage.setItem('fio-mock-chapters', JSON.stringify(mockChapters));
+
+                // Limpa blobs das sessões temporárias
+                for (let i = 1; i <= 30; i++) {
+                    sessionStorage.removeItem(`fio-temp-page-${chapterId}-${i}`);
+                }
+            } else {
+                // --- MODO SUPABASE REAL ---
+                if (window.supabase) {
+                    const bucket = 'paginas-quadrinho';
+
+                    // 1. Deleta a linha correspondente na tabela chapters do banco
+                    const { error: dbError } = await window.supabase
+                        .from('chapters')
+                        .delete()
+                        .eq('id', chapterId);
+
+                    if (dbError) throw dbError;
+
+                    // 2. Lista todos os arquivos contidos no diretório capitulo-X do Storage
+                    const { data: files, error: listError } = await window.supabase.storage
+                        .from(bucket)
+                        .list(`capitulo-${chapterId}`);
+
+                    if (listError) throw listError;
+
+                    // 3. Deleta todas as imagens correspondentes no storage
+                    if (files && files.length > 0) {
+                        const filesToRemove = files.map(f => `capitulo-${chapterId}/${f.name}`);
+                        const { error: storageError } = await window.supabase.storage
+                            .from(bucket)
+                            .remove(filesToRemove);
+
+                        if (storageError) throw storageError;
+                    }
+                }
+            }
+
+            alert(`Capítulo ${chapterId} e todas as suas imagens foram excluídos com sucesso!`);
+            
+            // Reseta a interface se estivesse editando o capítulo excluído
+            if (isEditMode && editingChapterId === chapterId) {
+                exitEditMode();
+            }
+
+            await loadChaptersList();
+
+        } catch (err) {
+            console.error("Erro ao excluir capítulo:", err);
+            alert("Erro ao excluir capítulo: " + err.message);
+            loadChaptersList();
+        }
+    }
+
+    // --- Inicialização Automática de Carga Inicial ---
+    loadChaptersList();
+
+    // --- Auxiliares Globais ---
     function updateProgressBar(percentage, text) {
         if (progressBarFill && progressText && progressPercentage) {
             progressBarFill.style.width = `${percentage}%`;
