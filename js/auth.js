@@ -491,7 +491,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const foundUser = mockUsers.find(u => u.email === email && u.password === password);
 
                     if (foundUser) {
-                        if (foundUser.status === 'pendente_verificacao') {
+                        const rawStatus = foundUser.status ? foundUser.status.toLowerCase().trim() : '';
+                        const isVerified = rawStatus === 'verificado' || rawStatus === 'pago' || rawStatus === 'approved';
+
+                        if (!isVerified) {
                             resetSubmitButton(submitBtn, '<i class="fa-solid fa-arrow-right-to-bracket" style="margin-right: 8px;"></i> Entrar no Painel');
                             alert("ℹ️ Sua conta já está cadastrada, mas a validação de maioridade via Pix está pendente. \n\nVamos reexibir o Pix de validação para que você conclua seu acesso!");
                             await initiatePixGeneration(email, foundUser.cpf, foundUser.id, submitBtn);
@@ -499,7 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
 
                         if (window.sessionHelper) {
-                            window.sessionHelper.setSession(email, foundUser.status === 'verificado');
+                            window.sessionHelper.setSession(email, true, foundUser.id);
                         }
                         window.location.href = 'dashboard.html';
                     } else {
@@ -528,7 +531,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (profileError) throw profileError;
 
                         // Se o perfil existe mas o pagamento está pendente, intercepta e reexibe o Pix com Polling
-                        if (profile && profile.status === 'pendente_verificacao') {
+                        const rawStatus = profile && profile.status ? profile.status.toLowerCase().trim() : '';
+                        const isVerifiedStatus = rawStatus === 'verificado' || rawStatus === 'pago' || rawStatus === 'approved';
+
+                        if (profile && !isVerifiedStatus) {
                             resetSubmitButton(submitBtn, '<i class="fa-solid fa-arrow-right-to-bracket" style="margin-right: 8px;"></i> Entrar no Painel');
                             alert("ℹ️ Sua conta já está cadastrada, mas a validação de maioridade via Pix está pendente. \n\nVamos reexibir o Pix de validação para que você conclua seu acesso!");
                             await initiatePixGeneration(email, profile.cpf, data.user.id, submitBtn);
@@ -536,7 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
 
                         let isVerified = false;
-                        if (profile && profile.status === 'verificado') {
+                        if (profile && isVerifiedStatus) {
                             isVerified = true;
                         }
 

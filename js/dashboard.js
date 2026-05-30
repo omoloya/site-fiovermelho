@@ -63,8 +63,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             .eq('id', userId)
                             .maybeSingle();
 
-                        if (!error && profile) {
-                            status = profile.status;
+                        if (!error && profile && profile.status) {
+                            const rawStatus = profile.status.toLowerCase().trim();
+                            // Aceita 'verificado', 'pago' ou 'approved' como status válidos e aprovados
+                            if (rawStatus === 'verificado' || rawStatus === 'pago' || rawStatus === 'approved') {
+                                status = 'verificado';
+                            } else {
+                                status = profile.status;
+                            }
                         }
                     }
                 }
@@ -83,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (status === 'pendente_verificacao') {
             if (lockOverlay) {
                 lockOverlay.style.display = 'flex';
+                lockOverlay.classList.add('active');
                 document.body.style.overflow = 'hidden'; // Impede rolagem
             }
 
@@ -108,22 +115,31 @@ document.addEventListener('DOMContentLoaded', () => {
                             .eq('id', pollUserId)
                             .maybeSingle();
 
-                        if (!error && profile && profile.status === 'verificado') {
-                            clearInterval(statusPollInterval);
-                            
-                            // Atualiza a sessão
-                            if (window.sessionHelper) {
-                                window.sessionHelper.setSession(session.user.email, true, pollUserId);
+                        if (!error && profile && profile.status) {
+                            const rawStatus = profile.status.toLowerCase().trim();
+                            const isApproved = rawStatus === 'verificado' || rawStatus === 'pago' || rawStatus === 'approved';
+
+                            if (isApproved) {
+                                // 1. Parar o bombardeio de requisições imediatamente!
+                                clearInterval(statusPollInterval);
+                                
+                                // 2. Atualizar a sessão persistida com o ID
+                                if (window.sessionHelper) {
+                                    window.sessionHelper.setSession(session.user.email, true, pollUserId);
+                                }
+                                
+                                // 3. Esconder/remover o modal completamente da tela
+                                if (lockOverlay) {
+                                    lockOverlay.style.display = 'none';
+                                    lockOverlay.classList.remove('active');
+                                    document.body.style.overflow = '';
+                                }
+                                
+                                alert("🎉 Pagamento confirmado! Seu acesso de maioridade foi verificado com sucesso.");
+                                
+                                // 4. Liberar a renderização do painel principal para o leitor
+                                loadChaptersAndRenderGrid();
                             }
-                            
-                            // Destrava o dashboard
-                            if (lockOverlay) {
-                                lockOverlay.style.display = 'none';
-                                document.body.style.overflow = '';
-                            }
-                            
-                            alert("🎉 Pagamento confirmado! Seu acesso de maioridade foi verificado com sucesso.");
-                            loadChaptersAndRenderGrid();
                         }
                     }
                 } catch (pollErr) {
@@ -164,21 +180,27 @@ document.addEventListener('DOMContentLoaded', () => {
                                 .eq('id', revUserId)
                                 .maybeSingle();
 
-                            if (!error && profile && profile.status === 'verificado') {
-                                clearInterval(statusPollInterval);
-                                
-                                if (window.sessionHelper) {
-                                    window.sessionHelper.setSession(session.user.email, true, revUserId);
+                            if (!error && profile && profile.status) {
+                                const rawStatus = profile.status.toLowerCase().trim();
+                                const isApproved = rawStatus === 'verificado' || rawStatus === 'pago' || rawStatus === 'approved';
+
+                                if (isApproved) {
+                                    clearInterval(statusPollInterval);
+                                    
+                                    if (window.sessionHelper) {
+                                        window.sessionHelper.setSession(session.user.email, true, revUserId);
+                                    }
+                                    
+                                    if (lockOverlay) {
+                                        lockOverlay.style.display = 'none';
+                                        lockOverlay.classList.remove('active');
+                                        document.body.style.overflow = '';
+                                    }
+                                    
+                                    alert("🎉 Pagamento confirmado! Seu acesso de maioridade foi verificado com sucesso.");
+                                    loadChaptersAndRenderGrid();
+                                    return;
                                 }
-                                
-                                if (lockOverlay) {
-                                    lockOverlay.style.display = 'none';
-                                    document.body.style.overflow = '';
-                                }
-                                
-                                alert("🎉 Pagamento confirmado! Seu acesso de maioridade foi verificado com sucesso.");
-                                loadChaptersAndRenderGrid();
-                                return;
                             }
                         }
                         alert("⚠️ Ainda não detectamos a aprovação do Pix. \n\nSe você acabou de pagar, o processamento bancário pode levar de 10 a 60 segundos. Por favor, aguarde um momento e tente novamente!");
@@ -194,6 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             if (lockOverlay) {
                 lockOverlay.style.display = 'none';
+                lockOverlay.classList.remove('active');
                 document.body.style.overflow = '';
             }
             // Só carrega os capítulos se os dados do perfil indicarem verificação com sucesso
