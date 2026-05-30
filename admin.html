@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fio Vermelho | Admin Portal</title>
+    
+    <!-- Meta Tags para SEO -->
+    <meta name="description" content="Portal administrativo para publicação de capítulos do quadrinho Fio Vermelho. Otimização em tempo real de páginas PNG/JPG para WebP.">
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Proteção Rápida de Rota (Prevenir piscada de conteúdo privado) -->
+    <script>
+        (function() {
+            const session = localStorage.getItem('sb-fiovermelho-session') || sessionStorage.getItem('sb-fiovermelho-session');
+            if (!session) {
+                window.location.replace('index.html');
+            }
+        })();
+    </script>
+
+    <style>
+        /* Estilos adicionais específicos do Admin para complementar o style.css */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 24px;
+        }
+
+        @media (min-width: 992px) {
+            .admin-grid {
+                grid-template-columns: 1fr 2fr;
+            }
+        }
+
+        .admin-card {
+            padding: 32px;
+            height: fit-content;
+        }
+
+        .admin-card-title {
+            font-size: 1.4rem;
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-card-title i {
+            color: var(--primary-red);
+            text-shadow: var(--shadow-glow);
+        }
+
+        /* Drop Zone Drag and Drop */
+        .drop-zone {
+            border: 2px dashed rgba(255, 42, 59, 0.3);
+            background: rgba(255, 42, 59, 0.02);
+            border-radius: var(--radius-md);
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--primary-red);
+            background: rgba(255, 42, 59, 0.06);
+            box-shadow: 0 0 15px rgba(255, 42, 59, 0.1);
+        }
+
+        .drop-zone-icon {
+            font-size: 2.5rem;
+            color: var(--primary-red);
+            margin-bottom: 16px;
+            opacity: 0.8;
+            transition: var(--transition-fast);
+        }
+
+        .drop-zone:hover .drop-zone-icon {
+            transform: translateY(-5px);
+            opacity: 1;
+        }
+
+        .drop-zone-text {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .drop-zone-subtext {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* Queue List */
+        .queue-container {
+            margin-top: 24px;
+        }
+
+        .queue-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .queue-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .queue-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+        }
+
+        .queue-item-thumb {
+            width: 50px;
+            height: 50px;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: #000;
+        }
+
+        .queue-item-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .queue-item-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .queue-item-metrics {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .metric-badge {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .metric-badge.saving {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-green);
+            font-weight: 600;
+        }
+
+        .queue-item-status {
+            font-size: 1.1rem;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .queue-item-status .fa-circle-check {
+            color: var(--success-green);
+            text-shadow: 0 0 10px var(--success-green-glow);
+        }
+
+        .queue-item-status .fa-triangle-exclamation {
+            color: var(--primary-red);
+            text-shadow: 0 0 10px var(--primary-red-glow);
+        }
+
+        .queue-item-status .fa-circle-notch {
+            color: var(--primary-red);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Progress Bar */
+        .progress-box {
+            background: rgba(255, 42, 59, 0.02);
+            border: 1px solid rgba(255, 42, 59, 0.1);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: var(--primary-red);
+            box-shadow: var(--shadow-glow);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .success-banner {
+            display: none;
+            background: rgba(16, 185, 129, 0.06);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            text-align: center;
+            color: var(--success-green);
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 24px;
+            animation: fadeInLock 0.4s ease-out;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Linha Decorativa do Fio Vermelho do Destino -->
+    <div class="auth-thread-line"></div>
+
+    <!-- ==================== HEADER & NAVEGAÇÃO ==================== -->
+    <header class="nav-container" style="position: relative; z-index: 100;">
+        <a href="dashboard.html" class="nav-logo">Fio <span>Vermelho</span></a>
+        
+        <div class="nav-actions">
+            <span class="tag-badge" style="background: rgba(255, 42, 59, 0.15); color: var(--primary-red); border-color: var(--primary-red); margin-right: 12px;">MODO ADMIN</span>
+            <a href="dashboard.html" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;">
+                <i class="fa-solid fa-arrow-left" style="margin-right: 6px;"></i> Painel do Leitor
+            </a>
+        </div>
+    </header>
+
+    <!-- ==================== CONTEÚDO PRINCIPAL ==================== -->
+    <main class="admin-grid">
+        
+        <!-- COLUNA ESQUERDA: CADASTRO DO CAPÍTULO -->
+        <section class="admin-card glass-card">
+            <h2 class="admin-card-title">
+                <i class="fa-solid fa-folder-plus"></i> Dados do Capítulo
+            </h2>
+            
+            <form id="admin-chapter-form">
+                <div class="input-group">
+                    <label for="chapter-id" class="input-label">Número do Capítulo</label>
+                    <input type="number" id="chapter-id" class="input-field" placeholder="Ex: 4" min="1" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="chapter-title" class="input-label">Título do Capítulo</label>
+                    <input type="text" id="chapter-title" class="input-field" placeholder="Ex: O Destino Revelado" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="chapter-date" class="input-label">Data de Lançamento</label>
+                    <input type="text" id="chapter-date" class="input-field" placeholder="Ex: 30 de Maio, 2026">
+                </div>
+                
+                <div class="info-box" style="margin-top: 24px; padding: 12px; font-size: 0.8rem; line-height: 1.5; color: var(--text-muted); border-left: 2px solid var(--primary-red); background: rgba(255, 255, 255, 0.01);">
+                    <i class="fa-solid fa-circle-info" style="color: var(--primary-red); margin-right: 4px;"></i>
+                    Capítulos inseridos serão salvos no Supabase Database. As páginas serão automaticamente otimizadas client-side e enviadas para o bucket de Storage.
+                </div>
+            </form>
+        </section>
+
+        <!-- COLUNA DIREITA: FILE UPLOAD E PROCESSAMENTO -->
+        <section class="admin-card glass-card">
+            <h2 class="admin-card-title">
+                <i class="fa-solid fa-images"></i> Upload & Otimização de Páginas
+            </h2>
+            
+            <!-- Banner de Sucesso -->
+            <div id="success-banner" class="success-banner">
+                <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i>
+                Capítulo publicado com sucesso! Páginas otimizadas enviadas.
+            </div>
+
+            <!-- Caixa de Progresso Geral -->
+            <div id="progress-box" class="progress-box">
+                <div class="progress-header">
+                    <span id="progress-text">Otimizando e Enviando imagens...</span>
+                    <span id="progress-percentage">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div id="progress-bar-fill" class="progress-bar-fill"></div>
+                </div>
+            </div>
+
+            <!-- Zona de Drop -->
+            <div id="drop-zone" class="drop-zone">
+                <input type="file" id="upload-file-input" style="display: none;" multiple accept="image/png, image/jpeg, image/jpg, image/webp">
+                <div class="drop-zone-icon">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <p class="drop-zone-text">Arraste as páginas do quadrinho aqui ou <span style="color: var(--primary-red); font-weight: 600;">clique para navegar</span></p>
+                <p class="drop-zone-subtext">Suporta PNG, JPG e WebP. Otimização WebP automática ativada.</p>
+            </div>
+
+            <!-- Botões de Ação -->
+            <div class="admin-actions" style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <button id="btn-start-upload" class="btn btn-primary btn-disabled" style="flex: 1; min-width: 200px;" disabled>
+                    <i class="fa-solid fa-upload" style="margin-right: 8px;"></i> Publicar Capítulo
+                </button>
+                
+                <button id="btn-view-chapter" class="btn btn-secondary" style="display: none;">
+                    <i class="fa-solid fa-eye" style="margin-right: 8px;"></i> Visualizar no Leitor
+                </button>
+            </div>
+
+            <!-- Fila de Arquivos -->
+            <div id="queue-container" class="queue-container" style="display: none;">
+                <div class="queue-title">
+                    <span>Páginas na Fila</span>
+                    <span id="queue-count">0 arquivos</span>
+                </div>
+                
+                <div id="file-queue" class="queue-list">
+                    <!-- Gerado dinamicamente -->
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- ==================== RODAPÉ PRINCIPAL ==================== -->
+    <footer class="site-footer" style="margin-top: 80px;">
+        <div class="footer-content">
+            <div class="nav-logo" style="font-size: 1.2rem;">Fio <span>Vermelho</span></div>
+            <div class="footer-copy">
+                &copy; 2026 Fio Vermelho Portal Administrativo. Todos os direitos reservados.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Supabase JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Scripts da Rota -->
+    <script src="env.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

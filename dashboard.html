@@ -61,6 +61,9 @@
             <span id="user-display-email" style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; display: none;">
                 <i class="fa-regular fa-user" style="margin-right: 6px;"></i> leitor@exemplo.com
             </span>
+            <a href="admin.html" id="btn-admin-panel" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem; margin-right: 8px; display: none;" title="Acessar painel do autor para upload">
+                <i class="fa-solid fa-screwdriver-wrench" style="margin-right: 6px;"></i> Admin
+            </a>
             <button id="btn-logout" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;" type="button">
                 <i class="fa-solid fa-arrow-right-from-bracket" style="margin-right: 6px;"></i> Sair
             </button>
@@ -116,70 +119,9 @@
             </div>
         </header>
         
-        <!-- Grid de Cards de Capítulos -->
+        <!-- Grid de Cards de Capítulos (Gerados Dinamicamente pelo JS) -->
         <div class="chapter-grid" id="chapter-list-container">
-            <!-- Capítulo 1 -->
-            <article class="chapter-card glass-card">
-                <div class="chapter-card-thumb-container">
-                    <span class="chapter-card-status-badge chapter-badge-unread" id="badge-cap-1">Não Lido</span>
-                    <img src="assets/chapter1_thumb.jpg" alt="Capítulo 1 Thumbnail" class="chapter-card-thumb" id="thumb-cap-1">
-                </div>
-                <div class="chapter-card-info">
-                    <div>
-                        <div class="chapter-number">Capítulo 01</div>
-                        <h3 class="chapter-card-title">O Elo Perdido</h3>
-                    </div>
-                    <div class="chapter-card-meta">
-                        <span class="chapter-date">20 de Maio, 2026</span>
-                        <label class="read-checkbox-label">
-                            <input type="checkbox" class="read-checkbox" data-chapter-id="1">
-                            Lido
-                        </label>
-                    </div>
-                </div>
-            </article>
-
-            <!-- Capítulo 2 -->
-            <article class="chapter-card glass-card">
-                <div class="chapter-card-thumb-container">
-                    <span class="chapter-card-status-badge chapter-badge-unread" id="badge-cap-2">Não Lido</span>
-                    <img src="assets/chapter2_thumb.jpg" alt="Capítulo 2 Thumbnail" class="chapter-card-thumb" id="thumb-cap-2">
-                </div>
-                <div class="chapter-card-info">
-                    <div>
-                        <div class="chapter-number">Capítulo 02</div>
-                        <h3 class="chapter-card-title">Cortes no Destino</h3>
-                    </div>
-                    <div class="chapter-card-meta">
-                        <span class="chapter-date">25 de Maio, 2026</span>
-                        <label class="read-checkbox-label">
-                            <input type="checkbox" class="read-checkbox" data-chapter-id="2">
-                            Lido
-                        </label>
-                    </div>
-                </div>
-            </article>
-
-            <!-- Capítulo 3 -->
-            <article class="chapter-card glass-card">
-                <div class="chapter-card-thumb-container">
-                    <span class="chapter-card-status-badge chapter-badge-unread" id="badge-cap-3">Não Lido</span>
-                    <img src="assets/chapter3_thumb.jpg" alt="Capítulo 3 Thumbnail" class="chapter-card-thumb" id="thumb-cap-3">
-                </div>
-                <div class="chapter-card-info">
-                    <div>
-                        <div class="chapter-number">Capítulo 03</div>
-                        <h3 class="chapter-card-title">O Laço Carmim</h3>
-                    </div>
-                    <div class="chapter-card-meta">
-                        <span class="chapter-date">29 de Maio, 2026</span>
-                        <label class="read-checkbox-label">
-                            <input type="checkbox" class="read-checkbox" data-chapter-id="3">
-                            Lido
-                        </label>
-                    </div>
-                </div>
-            </article>
+            <!-- Os cards dos capítulos serão renderizados dinamicamente pelo JavaScript (dashboard.js) -->
         </div>
     </section>
 

@@ -104,45 +104,152 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 3. Lógica de Capítulos Lidos & Progresso ---
     const userKey = `fio-read-chapters-${session.user.email}`;
     let readChapters = JSON.parse(localStorage.getItem(userKey) || '[]');
+    let totalChaptersCount = 3;
 
-    const totalChapters = 3;
-    const checkboxes = document.querySelectorAll('.read-checkbox');
+    // Habilita o botão Admin no painel
+    const adminBtn = document.getElementById('btn-admin-panel');
+    if (adminBtn) {
+        adminBtn.style.display = 'inline-flex';
+    }
 
-    // Inicializa o estado dos checkboxes e dos cards com base no localStorage
-    checkboxes.forEach(chk => {
-        const chapterId = chk.getAttribute('data-chapter-id');
-        const card = chk.closest('.chapter-card');
-        const badge = card.querySelector('.chapter-card-status-badge');
-        
-        // Se estiver marcado como lido
-        if (readChapters.includes(chapterId)) {
-            chk.checked = true;
-            updateCardStatusVisual(card, badge, true);
+    const defaultChapters = [
+        { id: 1, title: "O Elo Perdido", pages_count: 4, release_date: "20 de Maio, 2026" },
+        { id: 2, title: "Cortes no Destino", pages_count: 4, release_date: "25 de Maio, 2026" },
+        { id: 3, title: "O Laço Carmim", pages_count: 4, release_date: "29 de Maio, 2026" }
+    ];
+
+    async function loadChaptersAndRenderGrid() {
+        let chapters = [];
+
+        if (window.isOfflineMode) {
+            // Modo offline: Lê do localStorage 'fio-mock-chapters' e mescla com defaultChapters
+            const mockChapters = JSON.parse(localStorage.getItem('fio-mock-chapters') || '[]');
+            const merged = [...defaultChapters];
+            
+            mockChapters.forEach(mc => {
+                const idx = merged.findIndex(c => c.id === mc.id);
+                if (idx !== -1) {
+                    merged[idx] = mc;
+                } else {
+                    merged.push(mc);
+                }
+            });
+            merged.sort((a, b) => a.id - b.id);
+            chapters = merged;
         } else {
-            chk.checked = false;
-            updateCardStatusVisual(card, badge, false);
+            // Modo online: Lê do Supabase 'chapters'
+            try {
+                if (window.supabase) {
+                    const { data, error } = await window.supabase
+                        .from('chapters')
+                        .select('*')
+                        .order('id', { ascending: true });
+
+                    if (!error && data && data.length > 0) {
+                        chapters = data;
+                    } else {
+                        // Se estiver vazio no banco, usa os defaultChapters
+                        chapters = [...defaultChapters];
+                    }
+                } else {
+                    chapters = [...defaultChapters];
+                }
+            } catch (err) {
+                console.error("Erro ao buscar capítulos do Supabase:", err);
+                chapters = [...defaultChapters];
+            }
         }
 
-        // Listener para alteração de estado do checkbox
-        chk.addEventListener('change', (e) => {
-            const chkId = e.target.getAttribute('data-chapter-id');
-            const targetCard = e.target.closest('.chapter-card');
-            const targetBadge = targetCard.querySelector('.chapter-card-status-badge');
+        totalChaptersCount = chapters.length;
+        renderGrid(chapters);
+        updateOverallProgress();
+        setupStartReadingButton(chapters);
+    }
+
+    function renderGrid(chapters) {
+        const gridContainer = document.getElementById('chapter-list-container');
+        if (!gridContainer) return;
+        gridContainer.innerHTML = '';
+
+        chapters.forEach(chap => {
+            const chapIdStr = chap.id.toString();
+            const isRead = readChapters.includes(chapIdStr);
             
-            if (e.target.checked) {
-                if (!readChapters.includes(chkId)) {
-                    readChapters.push(chkId);
-                }
-                updateCardStatusVisual(targetCard, targetBadge, true);
-            } else {
-                readChapters = readChapters.filter(id => id !== chkId);
-                updateCardStatusVisual(targetCard, targetBadge, false);
+            // Define Thumbnail
+            let thumbSrc = `assets/chapter${chap.id}_thumb.jpg`;
+            if (!window.isOfflineMode && window.supabase && chap.id > 3) {
+                const { data } = window.supabase.storage
+                    .from('paginas-quadrinho')
+                    .getPublicUrl(`capitulo-${chap.id}/pagina-1.webp`);
+                thumbSrc = data.publicUrl;
+            } else if (window.isOfflineMode && chap.id > 3) {
+                const sessionKey = `fio-temp-page-${chap.id}-1`;
+                const tempUrl = sessionStorage.getItem(sessionKey);
+                thumbSrc = tempUrl || `assets/chapter1_thumb.jpg`; // Fallback
             }
 
-            localStorage.setItem(userKey, JSON.stringify(readChapters));
-            updateOverallProgress();
+            const chapterCard = document.createElement('article');
+            chapterCard.className = 'chapter-card glass-card';
+            chapterCard.style.cursor = 'pointer';
+            if (isRead) {
+                chapterCard.style.border = "1px solid rgba(16, 185, 129, 0.25)";
+            }
+
+            chapterCard.innerHTML = `
+                <div class="chapter-card-thumb-container">
+                    <span class="chapter-card-status-badge ${isRead ? 'chapter-badge-read' : 'chapter-badge-unread'}" id="badge-cap-${chap.id}">
+                        ${isRead ? 'Lido' : 'Não Lido'}
+                    </span>
+                    <img src="${thumbSrc}" alt="Capítulo ${chap.id} Thumbnail" class="chapter-card-thumb" id="thumb-cap-${chap.id}" onerror="this.src='assets/chapter1_thumb.jpg'">
+                </div>
+                <div class="chapter-card-info">
+                    <div>
+                        <div class="chapter-number">Capítulo ${chap.id.toString().padStart(2, '0')}</div>
+                        <h3 class="chapter-card-title">${chap.title}</h3>
+                    </div>
+                    <div class="chapter-card-meta">
+                        <span class="chapter-date">${chap.release_date}</span>
+                        <label class="read-checkbox-label">
+                            <input type="checkbox" class="read-checkbox" data-chapter-id="${chap.id}" ${isRead ? 'checked' : ''}>
+                            Lido
+                        </label>
+                    </div>
+                </div>
+            `;
+
+            // Clique no card redireciona para a leitura
+            const checkbox = chapterCard.querySelector('.read-checkbox');
+            const checkboxLabel = chapterCard.querySelector('.read-checkbox-label');
+
+            chapterCard.addEventListener('click', (e) => {
+                if (e.target === checkbox || checkboxLabel.contains(e.target)) {
+                    return;
+                }
+                window.location.href = `ler.html?cap=${chap.id}`;
+            });
+
+            // Clique no checkbox de marcação de lido
+            checkbox.addEventListener('change', (e) => {
+                const targetCard = e.target.closest('.chapter-card');
+                const targetBadge = targetCard.querySelector('.chapter-card-status-badge');
+                
+                if (e.target.checked) {
+                    if (!readChapters.includes(chapIdStr)) {
+                        readChapters.push(chapIdStr);
+                    }
+                    updateCardStatusVisual(targetCard, targetBadge, true);
+                } else {
+                    readChapters = readChapters.filter(id => id !== chapIdStr);
+                    updateCardStatusVisual(targetCard, targetBadge, false);
+                }
+
+                localStorage.setItem(userKey, JSON.stringify(readChapters));
+                updateOverallProgress();
+            });
+
+            gridContainer.appendChild(chapterCard);
         });
-    });
+    }
 
     // Atualiza o progresso visual do card
     function updateCardStatusVisual(card, badge, isRead) {
@@ -159,48 +266,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Calculates and updates progress text in the header
+    // Calcula e atualiza a barra de progresso do leitor no cabeçalho
     function updateOverallProgress() {
         const count = readChapters.length;
-        const percentage = Math.round((count / totalChapters) * 100);
+        const percentage = totalChaptersCount > 0 ? Math.round((count / totalChaptersCount) * 100) : 0;
         if (progressIndicator) {
-            progressIndicator.textContent = `Lidos: ${count} / ${totalChapters} (${percentage}%)`;
+            progressIndicator.textContent = `Lidos: ${count} / ${totalChaptersCount} (${percentage}%)`;
         }
     }
 
-    // Call initial progress
-    updateOverallProgress();
-
-    // --- 4. Redirecionamento para Leitura (Links dos Cards) ---
-    const cards = document.querySelectorAll('.chapter-card');
-    cards.forEach(card => {
-        const checkboxLabel = card.querySelector('.read-checkbox-label');
-        const checkboxInput = card.querySelector('.read-checkbox');
-        const chapterId = checkboxInput.getAttribute('data-chapter-id');
-        
-        card.addEventListener('click', (e) => {
-            if (e.target === checkboxInput || checkboxLabel.contains(e.target)) {
-                return;
-            }
-            window.location.href = `ler.html?cap=${chapterId}`;
-        });
-        
-        card.style.cursor = 'pointer';
-    });
-
-    // Começar a Ler: Abre o primeiro capítulo não lido, ou o capítulo 1 por padrão
-    if (btnStartReading) {
-        btnStartReading.addEventListener('click', () => {
-            let nextToRead = "1";
-            for (let i = 1; i <= totalChapters; i++) {
-                if (!readChapters.includes(i.toString())) {
-                    nextToRead = i.toString();
-                    break;
+    // Configura o botão "Começar a Ler"
+    function setupStartReadingButton(chapters) {
+        if (btnStartReading) {
+            // Remove listeners antigos substituindo o botão por ele mesmo
+            const newBtn = btnStartReading.cloneNode(true);
+            btnStartReading.parentNode.replaceChild(newBtn, btnStartReading);
+            
+            newBtn.addEventListener('click', () => {
+                let nextToRead = chapters[0] ? chapters[0].id.toString() : "1";
+                for (let i = 0; i < chapters.length; i++) {
+                    const cIdStr = chapters[i].id.toString();
+                    if (!readChapters.includes(cIdStr)) {
+                        nextToRead = cIdStr;
+                        break;
+                    }
                 }
-            }
-            window.location.href = `ler.html?cap=${nextToRead}`;
-        });
+                window.location.href = `ler.html?cap=${nextToRead}`;
+            });
+        }
     }
+
+    // Dispara a carga inicial dinâmica dos capítulos
+    loadChaptersAndRenderGrid();
 
     // --- 5. Captura de Leads (Newsletter) ---
     if (leadForm) {
