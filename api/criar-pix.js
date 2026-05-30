@@ -1,8 +1,10 @@
 // API Serverless Vercel: Gerar cobrança Pix dinâmica no Mercado Pago de forma segura
+// Sintaxe Clássica Node.js CommonJS para produção na Vercel
+
 module.exports = async (req, res) => {
-    // Configura headers CORS
+    // Configura headers CORS e de segurança
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
 
     if (req.method === 'OPTIONS') {
@@ -10,11 +12,15 @@ module.exports = async (req, res) => {
     }
 
     if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Método não permitido' });
+        return res.status(405).json({ error: 'Método não permitido. Utilize POST.' });
     }
 
     const { email, cpf } = req.body;
     const token = process.env.MERCADO_PAGO_ACCESS_TOKEN;
+
+    if (!email || !cpf) {
+        return res.status(400).json({ error: 'Os campos email e cpf são obrigatórios.' });
+    }
 
     // Se o token de produção não estiver configurado na Vercel
     if (!token) {
@@ -25,6 +31,7 @@ module.exports = async (req, res) => {
 
     try {
         const cleanCpf = cpf.replace(/[^\d]+/g, '');
+        console.log(`[criar-pix] Gerando cobrança Pix para o e-mail: ${email}`);
         
         // Chamada oficial à API do Mercado Pago (Segura - Lado do Servidor)
         const response = await fetch('https://api.mercadopago.com/v1/payments', {
@@ -51,20 +58,24 @@ module.exports = async (req, res) => {
         const data = await response.json();
 
         if (response.ok) {
-            // Retorna os dados do Pix dinâmico gerado pelo Mercado Pago
+            console.log(`[criar-pix] Cobrança Pix gerada com sucesso. ID Transação: ${data.id}`);
+            // Retorna os dados do Pix dinâmico gerado pelo Mercado Pago de forma clássica Node.js
+            res.setHeader('Content-Type', 'application/json');
             return res.status(200).json({
                 transactionId: data.id.toString(),
                 qrCodeUrl: data.point_of_interaction.transaction_data.qr_code_base64,
                 copyPasteCode: data.point_of_interaction.transaction_data.qr_code
             });
         } else {
-            console.error("Erro API Mercado Pago:", data);
+            console.error("[criar-pix] Erro retornado pela API do Mercado Pago:", data);
+            res.setHeader('Content-Type', 'application/json');
             return res.status(400).json({ 
                 error: data.message || 'Erro ao gerar Pix no Mercado Pago.' 
             });
         }
     } catch (err) {
-        console.error("Erro interno no Vercel Serverless:", err);
+        console.error("[criar-pix] Erro interno crítico no Vercel Serverless:", err);
+        res.setHeader('Content-Type', 'application/json');
         return res.status(500).json({ error: 'Erro interno ao gerar transação Pix.' });
     }
 };
