@@ -3,7 +3,7 @@
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- 1. Proteção de Rota & Sessão ---
+    // --- 1. Proteção de Rota & Sessão com Whitelist de Email ---
     if (!window.sessionHelper) {
         console.error("Erro: sessionHelper não foi inicializado.");
         window.location.replace('index.html');
@@ -13,6 +13,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const session = window.sessionHelper.getSession();
     if (!session) {
         window.location.replace('index.html');
+        return;
+    }
+
+    const adminEmails = (window.env && window.env.ADMIN_EMAILS) || [];
+    const isAdmin = session && session.user && adminEmails.includes(session.user.email);
+
+    if (!isAdmin) {
+        alert("Acesso Negado! Este painel é de uso exclusivo dos administradores e autores de Fio Vermelho.");
+        window.location.replace('dashboard.html');
         return;
     }
 

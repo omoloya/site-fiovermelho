@@ -106,10 +106,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let readChapters = JSON.parse(localStorage.getItem(userKey) || '[]');
     let totalChaptersCount = 3;
 
-    // Habilita o botão Admin no painel
+    // Habilita o botão Admin no painel apenas para emails autorizados na whitelist
+    const adminEmails = (window.env && window.env.ADMIN_EMAILS) || [];
+    const isAdmin = session && session.user && adminEmails.includes(session.user.email);
+
     const adminBtn = document.getElementById('btn-admin-panel');
     if (adminBtn) {
-        adminBtn.style.display = 'inline-flex';
+        if (isAdmin) {
+            adminBtn.style.display = 'inline-flex';
+        } else {
+            adminBtn.style.display = 'none';
+        }
     }
 
     const defaultChapters = [

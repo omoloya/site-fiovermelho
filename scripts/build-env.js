@@ -4,6 +4,7 @@ const path = require('path');
 // Obtém as chaves das variáveis de ambiente de produção
 const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
+const adminEmails = process.env.ADMIN_EMAILS || 'miles@fiovermelho.art';
 
 // Conteúdo formatado sem risco de aspas quebradas
 const fileContent = `/* ==========================================================================
@@ -12,7 +13,8 @@ const fileContent = `/* ========================================================
 
 window.env = {
     SUPABASE_URL: "${supabaseUrl}",
-    SUPABASE_ANON_KEY: "${supabaseAnonKey}"
+    SUPABASE_ANON_KEY: "${supabaseAnonKey}",
+    ADMIN_EMAILS: ${JSON.stringify(adminEmails.split(',').map(e => e.trim()))}
 };
 `;
 
