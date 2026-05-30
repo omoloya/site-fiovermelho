@@ -661,4 +661,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // --- Alternar Visibilidade da Senha (Olhinho) ---
+    const togglePasswordButtons = document.querySelectorAll('.btn-toggle-password');
+    togglePasswordButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetId = btn.getAttribute('data-target');
+            const passwordInput = document.getElementById(targetId);
+            const icon = btn.querySelector('i');
+            
+            if (passwordInput && icon) {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                } else {
+                    passwordInput.type = 'password';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                }
+            }
+        });
+    });
 });

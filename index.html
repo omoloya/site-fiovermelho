@@ -70,7 +70,12 @@
                     </div>
                     <div class="input-group">
                         <label for="signup-password" class="input-label">Senha</label>
-                        <input type="password" id="signup-password" class="input-field" placeholder="No mínimo 6 caracteres" minlength="6" required>
+                        <div class="password-wrapper">
+                            <input type="password" id="signup-password" class="input-field" placeholder="No mínimo 6 caracteres" minlength="6" required>
+                            <button type="button" class="btn-toggle-password" data-target="signup-password" aria-label="Alternar visibilidade da senha">
+                                <i class="fa-solid fa-eye-slash"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="age-gate-buttons" style="margin-top: 24px;">
                         <button type="submit" class="btn btn-primary">
@@ -135,7 +140,12 @@
                     </div>
                     <div class="input-group">
                         <label for="login-password" class="input-label">Senha</label>
-                        <input type="password" id="login-password" class="input-field" placeholder="Sua senha" required>
+                        <div class="password-wrapper">
+                            <input type="password" id="login-password" class="input-field" placeholder="Sua senha" required>
+                            <button type="button" class="btn-toggle-password" data-target="login-password" aria-label="Alternar visibilidade da senha">
+                                <i class="fa-solid fa-eye-slash"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="age-gate-buttons" style="margin-top: 24px;">
                         <button type="submit" class="btn btn-primary">

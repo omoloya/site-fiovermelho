@@ -198,6 +198,41 @@ a {
     box-shadow: 0 0 0 3px rgba(255, 42, 59, 0.15);
 }
 
+/* Password Visibility Toggle */
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-wrapper .input-field {
+    padding-right: 46px; /* Espaço para o botão do olhinho */
+}
+
+.btn-toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 8px;
+    font-size: 1.1rem;
+    transition: var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-toggle-password:hover {
+    color: var(--primary-red);
+}
+
+.btn-toggle-password:focus {
+    outline: none;
+}
+
 /* ==========================================================================
    INDEX.HTML (AGE GATE, LOGIN & PIX GATEWAY)
    ========================================================================== */
