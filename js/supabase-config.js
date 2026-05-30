@@ -11,6 +11,8 @@ if (typeof window.env.SUPABASE_ANON_KEY === 'undefined') window.env.SUPABASE_ANO
 window.SUPABASE_URL = window.env.SUPABASE_URL;
 window.SUPABASE_ANON_KEY = window.env.SUPABASE_ANON_KEY;
 
+// Preserva o objeto global da biblioteca carregado pela CDN
+window.supabaseLib = window.supabase;
 window.supabase = null;
 window.isOfflineMode = true;
 
@@ -20,11 +22,11 @@ try {
     console.log("   - URL:", window.SUPABASE_URL ? "Preenchida (OK)" : "Vazia (MOCK)");
     console.log("   - Key:", window.SUPABASE_ANON_KEY ? "Preenchida (OK)" : "Vazia (MOCK)");
     
-    const hasCdn = (typeof window.supabase !== 'undefined' && (typeof window.supabase.createClient === 'function' || typeof window.supabase === 'function')) || typeof supabaseJs !== 'undefined';
+    const hasCdn = (typeof window.supabaseLib !== 'undefined' && (typeof window.supabaseLib.createClient === 'function' || typeof window.supabaseLib === 'function')) || typeof supabaseJs !== 'undefined';
     console.log("   - CDN Biblioteca:", hasCdn ? "Carregada (OK)" : "Não detectada (BLOQUEADA ou ERRO)");
 
     if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.SUPABASE_URL !== "") {
-        const creator = (window.supabase && window.supabase.createClient) || (typeof supabaseJs !== 'undefined' && supabaseJs.createClient) || window.supabase;
+        const creator = (window.supabaseLib && window.supabaseLib.createClient) || (typeof supabaseJs !== 'undefined' && supabaseJs.createClient) || window.supabaseLib;
         if (creator) {
             const clientCreator = typeof creator === 'function' ? creator : creator.createClient;
             window.supabase = clientCreator(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
