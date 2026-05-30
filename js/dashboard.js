@@ -75,7 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             .from('profiles')
                             .select('status')
                             .eq('id', userId)
-                            .headers({ 'cache-control': 'no-cache, no-store, must-revalidate', 'pragma': 'no-cache' })
                             .maybeSingle();
 
                         const data = profile;
@@ -125,7 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             .from('profiles')
                             .select('status')
                             .eq('id', pollUserId)
-                            .headers({ 'cache-control': 'no-cache, no-store, must-revalidate', 'pragma': 'no-cache' })
                             .maybeSingle();
 
                         const data = profile;
@@ -189,7 +187,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                 .from('profiles')
                                 .select('status')
                                 .eq('id', revUserId)
-                                .headers({ 'cache-control': 'no-cache, no-store, must-revalidate', 'pragma': 'no-cache' })
                                 .maybeSingle();
 
                             const data = profile;

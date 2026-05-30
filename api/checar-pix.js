@@ -52,10 +52,13 @@ module.exports = async (req, res) => {
             // Se o pagamento estiver aprovado, atualiza o status do perfil no Supabase a partir do servidor
             if (status === 'approved') {
                 const supabaseUrl = process.env.SUPABASE_URL;
-                // Usamos a Service Role Key para ignorar RLS e garantir a verificação, ou a Anon Key como fallback
-                const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+                const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-                if (supabaseUrl && supabaseKey) {
+                if (!supabaseUrl || !supabaseServiceKey) {
+                    console.error("ERRO: Chaves do Supabase ausentes no ambiente da Vercel!");
+                }
+
+                if (supabaseUrl && supabaseServiceKey) {
                     try {
                         const payerEmail = data.payer && data.payer.email;
                         const payerCpf = data.payer && data.payer.identification && data.payer.identification.number;
@@ -78,8 +81,8 @@ module.exports = async (req, res) => {
                             const updateResponse = await fetch(`${supabaseUrl}/rest/v1/profiles?${filterQuery}`, {
                                 method: 'PATCH',
                                 headers: {
-                                    'apikey': supabaseKey,
-                                    'Authorization': `Bearer ${supabaseKey}`,
+                                    'apikey': supabaseServiceKey,
+                                    'Authorization': `Bearer ${supabaseServiceKey}`,
                                     'Content-Type': 'application/json'
                                 },
                                 body: JSON.stringify({ status: 'pago' })
