@@ -78,11 +78,11 @@ module.exports = async (req, res) => {
                                     'Authorization': `Bearer ${supabaseKey}`,
                                     'Content-Type': 'application/json'
                                 },
-                                body: JSON.stringify({ status: 'verificado' })
+                                body: JSON.stringify({ status: 'pago' })
                             });
 
                             if (updateResponse.ok) {
-                                console.log(`[checar-pix] Perfil (${filterQuery}) atualizado com sucesso para 'verificado'.`);
+                                console.log(`[checar-pix] Perfil (${filterQuery}) atualizado com sucesso para 'pago'.`);
                                 verificado = true;
                             } else {
                                 const errBody = await updateResponse.text();

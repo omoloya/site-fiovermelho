@@ -63,14 +63,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             .eq('id', userId)
                             .maybeSingle();
 
-                        if (!error && profile && profile.status) {
-                            const rawStatus = profile.status.toLowerCase().trim();
-                            // Aceita 'verificado', 'pago' ou 'approved' como status válidos e aprovados
-                            if (rawStatus === 'verificado' || rawStatus === 'pago' || rawStatus === 'approved') {
-                                status = 'verificado';
-                            } else {
-                                status = profile.status;
-                            }
+                        const data = profile;
+                        if (!error && data && (data.status === 'pago' || data.status === 'approved' || data.status === true)) {
+                            status = 'pago';
+                        } else if (data) {
+                            status = data.status;
                         }
                     }
                 }
@@ -82,11 +79,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Sobregravação automática de verificação para e-mails administradores autorizados!
         const adminEmails = (window.env && window.env.ADMIN_EMAILS) || [];
         if (session && session.user && adminEmails.includes(session.user.email)) {
-            status = 'verificado';
+            status = 'pago';
         }
 
         // Se o status for pendente_verificacao, bloqueia com o modal e inicia checagem ativa
-        if (status === 'pendente_verificacao') {
+        if (status !== 'pago') {
             if (lockOverlay) {
                 lockOverlay.style.display = 'flex';
                 lockOverlay.classList.add('active');
@@ -115,31 +112,27 @@ document.addEventListener('DOMContentLoaded', () => {
                             .eq('id', pollUserId)
                             .maybeSingle();
 
-                        if (!error && profile && profile.status) {
-                            const rawStatus = profile.status.toLowerCase().trim();
-                            const isApproved = rawStatus === 'verificado' || rawStatus === 'pago' || rawStatus === 'approved';
-
-                            if (isApproved) {
-                                // 1. Parar o bombardeio de requisições imediatamente!
-                                clearInterval(statusPollInterval);
-                                
-                                // 2. Atualizar a sessão persistida com o ID
-                                if (window.sessionHelper) {
-                                    window.sessionHelper.setSession(session.user.email, true, pollUserId);
-                                }
-                                
-                                // 3. Esconder/remover o modal completamente da tela
-                                if (lockOverlay) {
-                                    lockOverlay.style.display = 'none';
-                                    lockOverlay.classList.remove('active');
-                                    document.body.style.overflow = '';
-                                }
-                                
-                                alert("🎉 Pagamento confirmado! Seu acesso de maioridade foi verificado com sucesso.");
-                                
-                                // 4. Liberar a renderização do painel principal para o leitor
-                                loadChaptersAndRenderGrid();
+                        const data = profile;
+                        if (!error && data && (data.status === 'pago' || data.status === 'approved' || data.status === true)) {
+                            // 1. Parar o bombardeio de requisições imediatamente!
+                            clearInterval(statusPollInterval);
+                            
+                            // 2. Atualizar a sessão
+                            if (window.sessionHelper) {
+                                window.sessionHelper.setSession(session.user.email, true, pollUserId);
                             }
+                            
+                            // 3. Esconder/remover o modal completamente da tela
+                            if (lockOverlay) {
+                                lockOverlay.style.display = 'none';
+                                lockOverlay.classList.remove('active');
+                                document.body.style.overflow = '';
+                            }
+                            
+                            alert("🎉 Pagamento confirmado! Seu acesso de maioridade foi verificado com sucesso.");
+                            
+                            // 4. Liberar a renderização do painel principal para o leitor
+                            loadChaptersAndRenderGrid();
                         }
                     }
                 } catch (pollErr) {
@@ -180,27 +173,23 @@ document.addEventListener('DOMContentLoaded', () => {
                                 .eq('id', revUserId)
                                 .maybeSingle();
 
-                            if (!error && profile && profile.status) {
-                                const rawStatus = profile.status.toLowerCase().trim();
-                                const isApproved = rawStatus === 'verificado' || rawStatus === 'pago' || rawStatus === 'approved';
-
-                                if (isApproved) {
-                                    clearInterval(statusPollInterval);
-                                    
-                                    if (window.sessionHelper) {
-                                        window.sessionHelper.setSession(session.user.email, true, revUserId);
-                                    }
-                                    
-                                    if (lockOverlay) {
-                                        lockOverlay.style.display = 'none';
-                                        lockOverlay.classList.remove('active');
-                                        document.body.style.overflow = '';
-                                    }
-                                    
-                                    alert("🎉 Pagamento confirmado! Seu acesso de maioridade foi verificado com sucesso.");
-                                    loadChaptersAndRenderGrid();
-                                    return;
+                            const data = profile;
+                            if (!error && data && (data.status === 'pago' || data.status === 'approved' || data.status === true)) {
+                                clearInterval(statusPollInterval);
+                                
+                                if (window.sessionHelper) {
+                                    window.sessionHelper.setSession(session.user.email, true, revUserId);
                                 }
+                                
+                                if (lockOverlay) {
+                                    lockOverlay.style.display = 'none';
+                                    lockOverlay.classList.remove('active');
+                                    document.body.style.overflow = '';
+                                }
+                                
+                                alert("🎉 Pagamento confirmado! Seu acesso de maioridade foi verificado com sucesso.");
+                                loadChaptersAndRenderGrid();
+                                return;
                             }
                         }
                         alert("⚠️ Ainda não detectamos a aprovação do Pix. \n\nSe você acabou de pagar, o processamento bancário pode levar de 10 a 60 segundos. Por favor, aguarde um momento e tente novamente!");

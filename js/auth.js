@@ -350,13 +350,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     // Condição de parada flexível (seja por status aprovado ou flag de verificação ativa)
-                    if (data.status === 'approved' || data.verificado === true) {
+                    if (data.status === 'pago' || data.status === 'approved' || data.status === true) {
                         // Limpa o intervalo IMEDIATAMENTE para evitar chamadas órfãs
                         clearInterval(interval);
                         
                         // Atualiza localmente no mock caso esteja em modo offline
                         if (window.isOfflineMode) {
-                            updateMockUserStatus(email, 'verificado');
+                            updateMockUserStatus(email, 'pago');
                         }
 
                         // Redireciona e libera o acesso de forma segura com o ID do usuário
