@@ -205,10 +205,20 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (!window.isOfflineMode && window.supabase && parseInt(currentChapterId) > 3) {
                 // Modo Produção: URL pública do Storage do Supabase
-                const { data } = window.supabase.storage
-                    .from('paginas-quadrinho')
-                    .getPublicUrl(`capitulo-${currentChapterId}/pagina-${i}.webp`);
-                imageSource = data.publicUrl;
+                try {
+                    const res = window.supabase.storage
+                        .from('paginas-quadrinho')
+                        .getPublicUrl(`capitulo-${currentChapterId}/pagina-${i}.webp`);
+                    if (res && res.data && res.data.publicUrl) {
+                        imageSource = res.data.publicUrl;
+                    } else if (res && res.publicURL) {
+                        imageSource = res.publicURL;
+                    } else if (typeof res === 'string') {
+                        imageSource = res;
+                    }
+                } catch (urlErr) {
+                    console.error("Erro ao obter URL publica do storage:", urlErr);
+                }
             } else {
                 // Modo Offline: Verifica sessionStorage para Blob URLs de pré-visualização ao vivo
                 const sessionKey = `fio-temp-page-${currentChapterId}-${i}`;

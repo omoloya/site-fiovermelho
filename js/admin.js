@@ -619,10 +619,20 @@ document.addEventListener('DOMContentLoaded', () => {
             let thumbUrl = `assets/cap${chapterId}_pag${i}.jpg`; // Fallback físico original
             
             if (!window.isOfflineMode && window.supabase && chapterId > 3) {
-                const { data } = window.supabase.storage
-                    .from('paginas-quadrinho')
-                    .getPublicUrl(`capitulo-${chapterId}/pagina-${i}.webp`);
-                thumbUrl = data.publicUrl;
+                try {
+                    const res = window.supabase.storage
+                        .from('paginas-quadrinho')
+                        .getPublicUrl(`capitulo-${chapterId}/pagina-${i}.webp`);
+                    if (res && res.data && res.data.publicUrl) {
+                        thumbUrl = res.data.publicUrl;
+                    } else if (res && res.publicURL) {
+                        thumbUrl = res.publicURL;
+                    } else if (typeof res === 'string') {
+                        thumbUrl = res;
+                    }
+                } catch (urlErr) {
+                    console.error("Erro ao obter URL publica do storage:", urlErr);
+                }
             } else {
                 const sessionKey = `fio-temp-page-${chapterId}-${i}`;
                 const tempBlob = sessionStorage.getItem(sessionKey);

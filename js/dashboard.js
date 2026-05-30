@@ -338,10 +338,20 @@ document.addEventListener('DOMContentLoaded', () => {
             // Define Thumbnail
             let thumbSrc = `assets/chapter${chap.id}_thumb.jpg`;
             if (!window.isOfflineMode && window.supabase && chap.id > 3) {
-                const { data } = window.supabase.storage
-                    .from('paginas-quadrinho')
-                    .getPublicUrl(`capitulo-${chap.id}/pagina-1.webp`);
-                thumbSrc = data.publicUrl;
+                try {
+                    const res = window.supabase.storage
+                        .from('paginas-quadrinho')
+                        .getPublicUrl(`capitulo-${chap.id}/pagina-1.webp`);
+                    if (res && res.data && res.data.publicUrl) {
+                        thumbSrc = res.data.publicUrl;
+                    } else if (res && res.publicURL) {
+                        thumbSrc = res.publicURL;
+                    } else if (typeof res === 'string') {
+                        thumbSrc = res;
+                    }
+                } catch (urlErr) {
+                    console.error("Erro ao obter URL publica do storage:", urlErr);
+                }
             } else if (window.isOfflineMode && chap.id > 3) {
                 const sessionKey = `fio-temp-page-${chap.id}-1`;
                 const tempUrl = sessionStorage.getItem(sessionKey);

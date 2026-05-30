@@ -6,5 +6,8 @@
   "engines": {
     "node": "20.x"
   },
+  "scripts": {
+    "build": "node scripts/build-env.js"
+  },
   "dependencies": {}
 }
