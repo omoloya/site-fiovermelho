@@ -183,7 +183,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let userId = null;
 
-            // 3. Cadastra a Conta Primeiro como 'pendente_verificacao'
+            // Sobregravação automática de verificação para administradores autorizados no Cadastro!
+            const adminEmails = (window.env && window.env.ADMIN_EMAILS) || [];
+            const isAdminEmail = adminEmails.includes(email);
+            const initialStatus = isAdminEmail ? 'verificado' : 'pendente_verificacao';
+
+            // 3. Cadastra a Conta Primeiro
             if (window.isOfflineMode) {
                 // Modo Protótipo Local (Mock)
                 userId = "usr_" + Math.random().toString(36).substring(2, 15);
@@ -201,16 +206,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     password,
                     cpf: cleanCpf,
                     birthdate: cleanBirthdate,
-                    status: 'pendente_verificacao'
+                    status: initialStatus
                 });
                 localStorage.setItem('fio-mock-users', JSON.stringify(mockUsers));
                 
                 if (window.sessionHelper) {
-                    window.sessionHelper.setSession(email, false);
+                    window.sessionHelper.setSession(email, isAdminEmail);
                 }
                 
-                // Dispara Geração de Pix (Simulado na raiz se offline)
-                await initiatePixGeneration(email, cleanCpf, userId, submitBtn);
+                if (isAdminEmail) {
+                    alert("🧶 Bem-vindo, Administrador! Cadastro efetuado com verificação automática.");
+                    window.location.href = 'dashboard.html';
+                } else {
+                    // Dispara Geração de Pix (Simulado na raiz se offline)
+                    await initiatePixGeneration(email, cleanCpf, userId, submitBtn);
+                }
             } else {
                 // Modo Produção Remoto (Supabase + Mercado Pago API)
                 try {
@@ -233,31 +243,36 @@ document.addEventListener('DOMContentLoaded', () => {
                             email: email,
                             password: password,
                             options: {
-                                data: { is_verified: false }
+                                data: { is_verified: isAdminEmail }
                             }
                         });
 
                         if (authError) throw authError;
                         userId = authData.user.id;
 
-                        // Grava os dados legais na tabela profiles como pendente_verificacao
+                        // Grava os dados legais na tabela profiles
                         const { error: profileError } = await window.supabase
                             .from('profiles')
                             .insert([{
                                 id: userId,
                                 email: email,
                                 cpf: cleanCpf,
-                                status: 'pendente_verificacao'
+                                status: initialStatus
                             }]);
 
                         if (profileError) throw profileError;
 
                         if (window.sessionHelper) {
-                            window.sessionHelper.setSession(email, false);
+                            window.sessionHelper.setSession(email, isAdminEmail);
                         }
 
-                        // Dispara Geração de Pix Real via endpoint do Mercado Pago
-                        await initiatePixGeneration(email, cleanCpf, userId, submitBtn);
+                        if (isAdminEmail) {
+                            alert("🧶 Bem-vindo, Administrador! Cadastro efetuado com verificação automática.");
+                            window.location.href = 'dashboard.html';
+                        } else {
+                            // Dispara Geração de Pix Real via endpoint do Mercado Pago
+                            await initiatePixGeneration(email, cleanCpf, userId, submitBtn);
+                        }
                     }
                 } catch (err) {
                     console.error("Erro no cadastro:", err.message);
