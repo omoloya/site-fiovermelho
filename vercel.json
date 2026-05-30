@@ -1,7 +1,3 @@
 {
-  "routes": [
-    { "src": "/api/checar-pix", "dest": "/api/checar-pix.js" },
-    { "src": "/api/criar-pix", "dest": "/api/criar-pix.js" },
-    { "src": "/(.*)", "dest": "/$1" }
-  ]
+  "cleanUrls": true
 }
