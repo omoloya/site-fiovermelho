@@ -33,7 +33,8 @@ module.exports = async (req, res) => {
         const data = await response.json();
 
         if (response.ok) {
-            const status = data.status;
+            // Garante que o status esteja estritamente em minúsculas ('approved')
+            const status = data.status ? data.status.toLowerCase() : '';
             let verificado = false;
 
             // Se o pagamento estiver aprovado, atualiza o status do perfil no Supabase a partir do servidor
@@ -87,18 +88,22 @@ module.exports = async (req, res) => {
                 }
             }
 
+            // Forçar o cabeçalho JSON e o status 200 de forma robusta e compatível com Vercel Node
+            res.setHeader('Content-Type', 'application/json');
             return res.status(200).json({
-                status: data.status, // approved, pending, rejected, etc.
+                status: status,
                 statusDetail: data.status_detail,
-                verificado: verificado // Sinal verde explícito de banco atualizado
+                verificado: verificado
             });
         } else {
+            res.setHeader('Content-Type', 'application/json');
             return res.status(400).json({ 
                 error: data.message || 'Erro ao consultar Pix no Mercado Pago.' 
             });
         }
     } catch (err) {
         console.error("Erro interno no Vercel Serverless:", err);
+        res.setHeader('Content-Type', 'application/json');
         return res.status(500).json({ error: 'Erro interno ao verificar transação.' });
     }
 };

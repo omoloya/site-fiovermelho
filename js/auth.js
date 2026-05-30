@@ -341,12 +341,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (res.ok) {
                     const data = await res.json();
                     
+                    // Log da resposta no console do navegador para depuração
+                    console.log("🧶 [auth.js] Resposta checar-pix:", data);
+
                     // Restaura o texto original de aguardando se a requisição voltou a funcionar
                     if (pixStatusText) {
                         pixStatusText.innerHTML = 'Aguardando confirmação do pagamento real...';
                     }
 
-                    if (data.status === 'approved' && data.verificado === true) {
+                    // Condição de parada flexível (seja por status aprovado ou flag de verificação ativa)
+                    if (data.status === 'approved' || data.verificado === true) {
                         // Limpa o intervalo IMEDIATAMENTE para evitar chamadas órfãs
                         clearInterval(interval);
                         
