@@ -16,6 +16,66 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    // --- 1.1 Verificação de Maioridade / Status do Perfil (ECA) ---
+    checkProfileStatus();
+
+    async function checkProfileStatus() {
+        const lockOverlay = document.getElementById('dashboard-lock-overlay');
+        const btnLockReverify = document.getElementById('btn-lock-reverify');
+        const btnLockLogout = document.getElementById('btn-lock-logout');
+
+        let status = 'pendente_verificacao';
+
+        if (window.isOfflineMode) {
+            const mockUsers = JSON.parse(localStorage.getItem('fio-mock-users') || '[]');
+            const foundUser = mockUsers.find(u => u.email === session.user.email);
+            status = foundUser ? foundUser.status : 'pendente_verificacao';
+        } else {
+            try {
+                if (window.supabase) {
+                    const { data: profile, error } = await window.supabase
+                        .from('profiles')
+                        .select('status')
+                        .eq('id', session.user.id)
+                        .maybeSingle();
+
+                    if (!error && profile) {
+                        status = profile.status;
+                    }
+                }
+            } catch (err) {
+                console.error("Erro ao verificar status no Supabase:", err);
+            }
+        }
+
+        // Se o status for pendente_verificacao, bloqueia com o modal
+        if (status === 'pendente_verificacao') {
+            if (lockOverlay) {
+                lockOverlay.style.display = 'flex';
+                document.body.style.overflow = 'hidden'; // Impede rolagem
+            }
+
+            if (btnLockLogout) {
+                btnLockLogout.addEventListener('click', () => {
+                    window.sessionHelper.clearSession();
+                    window.location.replace('index.html');
+                });
+            }
+
+            if (btnLockReverify) {
+                btnLockReverify.addEventListener('click', () => {
+                    window.sessionHelper.clearSession();
+                    window.location.replace('index.html');
+                });
+            }
+        } else {
+            if (lockOverlay) {
+                lockOverlay.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        }
+    }
+
     // --- DOM Elements ---
     const userEmailSpan = document.getElementById('user-display-email');
     const btnLogout = document.getElementById('btn-logout');

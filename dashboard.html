@@ -27,6 +27,31 @@
 </head>
 <body>
 
+    <!-- ==================== BLOQUEIO DE SEGURANÇA E LEITURA (ECA) ==================== -->
+    <div id="dashboard-lock-overlay" class="lock-overlay" style="display: none;">
+        <div class="lock-card glass-card">
+            <div class="age-gate-icon" style="font-size: 3.5rem; color: var(--primary-red); margin-bottom: 24px;">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h2 class="age-gate-title" style="font-size: 1.8rem; margin-bottom: 16px;">Verificação de Idade Necessária</h2>
+            <p class="age-gate-text" style="line-height: 1.7; margin-bottom: 32px;">
+                Seu cadastro foi criado com sucesso! Entretanto, em conformidade com o <strong>Estatuto da Criança e do Adolescente (ECA)</strong>, o acesso ao conteúdo maduro deste quadrinho só é liberado após a confirmação do Pix de validação de CPF e maioridade.
+            </p>
+            <div class="pix-status-box" style="margin-bottom: 32px; background: rgba(255, 42, 59, 0.05); border-color: rgba(255, 42, 59, 0.2);">
+                <div class="pix-status-spinner" style="border-top-color: var(--primary-red);"></div>
+                <span style="color: var(--text-secondary); font-weight: 500;">Aguardando confirmação do pagamento...</span>
+            </div>
+            <div class="age-gate-buttons">
+                <button id="btn-lock-reverify" class="btn btn-primary" type="button">
+                    <i class="fa-solid fa-qrcode" style="margin-right: 8px;"></i> Concluir Validação via Pix
+                </button>
+                <button id="btn-lock-logout" class="btn btn-secondary" type="button">
+                    <i class="fa-solid fa-arrow-right-from-bracket" style="margin-right: 8px;"></i> Efetuar Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ==================== HEADER & NAVEGAÇÃO ==================== -->
     <header class="nav-container">
         <a href="dashboard.html" class="nav-logo">Fio <span>Vermelho</span></a>

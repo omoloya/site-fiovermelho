@@ -1060,3 +1060,35 @@ a {
     font-size: 0.85rem;
     color: var(--text-muted);
 }
+
+/* ==========================================================================
+   DASHBOARD LOCK OVERLAY (ECA COMPLIANCE)
+   ========================================================================== */
+
+.lock-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 8, 10, 0.96);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    animation: fadeInLock 0.4s ease-out;
+}
+
+.lock-card {
+    width: 100%;
+    max-width: 520px;
+    padding: 48px 40px;
+    text-align: center;
+    border: 1px solid rgba(255, 42, 59, 0.15);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 50px rgba(255, 42, 59, 0.05);
+}
+
+@keyframes fadeInLock {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

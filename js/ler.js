@@ -16,6 +16,40 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    // --- 1.1 Verificação de Maioridade / Status do Perfil (ECA) ---
+    checkProfileStatus();
+
+    async function checkProfileStatus() {
+        let status = 'pendente_verificacao';
+
+        if (window.isOfflineMode) {
+            const mockUsers = JSON.parse(localStorage.getItem('fio-mock-users') || '[]');
+            const foundUser = mockUsers.find(u => u.email === session.user.email);
+            status = foundUser ? foundUser.status : 'pendente_verificacao';
+        } else {
+            try {
+                if (window.supabase) {
+                    const { data: profile, error } = await window.supabase
+                        .from('profiles')
+                        .select('status')
+                        .eq('id', session.user.id)
+                        .maybeSingle();
+
+                    if (!error && profile) {
+                        status = profile.status;
+                    }
+                }
+            } catch (err) {
+                console.error("Erro ao verificar status no Supabase:", err);
+            }
+        }
+
+        // Se o status for pendente_verificacao, expulsa do leitor de volta para o dashboard lock
+        if (status === 'pendente_verificacao') {
+            window.location.replace('dashboard.html');
+        }
+    }
+
     // --- Dados Dinâmicos dos Capítulos ---
     const chaptersData = {
         "1": {

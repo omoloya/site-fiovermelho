@@ -1,5 +1,5 @@
 /* ==========================================================================
-   INDEX.HTML AUTHENTICATION, AGE GATE & PIX FLOWS
+   INDEX.HTML AUTHENTICATION, AGE GATE, CPF VALIDATION & PIX FLOWS
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -23,30 +23,80 @@ document.addEventListener('DOMContentLoaded', () => {
     const pixSuccessText = document.getElementById('pix-success-text');
     
     const signupForm = document.getElementById('signup-form');
+    const signupCpfInput = document.getElementById('signup-cpf');
     const loginForm = document.getElementById('login-form');
 
     let activePixListener = null;
-    let validatedEmail = ""; // Guarda o e-mail após a validação Pix, se necessário.
 
-    // Redireciona se o usuário já estiver ativo
+    // Redireciona se o usuário já estiver ativo e verificado
     if (window.sessionHelper && window.sessionHelper.getSession()) {
         window.location.href = 'dashboard.html';
         return;
     }
 
-    // --- Helper: Alternar Passos da Autenticação ---
-    function showStep(stepElement) {
-        // Oculta todos
-        [stepAgeGate, stepPixPayment, stepSignup, stepLogin].forEach(el => {
-            el.classList.remove('active');
+    // --- 1. Máscara de CPF Dinâmica ---
+    if (signupCpfInput) {
+        signupCpfInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, ""); // Remove não-dígitos
+            if (value.length > 11) value = value.substring(0, 11);
+            
+            let formatted = "";
+            if (value.length > 0) {
+                formatted += value.substring(0, 3);
+            }
+            if (value.length > 3) {
+                formatted += "." + value.substring(3, 6);
+            }
+            if (value.length > 6) {
+                formatted += "." + value.substring(6, 9);
+            }
+            if (value.length > 9) {
+                formatted += "-" + value.substring(9, 11);
+            }
+            
+            e.target.value = formatted;
         });
-        // Ativa o selecionado
-        stepElement.classList.add('active');
     }
 
-    // --- Fluxo de Passos e Cliques ---
+    // --- 2. Algoritmo de Validação de CPF (Dígito Verificador - Módulo 11) ---
+    function validateCPF(cpf) {
+        cpf = cpf.replace(/[^\d]+/g, ''); // Remove formatação
+        if (cpf.length !== 11) return false;
+        
+        // Elimina CPFs com todos os dígitos iguais (padrão inválido comum)
+        if (/^(\d)\1{10}$/.test(cpf)) return false;
+        
+        // Validação do primeiro dígito verificador
+        let add = 0;
+        for (let i = 0; i < 9; i++) {
+            add += parseInt(cpf.charAt(i)) * (10 - i);
+        }
+        let rev = 11 - (add % 11);
+        if (rev === 10 || rev === 11) rev = 0;
+        if (rev !== parseInt(cpf.charAt(9))) return false;
+        
+        // Validação do segundo dígito verificador
+        add = 0;
+        for (let i = 0; i < 10; i++) {
+            add += parseInt(cpf.charAt(i)) * (11 - i);
+        }
+        rev = 11 - (add % 11);
+        if (rev === 10 || rev === 11) rev = 0;
+        if (rev !== parseInt(cpf.charAt(10))) return false;
+        
+        return true;
+    }
 
-    // 1. Iniciar Validação Pix (Maioridade)
+    // --- Helper: Alternar Passos da Autenticação ---
+    function showStep(stepElement) {
+        [stepAgeGate, stepPixPayment, stepSignup, stepLogin].forEach(el => {
+            if (el) el.classList.remove('active');
+        });
+        if (stepElement) stepElement.classList.add('active');
+    }
+
+    // --- Fluxo de Cliques ---
+
     if (btnAgreeAge) {
         btnAgreeAge.addEventListener('click', async () => {
             showStep(stepPixPayment);
@@ -54,14 +104,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2. Ir para a tela de Login Existente
     if (btnGoToLogin) {
         btnGoToLogin.addEventListener('click', () => {
             showStep(stepLogin);
         });
     }
 
-    // 3. Cancelar Pix e Voltar ao Início
     if (btnCancelPix) {
         btnCancelPix.addEventListener('click', () => {
             if (activePixListener) {
@@ -71,31 +119,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 4. Voltar do Login para o Início
     if (btnBackToGate) {
         btnBackToGate.addEventListener('click', () => {
             showStep(stepAgeGate);
         });
     }
 
-    // --- LÓGICA DO PIX (MOCK INTEGRADO COM O SERVIÇO) ---
+    // --- LÓGICA DO PIX (MOCK SIMULADOR) ---
     async function startPixFlow() {
-        // Reset visual do status do Pix
-        pixSpinner.style.display = 'block';
-        pixSuccessText.style.display = 'none';
-        pixStatusText.style.display = 'inline';
-        pixStatusText.textContent = "Aguardando confirmação do pagamento...";
+        if (pixSpinner) pixSpinner.style.display = 'block';
+        if (pixSuccessText) pixSuccessText.style.display = 'none';
+        if (pixStatusText) {
+            pixStatusText.style.display = 'inline';
+            pixStatusText.textContent = "Aguardando confirmação do pagamento...";
+        }
         
         try {
-            // Gera a cobrança (0.10 centavos para verificação de maioridade)
             if (window.PixService) {
                 const charge = await window.PixService.generatePixCharge(0.10, "verificacao_fio_vermelho");
                 
-                // Injeta dados no layout
                 if (pixQrElement) pixQrElement.src = charge.qrCodeUrl;
                 if (pixCodeField) pixCodeField.value = charge.copyPasteCode;
                 
-                // Escuta o status
                 activePixListener = window.PixService.listenToPaymentStatus(charge.transactionId, (status, data) => {
                     if (status === 'APPROVED') {
                         handlePixApproval();
@@ -103,25 +148,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             } else {
                 console.error("Erro: PixService não inicializado.");
-                pixStatusText.textContent = "Erro de conexão ao serviço de Pix.";
-                pixSpinner.style.display = 'none';
+                if (pixStatusText) pixStatusText.textContent = "Erro de conexão ao serviço de Pix.";
+                if (pixSpinner) pixSpinner.style.display = 'none';
             }
         } catch (error) {
             console.error("Erro ao processar Pix:", error);
-            pixStatusText.textContent = "Erro ao gerar cobrança. Tente novamente.";
-            pixSpinner.style.display = 'none';
+            if (pixStatusText) pixStatusText.textContent = "Erro ao gerar cobrança. Tente novamente.";
+            if (pixSpinner) pixSpinner.style.display = 'none';
         }
     }
 
-    // Ação: Copiar Código Pix Copia e Cola
+    // Copiar Código Pix Copia e Cola
     if (btnCopyPix && pixCodeField) {
         btnCopyPix.addEventListener('click', () => {
             pixCodeField.select();
-            pixCodeField.setSelectionRange(0, 99999); // Suporte mobile
+            pixCodeField.setSelectionRange(0, 99999);
             
             navigator.clipboard.writeText(pixCodeField.value)
                 .then(() => {
-                    // Feedback visual dinâmico do botão
                     const originalIcon = btnCopyPix.innerHTML;
                     btnCopyPix.innerHTML = '<i class="fa-solid fa-check"></i>';
                     btnCopyPix.style.backgroundColor = 'var(--success-green)';
@@ -137,14 +181,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Ação: Quando Pix é Aprovado
     function handlePixApproval() {
-        // Atualiza interface do Pix
         if (pixSpinner) pixSpinner.style.display = 'none';
         if (pixStatusText) pixStatusText.style.display = 'none';
         if (pixSuccessText) pixSuccessText.style.display = 'inline';
         
-        // Transiciona suavemente para o cadastro pós 2 segundos
         setTimeout(() => {
             showStep(stepSignup);
         }, 1800);
@@ -155,16 +196,25 @@ document.addEventListener('DOMContentLoaded', () => {
         signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('signup-email').value.trim();
+            const cpfValue = document.getElementById('signup-cpf').value;
             const password = document.getElementById('signup-password').value;
 
             const submitBtn = signupForm.querySelector('button[type="submit"]');
+            
+            // 1. Validação de CPF Real
+            if (!validateCPF(cpfValue)) {
+                alert("❌ CPF Inválido! O dígito verificador está incorreto ou o número é falso. Insira um CPF verdadeiro para validação de maioridade legal (ECA).");
+                return;
+            }
+
+            const cleanCpf = cpfValue.replace(/[^\d]+/g, '');
+
             submitBtn.classList.add('btn-disabled');
             submitBtn.innerHTML = '<div class="pix-status-spinner" style="margin-right: 8px;"></div> Cadastrando...';
 
             if (window.isOfflineMode) {
                 // --- MODO OFFLINE (LOCALSTORAGE MOCK) ---
                 setTimeout(() => {
-                    // Armazena usuário mockado
                     let mockUsers = JSON.parse(localStorage.getItem('fio-mock-users') || '[]');
                     
                     if (mockUsers.some(u => u.email === email)) {
@@ -172,13 +222,23 @@ document.addEventListener('DOMContentLoaded', () => {
                         resetSubmitButton(submitBtn, '<i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> Concluir Cadastro & Entrar');
                         return;
                     }
+                    if (mockUsers.some(u => u.cpf === cleanCpf)) {
+                        alert("Este CPF já está cadastrado em outra conta.");
+                        resetSubmitButton(submitBtn, '<i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> Concluir Cadastro & Entrar');
+                        return;
+                    }
 
-                    mockUsers.push({ email, password, is_verified: true });
+                    // Salva como pendente_verificacao
+                    mockUsers.push({ 
+                        email, 
+                        password, 
+                        cpf: cleanCpf, 
+                        status: 'pendente_verificacao' 
+                    });
                     localStorage.setItem('fio-mock-users', JSON.stringify(mockUsers));
                     
-                    // Cria Sessão local
                     if (window.sessionHelper) {
-                        window.sessionHelper.setSession(email, true);
+                        window.sessionHelper.setSession(email, false); // false = não verificado no banco remoto ainda
                     }
                     window.location.href = 'dashboard.html';
                 }, 1000);
@@ -186,27 +246,51 @@ document.addEventListener('DOMContentLoaded', () => {
                 // --- MODO SUPABASE REAL ---
                 try {
                     if (window.supabase) {
+                        // Verifica primeiro se o CPF já existe na tabela de perfis
+                        const { data: existingCpf } = await window.supabase
+                            .from('profiles')
+                            .select('cpf')
+                            .eq('cpf', cleanCpf)
+                            .maybeSingle();
+
+                        if (existingCpf) {
+                            alert("Este CPF já está cadastrado em outra conta.");
+                            resetSubmitButton(submitBtn, '<i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> Concluir Cadastro & Entrar');
+                            return;
+                        }
+
+                        // Registra o usuário no Supabase Auth
                         const { data, error } = await window.supabase.auth.signUp({
                             email: email,
                             password: password,
                             options: {
                                 data: {
-                                    is_verified: true // Atributo de usuário indicando maioridade validada
+                                    is_verified: false // Inicia como falso até a confirmação
                                 }
                             }
                         });
 
                         if (error) throw error;
 
-                        // Se o cadastro logou direto (e-mail de confirmação desativado no Supabase)
+                        // Grava o perfil associado contendo o CPF e status pendente_verificacao
+                        const { error: profileError } = await window.supabase
+                            .from('profiles')
+                            .insert([{
+                                id: data.user.id,
+                                email: email,
+                                cpf: cleanCpf,
+                                status: 'pendente_verificacao'
+                            }]);
+
+                        if (profileError) throw profileError;
+
                         if (data.session) {
                             if (window.sessionHelper) {
-                                window.sessionHelper.setSession(email, true);
+                                window.sessionHelper.setSession(email, false);
                             }
                             window.location.href = 'dashboard.html';
                         } else {
-                            // Se o e-mail de confirmação estiver ativo no Supabase
-                            alert("Cadastro efetuado! Um e-mail de confirmação foi enviado para " + email + ". Por favor, confirme a sua conta no seu e-mail antes de fazer login.");
+                            alert("Cadastro efetuado! Confirme sua conta no seu e-mail, e depois faça login. Sua verificação de maioridade está pendente do Pix.");
                             showStep(stepLogin);
                             resetSubmitButton(submitBtn, '<i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> Concluir Cadastro & Entrar');
                         }
@@ -239,11 +323,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (foundUser) {
                         if (window.sessionHelper) {
-                            window.sessionHelper.setSession(email, foundUser.is_verified);
+                            window.sessionHelper.setSession(email, foundUser.status === 'verificado');
                         }
                         window.location.href = 'dashboard.html';
                     } else {
-                        alert("E-mail ou senha incorretos, ou usuário não validado.");
+                        alert("E-mail ou senha incorretos.");
                         resetSubmitButton(submitBtn, '<i class="fa-solid fa-arrow-right-to-bracket" style="margin-right: 8px;"></i> Entrar no Painel');
                     }
                 }, 800);
@@ -258,23 +342,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         if (error) throw error;
 
-                        // Confere se o usuário cadastrado possui a flag de verificação
-                        const isVerified = data.user.user_metadata?.is_verified === true;
+                        // Consulta o status real na tabela profiles
+                        const { data: profile, error: profileError } = await window.supabase
+                            .from('profiles')
+                            .select('status')
+                            .eq('id', data.user.id)
+                            .single();
+
+                        if (profileError) throw profileError;
+
+                        const isVerified = profile.status === 'verificado';
                         
-                        if (isVerified) {
-                            if (window.sessionHelper) {
-                                window.sessionHelper.setSession(email, true);
-                            }
-                            window.location.href = 'dashboard.html';
-                        } else {
-                            // Usuário cadastrado mas não passou pelo fluxo de maioridade/Pix
-                            alert("Sua conta ainda não está validada com pagamento de maioridade.");
-                            if (window.sessionHelper) {
-                                window.sessionHelper.clearSession();
-                            }
-                            showStep(stepPixPayment);
-                            await startPixFlow();
+                        if (window.sessionHelper) {
+                            window.sessionHelper.setSession(email, isVerified);
                         }
+                        window.location.href = 'dashboard.html';
                     }
                 } catch (err) {
                     console.error("Erro no login Supabase:", err.message);
