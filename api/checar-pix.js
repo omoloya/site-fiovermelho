@@ -16,6 +16,7 @@ module.exports = async (req, res) => {
     }
 
     const id = req.query.id || req.query.payment_id;
+    const userIdParam = req.query.user_id;
     const token = process.env.MERCADO_PAGO_ACCESS_TOKEN;
 
     if (!id) {
@@ -59,9 +60,12 @@ module.exports = async (req, res) => {
                         const payerEmail = data.payer && data.payer.email;
                         const payerCpf = data.payer && data.payer.identification && data.payer.identification.number;
                         
-                        // Busca por CPF limpo com fallback para busca por email
+                        // Busca primária por ID de Usuário (100% à prova de falhas)
+                        // com fallback para CPF limpo ou busca por e-mail
                         let filterQuery = "";
-                        if (payerCpf) {
+                        if (userIdParam) {
+                            filterQuery = `id=eq.${encodeURIComponent(userIdParam)}`;
+                        } else if (payerCpf) {
                             const cleanCpf = payerCpf.replace(/[^\d]+/g, '');
                             filterQuery = `cpf=eq.${cleanCpf}`;
                         } else if (payerEmail) {

@@ -337,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const interval = setInterval(async () => {
             try {
-                const res = await fetch(`/api/checar-pix?payment_id=${transactionId}`);
+                const res = await fetch(`/api/checar-pix?payment_id=${transactionId}&user_id=${userId}`);
                 if (res.ok) {
                     const data = await res.json();
                     
