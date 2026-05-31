@@ -332,13 +332,14 @@ a {
 
 /* Kensuke Background Character integrated with speech bubbles */
 .kensuke-container {
-    display: block;
+    display: block !important;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 100%;
-    max-width: 480px;
+    width: 480px !important;
+    height: auto !important;
+    min-height: 500px !important; /* Garante que o contêiner tenha altura física */
     margin: 0 auto;
     z-index: 1; /* Atrás do auth-card e do newsletter-section (Camada 2) */
     pointer-events: none; /* Permite interagir com botões e campos na frente */
@@ -346,9 +347,9 @@ a {
 }
 
 .kensuke-img {
-    width: 100%;
-    height: auto;
-    display: block;
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
     opacity: 0.65 !important; /* Forçar visibilidade com opacidade elegante */
     pointer-events: none;
     filter: drop-shadow(0 0 30px rgba(0, 0, 0, 0.95)) contrast(1.1) brightness(0.7);
@@ -395,7 +396,8 @@ a {
 /* Responsividade Mobile para Kensuke & Balões */
 @media (max-width: 768px) {
     .kensuke-container {
-        max-width: 360px; /* Reduz proporcionalmente no mobile */
+        width: 360px !important;
+        min-height: 380px !important;
         transform: translate(-50%, -50%);
     }
     
