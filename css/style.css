@@ -246,7 +246,7 @@ a {
     gap: 32px;
     padding: 48px 24px;
     position: relative;
-    overflow-x: hidden;
+    overflow: hidden;
 }
 
 /* Dynamic Red Fate Thread background decoration */
@@ -257,7 +257,7 @@ a {
     height: 100%;
     background: radial-gradient(circle at 30% 50%, var(--primary-red-faint) 0%, transparent 40%),
                 radial-gradient(circle at 75% 30%, rgba(255, 42, 59, 0.05) 0%, transparent 35%);
-    z-index: 0;
+    z-index: 1;
 }
 
 /* Animated floating red line */
@@ -270,7 +270,7 @@ a {
     background: linear-gradient(90deg, transparent, var(--primary-red), transparent);
     transform: rotate(-15deg);
     opacity: 0.3;
-    z-index: 0;
+    z-index: 1;
     filter: blur(1px);
     animation: threadFloat 12s infinite ease-in-out;
 }
@@ -327,88 +327,6 @@ a {
     to {
         opacity: 1;
         transform: translateY(0);
-    }
-}
-
-/* Kensuke Background Character integrated with speech bubbles */
-.kensuke-container {
-    display: block !important;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 480px !important;
-    height: auto !important;
-    min-height: 500px !important; /* Garante que o contêiner tenha altura física */
-    margin: 0 auto;
-    z-index: 2 !important; /* Atrás do auth-card (z-index: 10) mas na frente da decoração (z-index: 0) */
-    pointer-events: none; /* Permite interagir com botões e campos na frente */
-    transition: var(--transition-smooth);
-}
-
-.kensuke-img {
-    width: 100% !important;
-    height: auto !important;
-    display: block !important;
-    opacity: 0.85 !important; /* Forçar alta visibilidade e nitidez */
-    pointer-events: none;
-    filter: drop-shadow(0 0 30px rgba(0, 0, 0, 0.95)) contrast(1.15) brightness(0.8);
-}
-
-/* Balão de Fala 1 (Auth Card) speech tail pointer */
-.auth-card::after {
-    content: '';
-    position: absolute;
-    top: -12px;
-    right: 80px;
-    width: 24px;
-    height: 24px;
-    background: var(--bg-glass);
-    border-left: 1px solid rgba(139, 0, 0, 0.45);
-    border-top: 1px solid rgba(139, 0, 0, 0.45);
-    transform: rotate(45deg);
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-    z-index: -1;
-    box-shadow: -2px -2px 10px rgba(139, 0, 0, 0.15);
-}
-
-/* Balão de Fala 2 (Newsletter Section) speech tail pointer */
-.newsletter-section::after {
-    content: '';
-    position: absolute;
-    top: -12px;
-    left: 80px;
-    width: 24px;
-    height: 24px;
-    background: var(--bg-glass);
-    border-left: 1px solid rgba(139, 0, 0, 0.45);
-    border-top: 1px solid rgba(139, 0, 0, 0.45);
-    transform: rotate(45deg);
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-    z-index: -1;
-    box-shadow: -2px -2px 10px rgba(139, 0, 0, 0.15);
-}
-
-/* Responsividade Mobile para Kensuke & Balões */
-@media (max-width: 768px) {
-    .kensuke-container {
-        width: 360px !important;
-        min-height: 380px !important;
-        transform: translate(-50%, -50%);
-    }
-    
-    .kensuke-img {
-        opacity: 0.65 !important; /* Visível no mobile com excelente legibilidade de texto */
-    }
-    
-    .auth-card::after {
-        right: 40px;
-    }
-    
-    .newsletter-section::after {
-        left: 40px;
     }
 }
 
@@ -1222,7 +1140,7 @@ a {
     text-align: center;
     position: relative;
     z-index: 10;
-    margin-top: 64px;
+    margin-top: 8px;
 }
 
 .newsletter-title {
