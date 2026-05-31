@@ -257,7 +257,7 @@ a {
     height: 100%;
     background: radial-gradient(circle at 30% 50%, var(--primary-red-faint) 0%, transparent 40%),
                 radial-gradient(circle at 75% 30%, rgba(255, 42, 59, 0.05) 0%, transparent 35%);
-    z-index: 1;
+    z-index: 0;
 }
 
 /* Animated floating red line */
@@ -341,7 +341,7 @@ a {
     height: auto !important;
     min-height: 500px !important; /* Garante que o contêiner tenha altura física */
     margin: 0 auto;
-    z-index: 1; /* Atrás do auth-card e do newsletter-section (Camada 2) */
+    z-index: 2 !important; /* Atrás do auth-card (z-index: 10) mas na frente da decoração (z-index: 0) */
     pointer-events: none; /* Permite interagir com botões e campos na frente */
     transition: var(--transition-smooth);
 }
@@ -350,11 +350,9 @@ a {
     width: 100% !important;
     height: auto !important;
     display: block !important;
-    opacity: 0.65 !important; /* Forçar visibilidade com opacidade elegante */
+    opacity: 0.85 !important; /* Forçar alta visibilidade e nitidez */
     pointer-events: none;
-    filter: drop-shadow(0 0 30px rgba(0, 0, 0, 0.95)) contrast(1.1) brightness(0.7);
-    mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+    filter: drop-shadow(0 0 30px rgba(0, 0, 0, 0.95)) contrast(1.15) brightness(0.8);
 }
 
 /* Balão de Fala 1 (Auth Card) speech tail pointer */
@@ -402,7 +400,7 @@ a {
     }
     
     .kensuke-img {
-        opacity: 0.45 !important; /* Mais transparente no mobile para melhor legibilidade */
+        opacity: 0.65 !important; /* Visível no mobile com excelente legibilidade de texto */
     }
     
     .auth-card::after {
