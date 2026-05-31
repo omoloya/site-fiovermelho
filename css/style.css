@@ -246,7 +246,7 @@ a {
     gap: 32px;
     padding: 48px 24px;
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
 }
 
 /* Dynamic Red Fate Thread background decoration */
@@ -270,7 +270,7 @@ a {
     background: linear-gradient(90deg, transparent, var(--primary-red), transparent);
     transform: rotate(-15deg);
     opacity: 0.3;
-    z-index: 1;
+    z-index: 0;
     filter: blur(1px);
     animation: threadFloat 12s infinite ease-in-out;
 }
@@ -332,16 +332,15 @@ a {
 
 /* Kensuke Background Character integrated with speech bubbles */
 .kensuke-container {
+    display: block;
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -46%);
+    transform: translate(-50%, -50%);
     width: 100%;
     max-width: 480px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1; /* Atrás do auth-card e do newsletter-section */
+    margin: 0 auto;
+    z-index: 1; /* Atrás do auth-card e do newsletter-section (Camada 2) */
     pointer-events: none; /* Permite interagir com botões e campos na frente */
     transition: var(--transition-smooth);
 }
@@ -351,6 +350,7 @@ a {
     height: auto;
     display: block;
     opacity: 0.65 !important; /* Forçar visibilidade com opacidade elegante */
+    pointer-events: none;
     filter: drop-shadow(0 0 30px rgba(0, 0, 0, 0.95)) contrast(1.1) brightness(0.7);
     mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
@@ -396,7 +396,7 @@ a {
 @media (max-width: 768px) {
     .kensuke-container {
         max-width: 360px; /* Reduz proporcionalmente no mobile */
-        transform: translate(-50%, -44%);
+        transform: translate(-50%, -50%);
     }
     
     .kensuke-img {
@@ -1222,7 +1222,7 @@ a {
     text-align: center;
     position: relative;
     z-index: 10;
-    margin-top: 8px;
+    margin-top: 64px;
 }
 
 .newsletter-title {
