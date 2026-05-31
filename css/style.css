@@ -330,6 +330,28 @@ a {
     }
 }
 
+/* Kensuke Age Gate Avatar */
+.kensuke-avatar-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.kensuke-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #8B0000;
+    box-shadow: 0 0 20px rgba(139, 0, 0, 0.6), 0 0 40px rgba(139, 0, 0, 0.3);
+    transition: var(--transition-normal);
+}
+
+.kensuke-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(139, 0, 0, 0.9), 0 0 60px rgba(139, 0, 0, 0.5);
+}
+
 /* Age Gate Step */
 .age-gate-icon {
     font-size: 3rem;
