@@ -149,8 +149,10 @@ a {
 }
 
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 42, 59, 0.08);
+    border-color: rgba(255, 42, 59, 0.35);
+    color: var(--text-primary);
+    box-shadow: 0 4px 15px rgba(255, 42, 59, 0.15);
     transform: translateY(-2px);
 }
 
@@ -570,16 +572,16 @@ a {
     max-width: 320px;
     border-radius: var(--radius-md);
     overflow: hidden;
-    box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 40px rgba(255, 42, 59, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.95), 0 0 50px rgba(255, 42, 59, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     transform: rotate(-2deg);
     transition: var(--transition-smooth);
     margin: 0 auto;
 }
 
 .hero-cover-container:hover {
-    transform: rotate(0deg) scale(1.03);
-    box-shadow: 0 35px 70px rgba(0,0,0,0.9), 0 0 50px rgba(255, 42, 59, 0.3);
+    transform: rotate(0deg) scale(1.04);
+    box-shadow: 0 35px 70px rgba(0,0,0,0.95), 0 0 65px rgba(255, 42, 59, 0.55);
     border-color: var(--primary-red);
 }
 
@@ -598,7 +600,7 @@ a {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 28px;
 }
 
 .tag-badge {
@@ -631,10 +633,15 @@ a {
     font-style: italic;
 }
 
+.hero-author strong {
+    color: var(--text-secondary);
+}
+
 .hero-synopsis {
     font-size: 1.05rem;
     color: var(--text-secondary);
-    margin-bottom: 36px;
+    margin-top: 28px;
+    margin-bottom: 44px;
     max-width: 680px;
     line-height: 1.7;
 }
