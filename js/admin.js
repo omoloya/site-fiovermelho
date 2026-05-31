@@ -144,6 +144,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             fileQueue.push(queueItem);
             renderQueueItem(queueItem);
+            
+            // Vincular evento para remover da fila antes de publicar
+            const addedItemEl = document.getElementById(`queue-item-${fileId}`);
+            if (addedItemEl) {
+                const btnRemove = addedItemEl.querySelector('.btn-remove-queue-item');
+                if (btnRemove) {
+                    btnRemove.addEventListener('click', () => {
+                        removeQueueItem(fileId);
+                    });
+                }
+            }
+
             compressImageToWebP(queueItem);
         });
 
@@ -214,12 +226,44 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="metric-badge"><i class="fa-solid fa-circle-notch fa-spin"></i> Otimizando...</span>
                     </div>
                 </div>
-                <div class="queue-item-status" id="status-icon-${item.id}">
-                    <i class="fa-solid fa-circle-notch"></i>
+                <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
+                    <div class="queue-item-status" id="status-icon-${item.id}">
+                        <i class="fa-solid fa-circle-notch"></i>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-action-icon delete btn-remove-queue-item" data-id="${item.id}" title="Remover da fila" style="width: 28px; height: 28px; min-width: 28px; font-size: 0.8rem;">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 </div>
             </div>
         `;
         fileQueueEl.insertAdjacentHTML('beforeend', itemHtml);
+    }
+
+    function removeQueueItem(fileId) {
+        if (isUploading) return;
+        const item = fileQueue.find(q => q.id === fileId);
+        if (!item) return;
+
+        // Revoga a URL do objeto temporário para liberar memória
+        if (item.tempUrl) {
+            URL.revokeObjectURL(item.tempUrl);
+        }
+
+        // Remove do DOM
+        const el = document.getElementById(`queue-item-${fileId}`);
+        if (el) el.remove();
+
+        // Remove do array de fila
+        fileQueue = fileQueue.filter(q => q.id !== fileId);
+
+        // Atualiza a contagem no cabeçalho e recalcula status de prontidão para upload
+        updateQueueHeader();
+        checkQueueReadyStatus();
+
+        // Oculta a caixa se a fila estiver vazia
+        if (fileQueue.length === 0) {
+            queueContainer.style.display = 'none';
+        }
     }
 
     function updateQueueItemUI(item) {
