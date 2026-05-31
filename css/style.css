@@ -330,26 +330,85 @@ a {
     }
 }
 
-/* Kensuke Age Gate Avatar */
-.kensuke-avatar-container {
+/* Kensuke Background Character integrated with speech bubbles */
+.kensuke-bg-character {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -46%);
+    width: 100%;
+    max-width: 580px;
+    height: 90%;
+    max-height: 750px;
     display: flex;
     justify-content: center;
-    margin-bottom: 24px;
+    align-items: center;
+    z-index: 1; /* Atrás do auth-card e do newsletter-section */
+    pointer-events: none; /* Permite interagir com botões e campos na frente */
+    opacity: 0.65;
+    transition: var(--transition-smooth);
 }
 
-.kensuke-avatar {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #8B0000;
-    box-shadow: 0 0 20px rgba(139, 0, 0, 0.6), 0 0 40px rgba(139, 0, 0, 0.3);
-    transition: var(--transition-normal);
+.kensuke-bg-img {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 0 30px rgba(0, 0, 0, 0.95)) contrast(1.1) brightness(0.7);
+    mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
 }
 
-.kensuke-avatar:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 30px rgba(139, 0, 0, 0.9), 0 0 60px rgba(139, 0, 0, 0.5);
+/* Balão de Fala 1 (Auth Card) speech tail pointer */
+.auth-card::after {
+    content: '';
+    position: absolute;
+    top: -12px;
+    right: 80px;
+    width: 24px;
+    height: 24px;
+    background: var(--bg-glass);
+    border-left: 1px solid rgba(139, 0, 0, 0.45);
+    border-top: 1px solid rgba(139, 0, 0, 0.45);
+    transform: rotate(45deg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    z-index: -1;
+    box-shadow: -2px -2px 10px rgba(139, 0, 0, 0.15);
+}
+
+/* Balão de Fala 2 (Newsletter Section) speech tail pointer */
+.newsletter-section::after {
+    content: '';
+    position: absolute;
+    top: -12px;
+    left: 80px;
+    width: 24px;
+    height: 24px;
+    background: var(--bg-glass);
+    border-left: 1px solid rgba(139, 0, 0, 0.45);
+    border-top: 1px solid rgba(139, 0, 0, 0.45);
+    transform: rotate(45deg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    z-index: -1;
+    box-shadow: -2px -2px 10px rgba(139, 0, 0, 0.15);
+}
+
+/* Responsividade Mobile para Kensuke & Balões */
+@media (max-width: 768px) {
+    .kensuke-bg-character {
+        max-height: 550px;
+        opacity: 0.45; /* Mais transparente no mobile para melhor legibilidade */
+        transform: translate(-50%, -44%);
+    }
+    
+    .auth-card::after {
+        right: 40px;
+    }
+    
+    .newsletter-section::after {
+        left: 40px;
+    }
 }
 
 /* Age Gate Step */
