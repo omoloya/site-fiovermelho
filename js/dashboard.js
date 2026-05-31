@@ -411,6 +411,9 @@ document.addEventListener('DOMContentLoaded', () => {
         detailModal.classList.add('active');
         detailModal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden'; // Avoid scrolling background
+
+        // Empurra âncora virtual no histórico para interceptar botão Voltar do celular
+        history.pushState({ modalOpen: true, chapterId: chap.id }, '', `#detalhes-capitulo-${chap.id}`);
     }
 
     // Close Modal Logic
@@ -422,6 +425,10 @@ document.addEventListener('DOMContentLoaded', () => {
             detailModal.classList.remove('active');
             detailModal.setAttribute('aria-hidden', 'true');
             document.body.style.overflow = '';
+            // Se o usuário fechar clicando na interface, limpa o hash voltando no histórico
+            if (window.location.hash.startsWith('#detalhes-capitulo-')) {
+                history.back();
+            }
         };
 
         if (closeBtn) closeBtn.addEventListener('click', closeModal);
@@ -430,6 +437,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && detailModal.classList.contains('active')) {
                 closeModal();
+            }
+        });
+
+        // Escuta popstate do celular/navegador (Voltar) para fechar o modal
+        window.addEventListener('popstate', () => {
+            if (detailModal.classList.contains('active')) {
+                detailModal.classList.remove('active');
+                detailModal.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
             }
         });
     }

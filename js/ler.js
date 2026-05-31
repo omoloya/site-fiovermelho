@@ -327,6 +327,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Interceptar o botão Voltar físico/gestual do celular e retornar ao Painel de Capítulos
+    history.pushState({ reading: true }, '', `#leitura-cap-${currentChapterId}`);
+    window.addEventListener('popstate', () => {
+        // Substitui a rota para o dashboard de forma limpa, sem reacumular histórico redundante
+        window.location.replace('dashboard.html');
+    });
+
+    // Interface Limpa Mobile (Modo Imersivo): Esconde header no scroll down, revela no scroll up
+    let lastScrollTop = 0;
+    const readerHeader = document.querySelector('.reader-header');
+    
+    window.addEventListener('scroll', () => {
+        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        if (scrollTop > lastScrollTop && scrollTop > 60) {
+            // Rolar para baixo -> Esconde cabeçalho para foco total na arte
+            if (readerHeader) {
+                readerHeader.style.transform = 'translateY(-100%)';
+                readerHeader.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+            }
+        } else {
+            // Rolar para cima -> Mostra cabeçalho suavemente
+            if (readerHeader) {
+                readerHeader.style.transform = 'translateY(0)';
+                readerHeader.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+            }
+        }
+        lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+    }, { passive: true });
+
     // Inicializa a carga dinâmica
     initializeReader();
 });
