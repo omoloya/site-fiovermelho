@@ -326,6 +326,114 @@ document.addEventListener('DOMContentLoaded', () => {
         setupStartReadingButton(chapters);
     }
 
+    // --- 4. Modal de Apresentação de Capítulo (Estilo Netflix) ---
+    const detailModal = document.getElementById('chapter-detail-modal');
+    
+    function openChapterDetailModal(chap, thumbSrc) {
+        if (!detailModal) return;
+
+        const modalThumb = document.getElementById('modal-chapter-thumb');
+        const modalNumber = document.getElementById('modal-chapter-number');
+        const modalDate = document.getElementById('modal-chapter-date');
+        const modalStatus = document.getElementById('modal-chapter-status');
+        const modalTitle = document.getElementById('modal-chapter-title');
+        const modalSynopsisText = document.getElementById('modal-chapter-synopsis-text');
+        const modalBtnRead = document.getElementById('modal-btn-read');
+        const modalBtnToggleRead = document.getElementById('modal-btn-toggle-read');
+
+        const chapIdStr = chap.id.toString();
+        let isRead = readChapters.includes(chapIdStr);
+
+        // Populate basic information
+        if (modalThumb) modalThumb.src = thumbSrc;
+        if (modalNumber) modalNumber.textContent = `Capítulo ${chap.id.toString().padStart(2, '0')}`;
+        if (modalDate) modalDate.textContent = chap.release_date || 'Data não disponível';
+        if (modalTitle) modalTitle.textContent = chap.title;
+        if (modalBtnRead) modalBtnRead.href = `ler.html?cap=${chap.id}`;
+
+        // Define beautiful custom Yakuza/Yankee-themed synopses for the default chapters!
+        const synopses = {
+            1: "O destino começa a se mover em Chinatown. Em meio ao som de motores e à poeira das ruas, Kensuke Shinoda e sua gangue se deparam com os primeiros indícios de um elo sombrio que ameaça o frágil equilíbrio do submundo. As respostas podem ser mais perigosas do que as perguntas.",
+            2: "A tensão atinge o ponto de ruptura. Quando pendências do passado retornam para cobrar sua parte do sangue, os laços de lealdade são colocados à prova máxima nas vielas escuras. As escolhas feitas hoje definirão quem sobreviverá ao amanhã.",
+            3: "A revelação final e o peso do fio de sangue. Kensuke descobre que proteger sua família exige sacrifícios que ele talvez não esteja preparado para fazer. A teia do destino se fecha, restando apenas agir antes que seja tarde demais."
+        };
+        
+        const defaultSynopsis = "[Esta não é uma história sobre heróis ou vilões. Prepare-se para vivenciar os dilemas morais, conflitos bizarros e laços afetivos profundos desta família marginalizada em Chinatown...]";
+        if (modalSynopsisText) {
+            modalSynopsisText.textContent = synopses[chap.id] || defaultSynopsis;
+        }
+
+        // Render status and setup toggle button
+        function renderModalStatus() {
+            isRead = readChapters.includes(chapIdStr);
+            if (modalStatus) {
+                modalStatus.textContent = isRead ? 'Lido' : 'Não Lido';
+                modalStatus.className = `tag-badge ${isRead ? 'chapter-badge-read' : 'chapter-badge-unread'}`;
+                modalStatus.style.background = isRead ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)';
+                modalStatus.style.color = isRead ? 'var(--success-green)' : 'var(--text-secondary)';
+                modalStatus.style.borderColor = isRead ? 'var(--success-green)' : 'rgba(255, 255, 255, 0.1)';
+            }
+
+            if (modalBtnToggleRead) {
+                modalBtnToggleRead.innerHTML = isRead 
+                    ? '<i class="fa-solid fa-circle-xmark" style="margin-right: 8px;"></i> Marcar como Não Lido'
+                    : '<i class="fa-regular fa-circle-check" style="margin-right: 8px;"></i> Marcar como Lido';
+            }
+        }
+
+        renderModalStatus();
+
+        // Setup toggle read click handler
+        if (modalBtnToggleRead) {
+            const newToggleBtn = modalBtnToggleRead.cloneNode(true);
+            modalBtnToggleRead.parentNode.replaceChild(newToggleBtn, modalBtnToggleRead);
+
+            newToggleBtn.addEventListener('click', () => {
+                const nowRead = readChapters.includes(chapIdStr);
+                const targetCard = document.querySelector(`.chapter-card img[id="thumb-cap-${chap.id}"]`)?.closest('.chapter-card');
+                const targetBadge = targetCard?.querySelector('.chapter-card-status-badge');
+
+                if (nowRead) {
+                    readChapters = readChapters.filter(id => id !== chapIdStr);
+                    if (targetCard && targetBadge) updateCardStatusVisual(targetCard, targetBadge, false);
+                } else {
+                    readChapters.push(chapIdStr);
+                    if (targetCard && targetBadge) updateCardStatusVisual(targetCard, targetBadge, true);
+                }
+
+                localStorage.setItem(userKey, JSON.stringify(readChapters));
+                updateOverallProgress();
+                renderModalStatus();
+            });
+        }
+
+        // Show Modal
+        detailModal.classList.add('active');
+        detailModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden'; // Avoid scrolling background
+    }
+
+    // Close Modal Logic
+    if (detailModal) {
+        const closeBtn = detailModal.querySelector('.chapter-detail-close-btn');
+        const overlay = detailModal.querySelector('.chapter-detail-modal-overlay');
+
+        const closeModal = () => {
+            detailModal.classList.remove('active');
+            detailModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        };
+
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        if (overlay) overlay.addEventListener('click', closeModal);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && detailModal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+    }
+
     function renderGrid(chapters) {
         const gridContainer = document.getElementById('chapter-list-container');
         if (!gridContainer) return;
@@ -367,54 +475,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
             chapterCard.innerHTML = `
                 <div class="chapter-card-thumb-container">
-                    <span class="chapter-card-status-badge ${isRead ? 'chapter-badge-read' : 'chapter-badge-unread'}" id="badge-cap-${chap.id}">
-                        ${isRead ? 'Lido' : 'Não Lido'}
-                    </span>
                     <img src="${thumbSrc}" alt="Capítulo ${chap.id} Thumbnail" class="chapter-card-thumb" id="thumb-cap-${chap.id}" onerror="this.src='assets/chapter1_thumb.jpg'">
-                </div>
-                <div class="chapter-card-info">
-                    <div>
-                        <div class="chapter-number">Capítulo ${chap.id.toString().padStart(2, '0')}</div>
-                        <h3 class="chapter-card-title">${chap.title}</h3>
-                    </div>
-                    <div class="chapter-card-meta">
-                        <span class="chapter-date">${chap.release_date}</span>
-                        <label class="read-checkbox-label">
-                            <input type="checkbox" class="read-checkbox" data-chapter-id="${chap.id}" ${isRead ? 'checked' : ''}>
-                            Lido
-                        </label>
+                    <div class="chapter-card-overlay">
+                        <div class="chapter-card-overlay-top">
+                            <span class="chapter-card-status-badge ${isRead ? 'chapter-badge-read' : 'chapter-badge-unread'}" id="badge-cap-${chap.id}">
+                                ${isRead ? 'Lido' : 'Não Lido'}
+                            </span>
+                        </div>
+                        <div class="chapter-card-overlay-bottom">
+                            <span class="chapter-number-overlay">Capítulo ${chap.id.toString().padStart(2, '0')}</span>
+                            <span class="chapter-title-overlay">${chap.title}</span>
+                        </div>
                     </div>
                 </div>
             `;
 
-            // Clique no card redireciona para a leitura
-            const checkbox = chapterCard.querySelector('.read-checkbox');
-            const checkboxLabel = chapterCard.querySelector('.read-checkbox-label');
-
+            // Clique no card abre o modal estilo Netflix
             chapterCard.addEventListener('click', (e) => {
-                if (e.target === checkbox || checkboxLabel.contains(e.target)) {
-                    return;
-                }
-                window.location.href = `ler.html?cap=${chap.id}`;
-            });
-
-            // Clique no checkbox de marcação de lido
-            checkbox.addEventListener('change', (e) => {
-                const targetCard = e.target.closest('.chapter-card');
-                const targetBadge = targetCard.querySelector('.chapter-card-status-badge');
-                
-                if (e.target.checked) {
-                    if (!readChapters.includes(chapIdStr)) {
-                        readChapters.push(chapIdStr);
-                    }
-                    updateCardStatusVisual(targetCard, targetBadge, true);
-                } else {
-                    readChapters = readChapters.filter(id => id !== chapIdStr);
-                    updateCardStatusVisual(targetCard, targetBadge, false);
-                }
-
-                localStorage.setItem(userKey, JSON.stringify(readChapters));
-                updateOverallProgress();
+                openChapterDetailModal(chap, thumbSrc);
             });
 
             gridContainer.appendChild(chapterCard);
