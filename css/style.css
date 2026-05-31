@@ -331,28 +331,26 @@ a {
 }
 
 /* Kensuke Background Character integrated with speech bubbles */
-.kensuke-bg-character {
+.kensuke-container {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -46%);
     width: 100%;
-    max-width: 580px;
-    height: 90%;
-    max-height: 750px;
+    max-width: 480px;
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1; /* Atrás do auth-card e do newsletter-section */
     pointer-events: none; /* Permite interagir com botões e campos na frente */
-    opacity: 0.65;
     transition: var(--transition-smooth);
 }
 
-.kensuke-bg-img {
-    height: 100%;
-    width: auto;
-    object-fit: contain;
+.kensuke-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    opacity: 0.65 !important; /* Forçar visibilidade com opacidade elegante */
     filter: drop-shadow(0 0 30px rgba(0, 0, 0, 0.95)) contrast(1.1) brightness(0.7);
     mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
@@ -396,10 +394,13 @@ a {
 
 /* Responsividade Mobile para Kensuke & Balões */
 @media (max-width: 768px) {
-    .kensuke-bg-character {
-        max-height: 550px;
-        opacity: 0.45; /* Mais transparente no mobile para melhor legibilidade */
+    .kensuke-container {
+        max-width: 360px; /* Reduz proporcionalmente no mobile */
         transform: translate(-50%, -44%);
+    }
+    
+    .kensuke-img {
+        opacity: 0.45 !important; /* Mais transparente no mobile para melhor legibilidade */
     }
     
     .auth-card::after {
