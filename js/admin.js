@@ -661,18 +661,22 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 1; i <= pagesCount; i++) {
             // Define a url da thumbnail da página do Storage do Supabase (remoto) ou de blobs temporários (local)
             let thumbUrl = `assets/cap${chapterId}_pag${i}.jpg`; // Fallback físico original
+            let isUsingSupabase = false;
             
-            if (!window.isOfflineMode && window.supabase && chapterId > 3) {
+            if (!window.isOfflineMode && window.supabase) {
                 try {
                     const res = window.supabase.storage
                         .from('paginas-quadrinho')
                         .getPublicUrl(`capitulo-${chapterId}/pagina-${i}.webp`);
                     if (res && res.data && res.data.publicUrl) {
                         thumbUrl = res.data.publicUrl;
+                        isUsingSupabase = true;
                     } else if (res && res.publicURL) {
                         thumbUrl = res.publicURL;
+                        isUsingSupabase = true;
                     } else if (typeof res === 'string') {
                         thumbUrl = res;
+                        isUsingSupabase = true;
                     }
                 } catch (urlErr) {
                     console.error("Erro ao obter URL publica do storage:", urlErr);
@@ -688,7 +692,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pageItem.id = `page-item-wrapper-${i}`;
             pageItem.innerHTML = `
                 <div class="page-manager-thumb-container">
-                    <img src="${thumbUrl}" class="page-manager-thumb" alt="Página ${i}" onerror="this.src='assets/chapter1_thumb.jpg'">
+                    <img src="${thumbUrl}" class="page-manager-thumb" alt="Página ${i}" onerror="if (${isUsingSupabase}) { this.onerror=null; this.src='assets/cap${chapterId}_pag${i}.jpg'; } else { this.onerror=null; this.src='assets/chapter1_thumb.jpg'; }">
                 </div>
                 <div class="page-manager-label" id="page-label-${i}">Página ${i}</div>
                 <div class="page-manager-actions" id="page-actions-${i}">

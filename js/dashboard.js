@@ -445,22 +445,27 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Define Thumbnail
             let thumbSrc = `assets/chapter${chap.id}_thumb.jpg`;
-            if (!window.isOfflineMode && window.supabase && chap.id > 3) {
+            let isUsingSupabase = false;
+            
+            if (!window.isOfflineMode && window.supabase) {
                 try {
                     const res = window.supabase.storage
                         .from('paginas-quadrinho')
                         .getPublicUrl(`capitulo-${chap.id}/pagina-1.webp`);
                     if (res && res.data && res.data.publicUrl) {
                         thumbSrc = res.data.publicUrl;
+                        isUsingSupabase = true;
                     } else if (res && res.publicURL) {
                         thumbSrc = res.publicURL;
+                        isUsingSupabase = true;
                     } else if (typeof res === 'string') {
                         thumbSrc = res;
+                        isUsingSupabase = true;
                     }
                 } catch (urlErr) {
                     console.error("Erro ao obter URL publica do storage:", urlErr);
                 }
-            } else if (window.isOfflineMode && chap.id > 3) {
+            } else if (window.isOfflineMode) {
                 const sessionKey = `fio-temp-page-${chap.id}-1`;
                 const tempUrl = sessionStorage.getItem(sessionKey);
                 thumbSrc = tempUrl || `assets/chapter1_thumb.jpg`; // Fallback
@@ -475,7 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             chapterCard.innerHTML = `
                 <div class="chapter-card-thumb-container">
-                    <img src="${thumbSrc}" alt="Capítulo ${chap.id} Thumbnail" class="chapter-card-thumb" id="thumb-cap-${chap.id}" onerror="this.src='assets/chapter1_thumb.jpg'">
+                    <img src="${thumbSrc}" alt="Capítulo ${chap.id} Thumbnail" class="chapter-card-thumb" id="thumb-cap-${chap.id}" onerror="if (${isUsingSupabase}) { this.onerror=null; this.src='assets/chapter${chap.id}_thumb.jpg'; } else { this.onerror=null; this.src='assets/chapter1_thumb.jpg'; }">
                     <div class="chapter-card-overlay">
                         <div class="chapter-card-overlay-top">
                             <span class="chapter-card-status-badge ${isRead ? 'chapter-badge-read' : 'chapter-badge-unread'}" id="badge-cap-${chap.id}">

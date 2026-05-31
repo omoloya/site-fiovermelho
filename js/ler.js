@@ -202,19 +202,23 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Define o endereço da imagem de acordo com o modo
             let imageSource = `assets/cap${currentChapterId}_pag${i}.jpg`; // Fallback físico original
+            let isUsingSupabase = false;
             
-            if (!window.isOfflineMode && window.supabase && parseInt(currentChapterId) > 3) {
-                // Modo Produção: URL pública do Storage do Supabase
+            if (!window.isOfflineMode && window.supabase) {
+                // Modo Produção: Tenta carregar primeiro do Storage do Supabase (para todos os capítulos)
                 try {
                     const res = window.supabase.storage
                         .from('paginas-quadrinho')
                         .getPublicUrl(`capitulo-${currentChapterId}/pagina-${i}.webp`);
                     if (res && res.data && res.data.publicUrl) {
                         imageSource = res.data.publicUrl;
+                        isUsingSupabase = true;
                     } else if (res && res.publicURL) {
                         imageSource = res.publicURL;
+                        isUsingSupabase = true;
                     } else if (typeof res === 'string') {
                         imageSource = res;
+                        isUsingSupabase = true;
                     }
                 } catch (urlErr) {
                     console.error("Erro ao obter URL publica do storage:", urlErr);
@@ -245,6 +249,13 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             img.onerror = function() {
+                // Se falhou ao tentar carregar o arquivo customizado do Supabase, tenta carregar o fallback físico local
+                if (isUsingSupabase) {
+                    isUsingSupabase = false;
+                    img.src = `assets/cap${currentChapterId}_pag${i}.jpg`;
+                    return;
+                }
+                
                 const spinner = document.getElementById(`spinner-page-${i}`);
                 const text = document.getElementById(`text-page-${i}`);
                 if (spinner) spinner.style.display = 'none';
