@@ -242,9 +242,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            img.src = imageSource;
-            
+            // Registra handlers antes de definir .src para evitar condições de corrida com cache
             img.onload = function() {
+                if (img.dataset.loadedEventFired) return;
+                img.dataset.loadedEventFired = "true";
+                
                 const spinner = document.getElementById(`spinner-page-${i}`);
                 const text = document.getElementById(`text-page-${i}`);
                 if (spinner) spinner.style.display = 'none';
@@ -284,6 +286,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 pageWrapper.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
             };
+
+            img.src = imageSource;
+            
+            // Se a imagem já estiver no cache e carregada completa
+            if (img.complete) {
+                img.onload();
+            }
 
             pageWrapper.appendChild(img);
             canvasContainer.appendChild(pageWrapper);

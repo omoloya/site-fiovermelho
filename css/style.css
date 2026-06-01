@@ -1167,16 +1167,16 @@ a {
 }
 
 .webtoon-placeholder.loaded {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    height: auto;
-    aspect-ratio: auto;
-    background: transparent;
-    border: none;
-    border-bottom: none;
-    padding: 0;
-    margin: 0;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    aspect-ratio: auto !important;
+    background: transparent !important;
+    border: none !important;
+    border-bottom: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
 /* Reader Footer Navigation */
@@ -1402,6 +1402,7 @@ a {
         width: 100% !important;
         max-width: 100% !important;
         height: auto !important;
+        aspect-ratio: auto !important;
         background: transparent !important;
         padding: 0 !important;
         margin: 0 !important;
