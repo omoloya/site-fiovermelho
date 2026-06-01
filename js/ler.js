@@ -240,6 +240,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (spinner) spinner.style.display = 'none';
                 if (text) text.style.display = 'none';
                 
+                pageWrapper.classList.add('loaded');
+                pageWrapper.style.display = 'block';
                 pageWrapper.style.aspectRatio = 'auto';
                 pageWrapper.style.background = 'transparent';
                 pageWrapper.style.borderBottom = 'none';
