@@ -263,7 +263,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Forçar topo absoluto no início real quando a primeira página carregar
                 if (i === 1) {
-                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                    setTimeout(() => {
+                        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                        document.documentElement.scrollTop = 0;
+                        document.body.scrollTop = 0;
+                    }, 100);
                 }
             };
 

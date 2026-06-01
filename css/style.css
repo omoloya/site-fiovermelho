@@ -1367,14 +1367,15 @@ a {
    MOBILE WEBTOON READER OPTIMIZATIONS
    ========================================================================== */
 @media (max-width: 768px) {
-    /* Reset margins and paddings globally for mobile reader html & body to unlock vertical scrolling */
-    html, body {
+    /* Reset margins and paddings globally for mobile reader html, body & wrappers to unlock vertical scrolling */
+    html, body, .reader-container, #app, main {
         width: 100% !important;
-        height: 100% !important;
+        height: auto !important;
+        min-height: 100vh !important;
         margin: 0 !important;
         padding: 0 !important;
         overflow-x: hidden !important;
-        overflow-y: scroll !important; /* Força a rolagem vertical nativa */
+        overflow-y: visible !important;
         -webkit-overflow-scrolling: touch !important; /* Suaviza o toque no iOS/Android */
     }
 
@@ -1383,6 +1384,7 @@ a {
         max-width: 100% !important;
         height: auto !important;
         display: block !important;
+        touch-action: pan-y !important; /* Avisa gestos verticais */
     }
 
     .webtoon-placeholder {
@@ -1416,5 +1418,6 @@ a {
         border: none !important;
         box-sizing: border-box;
         pointer-events: auto !important; /* Reconhece arrasto do dedo na imagem para scroll */
+        touch-action: pan-y !important; /* Avisa explicitamente gestos verticais */
     }
 }
