@@ -247,27 +247,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (img.dataset.loadedEventFired) return;
                 img.dataset.loadedEventFired = "true";
                 
-                const spinner = document.getElementById(`spinner-page-${i}`);
-                const text = document.getElementById(`text-page-${i}`);
-                if (spinner) spinner.style.display = 'none';
-                if (text) text.style.display = 'none';
+                // Limpa absolutamente tudo de dentro do wrapper e insere apenas a imagem limpa
+                pageWrapper.innerHTML = '';
+                pageWrapper.appendChild(img);
                 
                 pageWrapper.classList.add('loaded');
                 pageWrapper.style.display = 'block';
-                pageWrapper.style.aspectRatio = 'auto';
-                pageWrapper.style.background = 'transparent';
-                pageWrapper.style.borderBottom = 'none';
                 pageWrapper.style.padding = '0';
+                pageWrapper.style.margin = '0';
                 
                 img.classList.add('loaded');
 
-                // Forçar topo absoluto no início real quando a primeira página carregar
                 if (i === 1) {
                     setTimeout(() => {
-                        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                        window.scrollTo(0, 0);
                         document.documentElement.scrollTop = 0;
                         document.body.scrollTop = 0;
-                    }, 100);
+                    }, 150); // Aumentado ligeiramente para garantir o cálculo do DOM
                 }
             };
 

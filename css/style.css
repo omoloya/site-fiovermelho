@@ -1145,6 +1145,8 @@ a {
     background: transparent;
     transition: opacity 0.5s ease;
     opacity: 0;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .webtoon-page-img.loaded {
@@ -1419,5 +1421,7 @@ a {
         box-sizing: border-box;
         pointer-events: auto !important; /* Reconhece arrasto do dedo na imagem para scroll */
         touch-action: pan-y !important; /* Avisa explicitamente gestos verticais */
+        -webkit-user-select: none !important;
+        user-select: none !important;
     }
 }
