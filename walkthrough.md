@@ -143,3 +143,10 @@ Implementamos uma otimização profunda para a leitura vertical dos capítulos e
 *   **Ação**: Zeramos quaisquer margens, espaçamentos internos (padding) e bordas verticais entre as páginas do quadrinho.
 *   **CSS Aplicado**: Estilizamos `.webtoon-canvas` com `gap: 0; padding: 0;` e `.webtoon-placeholder.loaded` com `margin: 0; padding: 0; border: none; border-bottom: none;`.
 *   **Resultado**: O fluxo de leitura vertical tornou-se 100% contínuo e sem nenhuma emenda visível entre os blocos verticais do Webtoon.
+
+### 4. Correção Crítica de Viewport, Rolagem Mobile e Eventos de Toque
+*   **HTML Viewport**: Alteramos a tag `<meta name="viewport">` em [ler.html](file:///c:/Users/Barbara/Desktop/miles/site-fiovermelho/ler.html) para `<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">` para mitigar problemas de zoom exagerado automático e manter flexibilidade móvel.
+*   **Desbloqueio de Rolagem Mobile**: Em [css/style.css](file:///c:/Users/Barbara/Desktop/miles/site-fiovermelho/css/style.css), sob a media query `@media (max-width: 768px)`, substituímos todas as travas e min-heights de `body` por um reset global destravado em `html, body` utilizando `overflow-y: scroll !important` e `-webkit-overflow-scrolling: touch !important`.
+*   **Eventos de Arrasto**: Configuramos `.webtoon-page-img` com `pointer-events: auto !important` no mobile para garantir que o navegador capture as interações de deslizar o dedo (swipe) sobre a arte e realize a rolagem nativa vertical do celular.
+*   **Garantia de Topo no Carregamento Tardio**: Adicionamos em [js/ler.js](file:///c:/Users/Barbara/Desktop/miles/site-fiovermelho/js/ler.js) no handler `img.onload` de carregamento dinâmico assíncrono: se a primeira página carregada for a inicial (`i === 1`), força-se imediatamente a rolagem instantânea para o topo (`scrollTo(0,0)`), garantindo que a leitura inicie exatamente no começo da fita, independente da lentidão de download das imagens subsequentes.
+
