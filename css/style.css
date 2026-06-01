@@ -1126,17 +1126,23 @@ a {
     width: 100%;
     max-width: 800px; /* Standard Webtoon Reading Width */
     margin: 0 auto;
+    padding: 0;
     display: flex;
     flex-direction: column;
+    gap: 0;
     position: relative;
 }
 
 .webtoon-page-img {
     width: 100%;
+    max-width: 100%;
     height: auto;
     display: block; /* Removes image base spacing gaps */
+    margin: 0 auto;
+    padding: 0;
+    border: none;
     object-fit: contain;
-    background: #000;
+    background: transparent;
     transition: opacity 0.5s ease;
     opacity: 0;
 }
@@ -1158,6 +1164,19 @@ a {
     font-size: 0.9rem;
     flex-direction: column;
     gap: 12px;
+}
+
+.webtoon-placeholder.loaded {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: auto;
+    background: transparent;
+    border: none;
+    border-bottom: none;
+    padding: 0;
+    margin: 0;
 }
 
 /* Reader Footer Navigation */
@@ -1356,13 +1375,13 @@ a {
         min-height: 100vh !important;
         padding: 0 !important;
         margin: 0 !important;
-        width: 100vw !important;
+        width: 100% !important;
         overflow-x: hidden !important;
     }
 
     .webtoon-canvas {
-        width: 100vw !important;
-        max-width: 100vw !important;
+        width: 100% !important;
+        max-width: 100% !important;
         padding: 0 !important;
         margin: 0 !important;
         overflow-y: visible !important;
@@ -1370,8 +1389,8 @@ a {
     }
 
     .webtoon-placeholder {
-        width: 100vw !important;
-        max-width: 100vw !important;
+        width: 100% !important;
+        max-width: 100% !important;
         margin: 0 !important;
         padding: 40px 20px !important;
         border: none !important;
@@ -1380,8 +1399,8 @@ a {
 
     .webtoon-placeholder.loaded {
         display: block !important;
-        width: 100vw !important;
-        max-width: 100vw !important;
+        width: 100% !important;
+        max-width: 100% !important;
         height: auto !important;
         background: transparent !important;
         padding: 0 !important;
@@ -1390,11 +1409,11 @@ a {
     }
 
     .webtoon-page-img {
-        width: 100vw !important;
-        max-width: 100vw !important;
+        width: 100% !important;
+        max-width: 100% !important;
         height: auto !important;
         display: block !important;
-        margin: 0 !important;
+        margin: 0 auto !important;
         padding: 0 !important;
         border: none !important;
         box-sizing: border-box;

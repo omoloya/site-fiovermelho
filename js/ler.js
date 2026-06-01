@@ -3,6 +3,11 @@
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Evitar que o navegador restaure a posição do scroll ao recarregar
+    if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+    }
+
     // --- 1. Proteção de Rota & Verificação de Sessão ---
     if (!window.sessionHelper) {
         console.error("Erro: sessionHelper não foi inicializado.");
@@ -103,6 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentChapterId = urlParams.get('cap') || "1";
 
     async function initializeReader() {
+        // Forçar rolagem para o topo absoluto imediatamente ao iniciar
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
         // 1. Carrega os capítulos de forma assíncrona
         if (window.isOfflineMode) {
             // Mescla capítulos mockados locais
@@ -184,6 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderWebtoonPages(currentChapter) {
         if (!canvasContainer) return;
         canvasContainer.innerHTML = '';
+        
+        // Garante o topo absoluto na renderização das páginas
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
         
         const totalPages = currentChapter.pagesCount;
         
