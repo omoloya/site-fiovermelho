@@ -260,6 +260,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 pageWrapper.style.padding = '0';
                 
                 img.classList.add('loaded');
+
+                // Forçar topo absoluto no início real quando a primeira página carregar
+                if (i === 1) {
+                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                }
             };
 
             img.onerror = function() {
