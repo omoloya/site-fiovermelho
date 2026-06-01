@@ -123,3 +123,23 @@ Identificamos e corrigimos em caráter definitivo o erro crítico que exibia o a
     *   **Frontend (`js/auth.js` & `js/dashboard.js`)**: Flexibilizamos as condicionais do front-end para que aceitem tanto `'verificado'` quanto `'pago'`, `'approved'` e `true` (boolean). Desta forma, o leitor é liberado instantaneamente e de forma 100% segura.
     *   **Automação do Vercel Deploy**: Adicionamos o script de build oficial no `package.json` para que as chaves de ambiente sejam injetadas dinamicamente no `env.js` da produção da Vercel a cada novo deploy, de forma automatizada e transparente.
 
+---
+
+## 🧶 Otimização de Leitura Webtoon (Maio, 2026)
+
+Implementamos uma otimização profunda para a leitura vertical dos capítulos estilo **Webtoon**, solucionando problemas críticos de visualização em smartphones/tablets e garantindo uma imersão contínua:
+
+### 1. Responsividade Fluida e Sem Largura Fixa
+*   **Ação**: Eliminamos qualquer largura fixa (como pixels) ou unidades de viewport restritivas (`100vw`, que causava barras de rolagem horizontais indesejadas no Windows/Browsers devido ao tamanho da barra de rolagem vertical).
+*   **CSS Aplicado**: Declaramos `width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; padding: 0; border: none;` para todas as imagens de páginas do leitor (`.webtoon-page-img`).
+*   **Resultado**: Em celulares, as imagens se adaptam precisamente à largura da tela. Em tablets, elas se expandem até o limite máximo do container centralizado (`max-width: 800px` padrão de leitura Webtoon) de forma natural, sem cortes laterais ou distorções.
+
+### 2. Scroll Manual e Foco Absoluto no Topo
+*   **Ação**: Desativamos o comportamento automático de restauração de rolagem do navegador definindo `history.scrollRestoration = 'manual'` na inicialização.
+*   **Javascript Aplicado**: Forçamos o navegador a rolar instantaneamente para o ponto vertical zero (`window.scrollTo({ top: 0, left: 0, behavior: 'instant' })`) em dois momentos estratégicos: no início da inicialização do leitor (`initializeReader`) e no início da renderização do canvas (`renderWebtoonPages`).
+*   **Resultado**: O usuário sempre inicia a leitura exatamente no topo extremo da primeira imagem do capítulo, evitando que a visualização inicie no meio ou fim devido a cache de scroll do navegador.
+
+### 3. Emenda Vertical Invisível (Fluxo Contínuo)
+*   **Ação**: Zeramos quaisquer margens, espaçamentos internos (padding) e bordas verticais entre as páginas do quadrinho.
+*   **CSS Aplicado**: Estilizamos `.webtoon-canvas` com `gap: 0; padding: 0;` e `.webtoon-placeholder.loaded` com `margin: 0; padding: 0; border: none; border-bottom: none;`.
+*   **Resultado**: O fluxo de leitura vertical tornou-se 100% contínuo e sem nenhuma emenda visível entre os blocos verticais do Webtoon.
