@@ -326,129 +326,70 @@ document.addEventListener('DOMContentLoaded', () => {
         setupStartReadingButton(chapters);
     }
 
-    // --- 4. Modal de Apresentação de Capítulo (Estilo Netflix) ---
-    const detailModal = document.getElementById('chapter-detail-modal');
-    
-    function openChapterDetailModal(chap, thumbSrc) {
-        if (!detailModal) return;
-
-        const modalThumb = document.getElementById('modal-chapter-thumb');
-        const modalNumber = document.getElementById('modal-chapter-number');
-        const modalDate = document.getElementById('modal-chapter-date');
-        const modalStatus = document.getElementById('modal-chapter-status');
-        const modalTitle = document.getElementById('modal-chapter-title');
-        const modalSynopsisText = document.getElementById('modal-chapter-synopsis-text');
-        const modalBtnRead = document.getElementById('modal-btn-read');
-        const modalBtnToggleRead = document.getElementById('modal-btn-toggle-read');
-
-        const chapIdStr = chap.id.toString();
-        let isRead = readChapters.includes(chapIdStr);
-
-        // Populate basic information
-        if (modalThumb) modalThumb.src = thumbSrc;
-        if (modalNumber) modalNumber.textContent = `Capítulo ${chap.id.toString().padStart(2, '0')}`;
-        if (modalDate) modalDate.textContent = chap.release_date || 'Data não disponível';
-        if (modalTitle) modalTitle.textContent = chap.title;
-        if (modalBtnRead) modalBtnRead.href = `ler.html?cap=${chap.id}`;
-
-        // Define beautiful custom Yakuza/Yankee-themed synopses for the default chapters!
-        const synopses = {
-            1: "O destino começa a se mover em Chinatown. Em meio ao som de motores e à poeira das ruas, Kensuke Shinoda e sua gangue se deparam com os primeiros indícios de um elo sombrio que ameaça o frágil equilíbrio do submundo. As respostas podem ser mais perigosas do que as perguntas.",
-            2: "A tensão atinge o ponto de ruptura. Quando pendências do passado retornam para cobrar sua parte do sangue, os laços de lealdade são colocados à prova máxima nas vielas escuras. As escolhas feitas hoje definirão quem sobreviverá ao amanhã.",
-            3: "A revelação final e o peso do fio de sangue. Kensuke descobre que proteger sua família exige sacrifícios que ele talvez não esteja preparado para fazer. A teia do destino se fecha, restando apenas agir antes que seja tarde demais."
-        };
+    // --- 4. Aba Expansiva Integrada de Detalhes do Capítulo (Estilo Netflix/Accordion) ---
+    function toggleChapterDrawer(chapterId) {
+        const allDrawers = document.querySelectorAll('.chapter-drawer');
+        const targetDrawer = document.getElementById(`drawer-cap-${chapterId}`);
+        const targetCard = document.querySelector(`.chapter-card img[id="thumb-cap-${chapterId}"]`)?.closest('.chapter-card');
         
-        const defaultSynopsis = "[Esta não é uma história sobre heróis ou vilões. Prepare-se para vivenciar os dilemas morais, conflitos bizarros e laços afetivos profundos desta família marginalizada em Chinatown...]";
-        if (modalSynopsisText) {
-            modalSynopsisText.textContent = synopses[chap.id] || defaultSynopsis;
-        }
-
-        // Render status and setup toggle button
-        function renderModalStatus() {
-            isRead = readChapters.includes(chapIdStr);
-            if (modalStatus) {
-                modalStatus.textContent = isRead ? 'Lido' : 'Não Lido';
-                modalStatus.className = `tag-badge ${isRead ? 'chapter-badge-read' : 'chapter-badge-unread'}`;
-                modalStatus.style.background = isRead ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)';
-                modalStatus.style.color = isRead ? 'var(--success-green)' : 'var(--text-secondary)';
-                modalStatus.style.borderColor = isRead ? 'var(--success-green)' : 'rgba(255, 255, 255, 0.1)';
-            }
-
-            if (modalBtnToggleRead) {
-                modalBtnToggleRead.innerHTML = isRead 
-                    ? '<i class="fa-solid fa-circle-xmark" style="margin-right: 8px;"></i> Marcar como Não Lido'
-                    : '<i class="fa-regular fa-circle-check" style="margin-right: 8px;"></i> Marcar como Lido';
-            }
-        }
-
-        renderModalStatus();
-
-        // Setup toggle read click handler
-        if (modalBtnToggleRead) {
-            const newToggleBtn = modalBtnToggleRead.cloneNode(true);
-            modalBtnToggleRead.parentNode.replaceChild(newToggleBtn, modalBtnToggleRead);
-
-            newToggleBtn.addEventListener('click', () => {
-                const nowRead = readChapters.includes(chapIdStr);
-                const targetCard = document.querySelector(`.chapter-card img[id="thumb-cap-${chap.id}"]`)?.closest('.chapter-card');
-                const targetBadge = targetCard?.querySelector('.chapter-card-status-badge');
-
-                if (nowRead) {
-                    readChapters = readChapters.filter(id => id !== chapIdStr);
-                    if (targetCard && targetBadge) updateCardStatusVisual(targetCard, targetBadge, false);
-                } else {
-                    readChapters.push(chapIdStr);
-                    if (targetCard && targetBadge) updateCardStatusVisual(targetCard, targetBadge, true);
+        const isCurrentlyActive = targetDrawer && targetDrawer.classList.contains('active');
+        
+        // Fecha todos os drawers primeiro de forma suave
+        allDrawers.forEach(d => {
+            d.classList.remove('active');
+            d.style.maxHeight = '0';
+            d.style.padding = '0';
+            d.style.margin = '0';
+            d.style.borderWidth = '0';
+        });
+        
+        document.querySelectorAll('.chapter-card').forEach(c => {
+            c.classList.remove('drawer-open');
+        });
+        
+        if (!isCurrentlyActive && targetDrawer) {
+            // Abre o drawer selecionado
+            targetDrawer.classList.add('active');
+            targetDrawer.style.maxHeight = '600px';
+            targetDrawer.style.padding = '24px';
+            targetDrawer.style.marginTop = '16px';
+            targetDrawer.style.marginBottom = '24px';
+            targetDrawer.style.borderWidth = '1px';
+            
+            if (targetCard) {
+                targetCard.classList.add('drawer-open');
+                
+                // Rolar e centralizar suavemente no mobile
+                if (window.innerWidth <= 768) {
+                    setTimeout(() => {
+                        targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 150);
                 }
-
-                localStorage.setItem(userKey, JSON.stringify(readChapters));
-                updateOverallProgress();
-                renderModalStatus();
-            });
-        }
-
-        // Show Modal
-        detailModal.classList.add('active');
-        detailModal.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden'; // Avoid scrolling background
-
-        // Empurra âncora virtual no histórico para interceptar botão Voltar do celular
-        history.pushState({ modalOpen: true, chapterId: chap.id }, '', `#detalhes-capitulo-${chap.id}`);
-    }
-
-    // Close Modal Logic
-    if (detailModal) {
-        const closeBtn = detailModal.querySelector('.chapter-detail-close-btn');
-        const overlay = detailModal.querySelector('.chapter-detail-modal-overlay');
-
-        const closeModal = () => {
-            detailModal.classList.remove('active');
-            detailModal.setAttribute('aria-hidden', 'true');
-            document.body.style.overflow = '';
-            // Se o usuário fechar clicando na interface, limpa o hash voltando no histórico
+            }
+            
+            // Empurra âncora de histórico para fechar com o botão Voltar do celular
+            history.pushState({ drawerOpen: true, chapterId: chapterId }, '', `#detalhes-capitulo-${chapterId}`);
+        } else {
+            // Se fechou por clique, remove a âncora de hash voltando no histórico
             if (window.location.hash.startsWith('#detalhes-capitulo-')) {
                 history.back();
             }
-        };
-
-        if (closeBtn) closeBtn.addEventListener('click', closeModal);
-        if (overlay) overlay.addEventListener('click', closeModal);
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && detailModal.classList.contains('active')) {
-                closeModal();
-            }
-        });
-
-        // Escuta popstate do celular/navegador (Voltar) para fechar o modal
-        window.addEventListener('popstate', () => {
-            if (detailModal.classList.contains('active')) {
-                detailModal.classList.remove('active');
-                detailModal.setAttribute('aria-hidden', 'true');
-                document.body.style.overflow = '';
-            }
-        });
+        }
     }
+
+    // Escutar popstate (botão Voltar físico ou gestual) para fechar o drawer de forma nativa
+    window.addEventListener('popstate', () => {
+        document.querySelectorAll('.chapter-drawer').forEach(d => {
+            d.classList.remove('active');
+            d.style.maxHeight = '0';
+            d.style.padding = '0';
+            d.style.margin = '0';
+            d.style.borderWidth = '0';
+        });
+        document.querySelectorAll('.chapter-card').forEach(c => {
+            c.classList.remove('drawer-open');
+        });
+    });
 
     function renderGrid(chapters) {
         const gridContainer = document.getElementById('chapter-list-container');
@@ -511,12 +452,94 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
 
-            // Clique no card abre o modal estilo Netflix
-            chapterCard.addEventListener('click', (e) => {
-                openChapterDetailModal(chap, thumbSrc);
+            // Clique no card abre ou fecha o drawer embutido
+            chapterCard.addEventListener('click', () => {
+                toggleChapterDrawer(chap.id);
             });
 
+            // Cria a aba expansiva logo abaixo do card no DOM
+            const drawer = document.createElement('div');
+            drawer.className = 'chapter-drawer';
+            drawer.id = `drawer-cap-${chap.id}`;
+            
+            const synopses = {
+                1: "O destino começa a se mover em Chinatown. Em meio ao som de motores e à poeira das ruas, Kensuke Shinoda e sua gangue se deparam com os primeiros indícios de um elo sombrio que ameaça o frágil equilíbrio do submundo. As respostas podem ser mais perigosas do que as perguntas.",
+                2: "A tensão atinge o ponto de ruptura. Quando pendências do passado retornam para cobrar sua parte do sangue, os laços de lealdade são colocados à prova máxima nas vielas escuras. As escolhas feitas hoje definirão quem sobreviverá ao amanhã.",
+                3: "A revelação final e o peso do fio de sangue. Kensuke descobre que proteger sua família exige sacrifícios que ele talvez não esteja preparado para fazer. A teia do destino se fecha, restando apenas agir antes que seja tarde demais."
+            };
+            const defaultSynopsis = "[Esta não é uma história sobre heróis ou vilões. Prepare-se para vivenciar os dilemas morais, conflitos bizarros e laços afetivos profundos desta família marginalizada em Chinatown...]";
+            const synopsisText = synopses[chap.id] || defaultSynopsis;
+
+            drawer.innerHTML = `
+                <div class="chapter-drawer-inner">
+                    <div class="chapter-drawer-content">
+                        <div class="chapter-drawer-cover">
+                            <img src="${thumbSrc}" alt="Thumbnail do Capítulo ${chap.id}" onerror="if (${isUsingSupabase}) { this.onerror=null; this.src='assets/chapter${chap.id}_thumb.jpg'; } else { this.onerror=null; this.src='assets/chapter1_thumb.jpg'; }">
+                        </div>
+                        <div class="chapter-drawer-info">
+                            <div class="chapter-drawer-meta-row">
+                                <span class="modal-chapter-number">Capítulo ${chap.id.toString().padStart(2, '0')}</span>
+                                <span class="modal-chapter-date">${chap.release_date || 'Data não disponível'}</span>
+                                <span class="tag-badge ${isRead ? 'chapter-badge-read' : 'chapter-badge-unread'}" id="drawer-badge-cap-${chap.id}">
+                                    ${isRead ? 'Lido' : 'Não Lido'}
+                                </span>
+                            </div>
+                            <h3 class="modal-chapter-title">${chap.title}</h3>
+                            <div class="chapter-drawer-synopsis">
+                                <p>${synopsisText}</p>
+                            </div>
+                            <div class="chapter-drawer-actions">
+                                <a href="ler.html?cap=${chap.id}" class="btn btn-primary">
+                                    <i class="fa-solid fa-book-open" style="margin-right: 8px;"></i> Ler Capítulo
+                                </a>
+                                <button class="btn btn-secondary btn-toggle-read" id="drawer-btn-toggle-${chap.id}" type="button">
+                                    ${isRead 
+                                        ? '<i class="fa-solid fa-circle-xmark" style="margin-right: 8px;"></i> Marcar como Não Lido'
+                                        : '<i class="fa-regular fa-circle-check" style="margin-right: 8px;"></i> Marcar como Lido'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Configurar clique no botão de marcar lido/não lido da aba expansiva
+            const toggleBtn = drawer.querySelector(`#drawer-btn-toggle-${chap.id}`);
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Evita cliques no drawer de fechar a aba
+                    
+                    const nowRead = readChapters.includes(chapIdStr);
+                    const badgeCard = document.getElementById(`badge-cap-${chap.id}`);
+                    const drawerBadge = document.getElementById(`drawer-badge-cap-${chap.id}`);
+
+                    if (nowRead) {
+                        readChapters = readChapters.filter(id => id !== chapIdStr);
+                        updateCardStatusVisual(chapterCard, badgeCard, false);
+                        
+                        if (drawerBadge) {
+                            drawerBadge.textContent = "Não Lido";
+                            drawerBadge.className = "tag-badge chapter-badge-unread";
+                        }
+                        toggleBtn.innerHTML = '<i class="fa-regular fa-circle-check" style="margin-right: 8px;"></i> Marcar como Lido';
+                    } else {
+                        readChapters.push(chapIdStr);
+                        updateCardStatusVisual(chapterCard, badgeCard, true);
+                        
+                        if (drawerBadge) {
+                            drawerBadge.textContent = "Lido";
+                            drawerBadge.className = "tag-badge chapter-badge-read";
+                        }
+                        toggleBtn.innerHTML = '<i class="fa-solid fa-circle-xmark" style="margin-right: 8px;"></i> Marcar como Não Lido';
+                    }
+
+                    localStorage.setItem(userKey, JSON.stringify(readChapters));
+                    updateOverallProgress();
+                });
+            }
+
             gridContainer.appendChild(chapterCard);
+            gridContainer.appendChild(drawer);
         });
     }
 
