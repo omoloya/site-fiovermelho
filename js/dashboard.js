@@ -534,6 +534,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 thumbSrc = tempUrl || `assets/chapter1_thumb.jpg`; // Fallback
             }
 
+            // Sobregravação rígida para o card de chamada do Capítulo 1 usar assets/capitulo_1.webp
+            if (chap.id === 1) {
+                thumbSrc = "assets/capitulo_1.webp";
+            }
+
             const chapterCard = document.createElement('article');
             chapterCard.className = 'chapter-card glass-card';
             chapterCard.style.cursor = 'pointer';
@@ -581,9 +586,6 @@ document.addEventListener('DOMContentLoaded', () => {
             drawer.innerHTML = `
                 <div class="chapter-drawer-inner">
                     <div class="chapter-drawer-content">
-                        <div class="chapter-drawer-cover">
-                            <img src="assets/gav_cap_1.webp" alt="Capa do Capítulo ${chap.id}" onerror="this.onerror=null; this.src='assets/capa1.webp';">
-                        </div>
                         <div class="chapter-drawer-info">
                             <div class="chapter-drawer-meta-row">
                                 <span class="modal-chapter-number">Capítulo ${chap.id.toString().padStart(2, '0')}</span>

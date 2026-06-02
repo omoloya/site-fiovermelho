@@ -861,7 +861,7 @@ a {
 
 @media (min-width: 769px) {
     .chapter-drawer-content {
-        grid-template-columns: 240px 1fr;
+        grid-template-columns: 1fr; /* Ocupa 100% da largura horizontal já que removemos a capa da gaveta */
     }
 }
 
