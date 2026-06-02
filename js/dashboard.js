@@ -509,31 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const chapIdStr = chap.id.toString();
             const isRead = readChapters.includes(chapIdStr);
             
-            // Busca defensiva de metadados locais com tratamento de tipagem
-            const localDefault = defaultChapters.find(c => String(c.id).trim() === String(chap.id).trim());
-
-            let synopsisText = "";
-            let coverImage = "";
-
-            if (String(chap.id).trim() === "2") {
-                // Texto oficial e definitivo da gaveta do Capítulo 2
-                synopsisText = `Quando o seu pai te liga de madrugada, te chama pelo apelido de criança e pede para você levar um pudim e um estoque de desinfetante, você já sabe que o turno extra vai ser sujo. Sem a ajuda do guarda-costas oficial, o coroa intimou os pirralhos para assumirem o serviço doméstico de emergência. Mas quando o mais velho manda, os mais novos obedecem, por lealdade e, principalmente, amor.`;
-                
-                // Caminho exato da imagem da capa do Capítulo 2 na pasta assets
-                coverImage = "assets/capitulo_2.webp?v=2";
-            } else if (String(chap.id).trim() === "1") {
-                // Manter dados isolados do Capítulo 1
-                synopsisText = chap.synopsis || "O chefe dormiu de novo. Agora cabe ao resto do grupo...";
-                coverImage = chap.cover_url || "assets/capitulo_1.webp";
-            } else {
-                // Fallback genérico para capítulos futuros
-                synopsisText = chap.synopsis || "Sinopse em breve.";
-                coverImage = chap.cover_url || "assets/default_cover.webp";
-            }
-
-            console.log("[Debug Conflito] ID do Banco: " + chap.id + " | Encontrou Local? " + (localDefault ? "Sim" : "Não"));
-
-            // Define Thumbnail
+            // Define Thumbnail fallback
             let thumbSrc = `assets/chapter${chap.id}_thumb.jpg`;
             let isUsingSupabase = false;
             
@@ -561,8 +537,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 thumbSrc = tempUrl || `assets/chapter1_thumb.jpg`; // Fallback
             }
 
-            // Busca defensiva da capa
-            thumbSrc = coverImage || thumbSrc;
+            // --- INÍCIO DO HARDCODE DE SEGURANÇA BINDADO ---
+            let finalSynopsis = "";
+            let finalCover = "";
+
+            if (String(chap.id).trim() === "2") {
+                finalSynopsis = `Quando o seu pai te liga de madrugada, te chama pelo apelido de criança e pede para você levar um pudim e um estoque de desinfetante, você já sabe que o turno extra vai ser sujo. Sem a ajuda do guarda-costas oficial, o coroa intimou os pirralhos para assumirem o serviço doméstico de emergência. Mas quando o mais velho manda, os mais novos obedecem, por lealdade e, principalmente, amor.`;
+                finalCover = "assets/capitulo_2.webp?v=2";
+            } else if (String(chap.id).trim() === "1") {
+                finalSynopsis = "O chefe dormiu de novo. Agora cabe ao resto do grupo...";
+                finalCover = "assets/capitulo_1.webp";
+            } else {
+                finalSynopsis = chap.synopsis || "Sinopse em breve.";
+                finalCover = chap.cover_url || "assets/default_cover.webp";
+            }
+            // --- FIM DO HARDCODE DE SEGURANÇA BINDADO ---
 
             const chapterCard = document.createElement('article');
             chapterCard.className = 'chapter-card glass-card';
@@ -573,7 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             chapterCard.innerHTML = `
                 <div class="chapter-card-thumb-container">
-                    <img src="${thumbSrc}" alt="Capítulo ${chap.id} Thumbnail" class="chapter-card-thumb" id="thumb-cap-${chap.id}" onerror="if (${isUsingSupabase}) { this.onerror=null; this.src='assets/chapter${chap.id}_thumb.jpg'; } else { this.onerror=null; this.src='assets/chapter1_thumb.jpg'; }">
+                    <img src="${finalCover}" alt="Capítulo ${chap.id} Thumbnail" class="chapter-card-thumb" id="thumb-cap-${chap.id}" onerror="this.onerror=null; this.src='assets/default_cover.webp';">
                     <div class="chapter-card-overlay">
                         <div class="chapter-card-overlay-top">
                             <span class="chapter-card-status-badge ${isRead ? 'chapter-badge-read' : 'chapter-badge-unread'}" id="badge-cap-${chap.id}">
@@ -621,7 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <h3 class="modal-chapter-title">${chap.title}</h3>
                             <div class="chapter-drawer-synopsis">
-                                <p>${synopsisText}</p>
+                                <p>${finalSynopsis}</p>
                             </div>
                             <div class="chapter-drawer-actions">
                                 <a href="ler.html?cap=${chap.id}" class="btn btn-primary read-btn">
