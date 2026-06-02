@@ -115,6 +115,21 @@ Implementamos um sistema premium de doações no dashboard que permite aos leito
   - **Modo Produção (Online)**: Dispara a chamada nativa do Supabase `window.supabase.auth.resetPasswordForEmail(email)` para disparar o e-mail de redefinição oficial, fornecendo feedbacks imediatos de sucesso ou falhas no modal.
   - **Modo Desenvolvimento (Offline)**: Executa um atraso simulado de 1 segundo e apresenta a mensagem de corvo oficial: *"Oe, kyoudai! Enviamos um corvo com as instruções de recuperação para seu e-mail. Checa sua caixa de entrada! 🦅📬"*.
 
+### 🔍 Lupa de Toque Direta / Tap-to-Zoom Localizado (`ler.html`, `js/ler.js` & `css/style.css`)
+- **Zero Zoom Out e Comportamento Nativo**: As imagens mantêm por padrão o comportamento original do leitor (ocupando 100% da largura da tela do celular para rolagem vertical contínua), eliminando qualquer tela preta ou afastamento indesejado.
+- **Ampliação Localizada (Foco no Toque)**:
+  * Ao tocar/clicar em qualquer ponto de uma imagem, o sistema calcula as coordenadas X e Y relativas do toque e configura o `transform-origin` dinamicamente para o pixel tocado.
+  * A imagem amplia na proporção exata de $1.8\times$ (`transform: scale(1.8);`) centralizando exatamente onde o dedo do usuário encostou.
+  * Um segundo toque/clique na imagem reverte-a instantaneamente para a escala original $1.0\times$ com origem central.
+- **Transição de Alto Desempenho**: Aplicada a regra CSS `"transition: transform 0.25s ease, transform-origin 0s;"`, fornecendo uma animação fluida sem engasgos de processamento.
+- **Deslocamento de Foco e Rolagem Inteligente**:
+  * O contêiner pai `.webtoon-placeholder.loaded` recebeu `overflow: hidden !important; position: relative !important;` para recortar o transbordo da ampliação.
+  * Enquanto a imagem estiver ampliada (`.is-zoomed`), o usuário pode arrastá-la livremente para os lados (eixo X) para ajustar o foco das falas e detalhes da arte.
+  * O gesto vertical continua operando o scroll normal do navegador para uma leitura fluida, a menos que o arraste seja predominantemente horizontal, caso em que o gesto bloqueia o scroll da página para priorizar o panning.
+- **Compatibilidade Absoluta com Proteção anticópia**:
+  * Para leitores normais, os eventos de clique e arrasto são registrados e controlados no contêiner pai `.webtoon-placeholder` (`pointer-events: auto`).
+  * As imagens reais contam com a propriedade de segurança `pointer-events: none` ativa, impossibilitando qualquer tentativa de arrastar o arquivo original ou ativar o menu de contexto "Salvar imagem" no celular, mantendo a proteção ativa em todos os momentos!
+
 ---
 
 ## 🚦 Roteiro de Validação e Testes no Ar
@@ -130,9 +145,15 @@ Implementamos um sistema premium de doações no dashboard que permite aos leito
    * Verifique se o modal de recuperação de senha abre de forma isolada e limpa.
    * Digite seu e-mail cadastrado e clique em **Enviar Link de Recuperação**.
    * Certifique-se de que a mensagem de sucesso (envio por corvo) é exibida e que clicar em **Voltar para o Login** recolhe o modal.
-3. **Segurança do Backend**:
+3. **Lupa de Toque Direta (Tap-to-Zoom Localizado)**:
+   * Abra o leitor vertical (`ler.html`) de qualquer capítulo.
+   * Clique/toque em qualquer detalhe de uma página do quadrinho. A imagem correspondente deve expandir imediatamente a partir do ponto tocado.
+   * Arraste o dedo lateralmente: a imagem deve se deslocar horizontalmente dentro da coluna de leitura para ajustar o foco.
+   * Dê um segundo clique/toque rápido na imagem: ela deve retornar instantaneamente ao tamanho original de forma suave.
+   * Verifique que tentar salvar a imagem (clique direito ou toque pressionado) continua totalmente desabilitado e bloqueado!
+4. **Segurança do Backend**:
    * O backend garante que qualquer valor abaixo de R$ 1,00 seja elevado para o mínimo regulamentar, prevenindo transações inválidas no Mercado Pago.
-4. **Validação de Cadastro**:
+5. **Validação de Cadastro**:
    * O fluxo original de validação de maioridade continua operando perfeitamente a R$ 1,50, consumindo a mesma rota de geração de Pix de forma isolada e segura.
 
 9. Clique em **"Visualizar no Leitor"** e veja as páginas otimizadas do seu novo Capítulo 4 carregarem perfeitamente na proporção certa!
