@@ -341,6 +341,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 let startTouchX = 0;
                 let startTouchY = 0;
                 let scrollPositionBeforeZoom = 0;
+                let clickCount = 0;
+                let clickTimeout = null;
 
                 pageWrapper.addEventListener('touchstart', (e) => {
                     startTouchX = e.touches[0].clientX;
@@ -374,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pageWrapper.addEventListener('touchend', (e) => {
                     isDragging = false;
                     if (!hasDragged) {
-                        toggleZoom(e);
+                        handleTapOrClick(e);
                     }
                 });
 
@@ -405,13 +407,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 pageWrapper.addEventListener('mouseup', (e) => {
                     isDragging = false;
                     if (!hasDragged) {
-                        toggleZoom(e);
+                        handleTapOrClick(e);
                     }
                 });
 
                 pageWrapper.addEventListener('mouseleave', () => {
                     isDragging = false;
                 });
+
+                function handleTapOrClick(e) {
+                    if (img.classList.contains('is-zoomed')) {
+                        // Se já estiver ampliado, toque simples retira o zoom imediatamente
+                        toggleZoom(e);
+                    } else {
+                        // Se não estiver ampliado, espera double tap (intervalo < 300ms)
+                        clickCount++;
+                        if (clickCount === 1) {
+                            clickTimeout = setTimeout(() => {
+                                clickCount = 0;
+                            }, 300);
+                        } else if (clickCount === 2) {
+                            clearTimeout(clickTimeout);
+                            clickCount = 0;
+                            toggleZoom(e);
+                        }
+                    }
+                }
 
                 function toggleZoom(e) {
                     const rect = pageWrapper.getBoundingClientRect();
