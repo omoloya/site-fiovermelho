@@ -89,7 +89,39 @@ CREATE POLICY "Permitir atualizações públicas no storage" ON storage.objects
 6.  Acompanhe a mágica acontecer! O compressor Canvas WebP começará a trabalhar em segundo plano na fila, mostrando o tamanho original e o tamanho final comprimido com as estatísticas de economia (geralmente economizando de **80% a 95%** em bytes!).
 7.  Clique em **"Publicar Capítulo"**.
 8.  Uma barra de progresso vermelha e brilhante aparecerá. Quando concluída, exibirá um banner verde e ativará o botão **"Visualizar no Leitor"**.
-9.  Clique em **"Visualizar no Leitor"** e veja as páginas otimizadas do seu novo Capítulo 4 carregarem perfeitamente na proporção certa!
+
+## 🎁 Novo Sistema de Apoio / Doação Opcional via PIX Dinâmico
+
+Implementamos um sistema premium de doações no dashboard que permite aos leitores apoiarem financeiramente a obra com qualquer valor (mínimo de R$ 1,00). 
+
+### 1. Elemento e Identidade na Interface (`dashboard.html` & `css/style.css`)
+- **Card de Apoio**: Adicionado logo abaixo da listagem de capítulos e antes do bloco da newsletter. Ele apresenta a frase Yankee oficial do bando: 
+  > *"Se o corre valeu a pena, dropa um trocado pros caras aqui. Fortalece o bando, kyoudai!"*
+- **Botão de Ação**: Um botão de classe `.donate-btn` estilizado no tema Yakuza/noir com sombras em carmim (`#ff2a3b`), bordas sutis e um estado ativo envolvente.
+- **Modal Overlay de Doação**: Painel centralizado `#donation-modal` com fundo escuro e embaçamento de vidro (glassmorphism/blur), compatível com áreas úteis de toque mobile (mínimo de `44px` de altura). Ele traz um input numérico prefixado com "R$" configurado com valor inicial de `5.00` e mínimo de `1.00`.
+
+### 2. Integração e Validação com o Backend (`api/criar-pix.js` & `js/dashboard.js`)
+- **API Serverless Unificada**: A rota `/api/criar-pix` foi otimizada de forma segura no lado do servidor para receber um parâmetro opcional `amount` no corpo da requisição. Se fornecido, ele valida a contribuição mínima de R$ 1,00 e gera a transação no Mercado Pago com a descrição e valor exatos escolhidos pelo usuário. Caso contrário, mantém por padrão o valor de R$ 1,50 para a validação de maioridade.
+- **Renderização Dinâmica de QR Code**: O modal renderiza o QR Code do Mercado Pago retornado em Base64 e carrega o código Copia e Cola em um campo de leitura com botão de cópia instantânea (com animação de check verde de sucesso).
+- **Mensagem de Agradecimento**: Após a geração do Pix, a interface exibe o aviso Yankee de agradecimento:
+  > *"Valeu kyoudai! O bando agradece o fortalecimento. Tamo junto!"*
+- **Fallback de Ambiente Local**: Caso o site seja executado localmente sem suporte a Serverless, o JavaScript intercepta a chamada de API e aciona o gerador de simulação `window.PixService` automaticamente, mantendo a experiência fluida para desenvolvedores.
+
+---
+
+## 🚦 Roteiro de Validação e Testes no Ar
+1. **Fluxo de Doação**:
+   * Efetue login no dashboard com qualquer conta cadastrada.
+   * Role até a seção "Apoie o Fio Vermelho" e clique no botão **Apoiar o Bando**.
+   * Insira um valor customizado no modal (ex: R$ 10,00) e clique em **Gerar PIX de Apoio**.
+   * Verifique se o QR Code dinâmico e o código Copia e Cola são renderizados instantaneamente junto ao agradecimento do bando.
+   * Clique no botão de copiar e verifique se o feedback visual de check verde funciona.
+2. **Segurança do Backend**:
+   * O backend garante que qualquer valor abaixo de R$ 1,00 seja elevado para o mínimo regulamentar, prevenindo transações inválidas no Mercado Pago.
+3. **Validação de Cadastro**:
+   * O fluxo original de validação de maioridade continua operando perfeitamente a R$ 1,50, consumindo a mesma rota de geração de Pix de forma isolada e segura.
+
+9. Clique em **"Visualizar no Leitor"** e veja as páginas otimizadas do seu novo Capítulo 4 carregarem perfeitamente na proporção certa!
 10. Se voltar ao painel principal (`dashboard.html`), você verá o card do Capítulo 4 disponível dinamicamente na grade, exibindo a primeira página do quadrinho como miniatura e recalculando o progresso total para *Lidos: X / 4*!
 
 ---
