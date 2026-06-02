@@ -431,6 +431,28 @@
             </form>
         </section>
 
+        <!-- COLUNA ESQUERDA: GERENCIAMENTO DE CAPÍTULO (SINOPSE & CAPA DO CAPÍTULO 1) -->
+        <section class="admin-card glass-card" style="margin-top: 24px;">
+            <h2 class="admin-card-title">
+                <i class="fa-solid fa-pen-fancy"></i> Gerenciamento de Capítulo 1
+            </h2>
+            <form id="admin-chapter-manage-form">
+                <div class="input-group">
+                    <label for="chapter-manage-synopsis" class="input-label">Sinopse do Capítulo 1</label>
+                    <textarea id="chapter-manage-synopsis" class="input-field" rows="6" placeholder="Digite a sinopse..." style="resize: vertical; font-family: inherit; line-height: 1.6;"></textarea>
+                </div>
+                
+                <div class="input-group" style="margin-top: 16px;">
+                    <label class="input-label">Nova Imagem de Capa (Recomendado: formato .webp ou .png)</label>
+                    <input type="file" id="chapter-manage-cover-input" class="input-field" accept="image/png, image/jpeg, image/jpg, image/webp" style="padding: 8px;">
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-save-chapter" style="width: 100%; margin-top: 16px; min-height: 44px;">
+                    <i class="fa-solid fa-floppy-disk" style="margin-right: 8px;"></i> Salvar Alterações do Capítulo
+                </button>
+            </form>
+        </section>
+
         <!-- COLUNA ESQUERDA: LISTA DE CAPÍTULOS PUBLICADOS -->
         <section class="admin-card glass-card" id="admin-chapters-list-card" style="margin-top: 24px;">
             <h2 class="admin-card-title">

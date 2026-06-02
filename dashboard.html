@@ -117,6 +117,23 @@
         </div>
     </section>
 
+    <!-- ==================== PAINEL DE CONTROLES DO ADMIN ==================== -->
+    <section class="admin-section" id="admin-controls-panel" style="display: none; max-width: 1200px; margin: 40px auto 0 auto; padding: 0 24px;">
+        <div class="admin-card glass-card" style="padding: 24px; border: 1px solid rgba(255, 42, 59, 0.25); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 42, 59, 0.15); border-radius: var(--radius-md);">
+            <h2 class="admin-card-title" style="font-size: 1.3rem; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; color: var(--text-primary);">
+                <i class="fa-solid fa-bullhorn" style="color: var(--primary-red); text-shadow: var(--shadow-glow);"></i> Painel de Administração da Newsletter
+            </h2>
+            <div style="display: flex; flex-direction: column; gap: 16px; align-items: flex-start;">
+                <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin: 0;">
+                    Aviso: Este botão enviará uma notificação para todos os e-mails cadastrados na newsletter. Use apenas quando terminar de organizar o capítulo.
+                </p>
+                <button id="btn-trigger-newsletter" class="btn btn-primary btn-trigger-newsletter" type="button" style="min-height: 44px; display: inline-flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-paper-plane"></i> Disparar Aviso de Novo Capítulo
+                </button>
+            </div>
+        </div>
+    </section>
+
     <!-- ==================== LISTA DE CAPÍTULOS ==================== -->
     <section class="chapters-section" id="chapters-list">
         <header class="section-header">
