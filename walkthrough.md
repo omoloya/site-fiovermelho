@@ -150,3 +150,23 @@ Implementamos uma otimização profunda para a leitura vertical dos capítulos e
 *   **Habilitação de Gestos Verticais e Desativação de Seleção**: Além de `pointer-events: auto !important` e `touch-action: pan-y !important;` tanto na classe contêiner `.webtoon-canvas` quanto nas imagens `.webtoon-page-img` no bloco mobile, adicionamos a propriedade `user-select: none !important;` e `-webkit-user-select: none !important;` na imagem do quadrinho para impedir que o celular tente disparar a seleção ou cópia da fita, eliminando o travamento do gesto de scroll.
 *   **Garantia de Topo no Carregamento Tardio & Limpeza de DOM**: Em [js/ler.js](file:///c:/Users/Barbara/Desktop/miles/site-fiovermelho/js/ler.js), aprimoramos o handler `img.onload` de carregamento dinâmico: limpamos de forma absoluta o HTML interno do wrapper (`pageWrapper.innerHTML = '';`) e reinserimos unicamente o nó `img` resolvido, limpando resíduos de tags de texto invisíveis ou spinners ocultos que afetavam os cálculos de altura. Ao processar a primeira página (`i === 1`), força-se imediatamente a rolagem instantânea para o topo (`scrollTo(0,0)`) envelopado em um `setTimeout` ampliado para 150ms e com múltiplos fallbacks de propriedade (`documentElement.scrollTop` e `body.scrollTop`) para dar tempo de o navegador calcular com exatidão o carregamento da fita.
 
+---
+
+## 📺 Redesign do Painel de Capítulos: Aba Expansiva Integrada (Junho, 2026)
+
+Substituímos o antigo modal flutuante por uma **Aba Expansiva Integrada (estilo Drawer/Accordion/Netflix)** diretamente na lista de capítulos do painel (`dashboard.html`). Isso resolve problemas crônicos de travamento de toque (inércia) em smartphones e melhora substancialmente a experiência do usuário.
+
+### 1. Novo Comportamento de Aba Integrada (DOM/Grid)
+*   **Ação**: Removemos completamente a estrutura `<div id="chapter-detail-modal">` do arquivo [dashboard.html](file:///c:/Users/Barbara/Desktop/miles/site-fiovermelho/dashboard.html).
+*   **CSS Integrado**: Em [css/style.css](file:///c:/Users/Barbara/Desktop/miles/site-fiovermelho/css/style.css), declaramos a classe `.chapter-drawer` utilizando `grid-column: 1 / -1;`, o que força a aba a se comportar como uma linha inteira horizontal na grade CSS, empurrando naturalmente os cards abaixo dela.
+*   **Transição de Altura Fluida**: Aplicamos `max-height: 0; opacity: 0; overflow: hidden;` por padrão, e `max-height: 600px; opacity: 1; padding: 24px;` no estado `.active`, gerando uma animação de deslizar suave e totalmente fluida integrada ao fluxo da página.
+
+### 2. Controle Dinâmico e Recursos em js/dashboard.js
+*   **Drawers Dedicados**: A função `renderGrid(chapters)` agora cria dinamicamente um contêiner `.chapter-drawer` para cada card de capítulo durante o loop de montagem do DOM.
+*   **Interações Autônomas**: Cada aba contém a sinopse do capítulo, data de publicação, selo dinâmico de status e botões de ação ("Ler Capítulo" e "Marcar como Lido/Não Lido"). Clicar em marcar lido dentro do drawer atualiza o estado global e sincroniza os badges do card original em tempo real.
+*   **Destravamento Mobile & Centralização Suave**:
+    *   No mobile, a aba ocupa a largura total física da tela de forma integrada.
+    *   O corpo (`body`) permanece com rolagem livre e inercial o tempo todo.
+    *   Ao expandir a aba no celular, executamos um `scrollIntoView({ behavior: 'smooth', block: 'nearest' })` no card com atraso de `150ms` para centralizá-lo de forma fluida nos olhos do usuário.
+*   **Controle de Histórico (Botão Voltar)**: Quando o drawer se expande, empurramos um estado virtual de histórico (`#detalhes-capitulo-X`). Se o leitor executar o gesto/botão físico "Voltar" no celular, capturamos o evento via `popstate` e fechamos a aba expansiva de forma suave, sem sair da rota ou deslogar.
+
