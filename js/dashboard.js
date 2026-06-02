@@ -539,8 +539,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // --- INÍCIO DO HARDCODE DE SEGURANÇA BINDADO ---
-            let finalSynopsis = chap.synopsis || "Sinopse em breve.";
-            let finalCover = chap.cover_url || "assets/default_cover.webp";
+            let finalSynopsis = "";
+            let finalCover = "";
+
+            finalSynopsis = chap.synopsis || "Sinopse em breve.";
+            finalCover = chap.cover_url || "assets/default_cover.webp";
             // --- FIM DO HARDCODE DE SEGURANÇA BINDADO ---
 
             const chapterCard = document.createElement('article');
@@ -576,6 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const drawer = document.createElement('div');
             drawer.className = 'chapter-drawer';
             drawer.id = `drawer-cap-${cleanId}`;
+            drawer.setAttribute('data-id', cleanId);
             
             const isPago = !!chap.isPago;
             const priceVal = chap.price || 1.50;
