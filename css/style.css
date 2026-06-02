@@ -1151,10 +1151,20 @@ a {
     border: none;
     object-fit: contain;
     background: transparent;
-    transition: opacity 0.5s ease;
+    transition: opacity 0.5s ease, transform 0.25s ease, transform-origin 0s;
     opacity: 0;
     -webkit-user-select: none;
     user-select: none;
+    transform-origin: center center;
+    cursor: zoom-in;
+}
+
+.webtoon-page-img.is-zoomed {
+    transform: scale(1.8);
+    cursor: zoom-out;
+    z-index: 100;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
 }
 
 .webtoon-page-img.loaded {
@@ -1187,6 +1197,8 @@ a {
     border-bottom: none !important;
     padding: 0 !important;
     margin: 0 !important;
+    overflow: hidden !important;
+    position: relative !important;
 }
 
 /* Reader Footer Navigation */

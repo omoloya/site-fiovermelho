@@ -332,6 +332,121 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 img.classList.add('loaded');
 
+                // --- Tap-to-Zoom Localizado (Lupa Direta) ---
+                let imgTransX = 0;
+                let startX = 0;
+                let initTransX = 0;
+                let isDragging = false;
+                let hasDragged = false;
+                let startTouchX = 0;
+                let startTouchY = 0;
+
+                pageWrapper.addEventListener('touchstart', (e) => {
+                    startTouchX = e.touches[0].clientX;
+                    startTouchY = e.touches[0].clientY;
+                    hasDragged = false;
+
+                    if (img.classList.contains('is-zoomed')) {
+                        isDragging = true;
+                        startX = e.touches[0].clientX;
+                        initTransX = imgTransX;
+                    }
+                }, { passive: true });
+
+                pageWrapper.addEventListener('touchmove', (e) => {
+                    const dx = e.touches[0].clientX - startTouchX;
+                    const dy = e.touches[0].clientY - startTouchY;
+
+                    if (Math.abs(dx) > Math.abs(dy) + 5) {
+                        hasDragged = true;
+                        
+                        if (isDragging) {
+                            if (e.cancelable) e.preventDefault();
+                            const rect = pageWrapper.getBoundingClientRect();
+                            const limit = rect.width * 0.4;
+                            imgTransX = Math.min(Math.max(initTransX + (dx / 1.8), -limit), limit);
+                            img.style.transform = `scale(1.8) translate(${imgTransX}px, 0px)`;
+                        }
+                    }
+                }, { passive: false });
+
+                pageWrapper.addEventListener('touchend', (e) => {
+                    isDragging = false;
+                    if (!hasDragged) {
+                        toggleZoom(e);
+                    }
+                });
+
+                pageWrapper.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    startX = e.clientX;
+                    startTouchX = e.clientX;
+                    startTouchY = e.clientY;
+                    hasDragged = false;
+
+                    if (img.classList.contains('is-zoomed')) {
+                        isDragging = true;
+                        initTransX = imgTransX;
+                    }
+                });
+
+                pageWrapper.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    const dx = e.clientX - startX;
+                    hasDragged = true;
+                    
+                    const rect = pageWrapper.getBoundingClientRect();
+                    const limit = rect.width * 0.4;
+                    imgTransX = Math.min(Math.max(initTransX + (dx / 1.8), -limit), limit);
+                    img.style.transform = `scale(1.8) translate(${imgTransX}px, 0px)`;
+                });
+
+                pageWrapper.addEventListener('mouseup', (e) => {
+                    isDragging = false;
+                    if (!hasDragged) {
+                        toggleZoom(e);
+                    }
+                });
+
+                pageWrapper.addEventListener('mouseleave', () => {
+                    isDragging = false;
+                });
+
+                function toggleZoom(e) {
+                    const rect = pageWrapper.getBoundingClientRect();
+                    let clientX = 0;
+                    let clientY = 0;
+
+                    if (e.changedTouches && e.changedTouches[0]) {
+                        clientX = e.changedTouches[0].clientX;
+                        clientY = e.changedTouches[0].clientY;
+                    } else {
+                        clientX = e.clientX;
+                        clientY = e.clientY;
+                    }
+
+                    const touchX = clientX - rect.left;
+                    const touchY = clientY - rect.top;
+
+                    if (!img.classList.contains('is-zoomed')) {
+                        // Limpa zoom de todas as outras imagens antes de aplicar (Zoom único)
+                        document.querySelectorAll('.webtoon-page-img.is-zoomed').forEach(el => {
+                            el.style.transform = 'scale(1)';
+                            el.style.transformOrigin = 'center center';
+                            el.classList.remove('is-zoomed');
+                        });
+
+                        img.style.transformOrigin = `${touchX}px ${touchY}px`;
+                        imgTransX = 0;
+                        img.style.transform = 'scale(1.8) translate(0px, 0px)';
+                        img.classList.add('is-zoomed');
+                    } else {
+                        img.style.transform = 'scale(1)';
+                        img.style.transformOrigin = 'center center';
+                        img.classList.remove('is-zoomed');
+                    }
+                }
+
                 if (i === 1) {
                     setTimeout(() => {
                         window.scrollTo(0, 0);
