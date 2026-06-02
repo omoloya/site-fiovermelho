@@ -512,6 +512,27 @@ document.addEventListener('DOMContentLoaded', () => {
             // Busca defensiva de metadados locais com tratamento de tipagem
             const localDefault = defaultChapters.find(c => String(c.id).trim() === String(chap.id).trim());
 
+            let synopsisText = "";
+            let coverImage = "";
+
+            if (String(chap.id).trim() === "2") {
+                // Texto oficial e definitivo da gaveta do Capítulo 2
+                synopsisText = `Quando o seu pai te liga de madrugada, te chama pelo apelido de criança e pede para você levar um pudim e um estoque de desinfetante, você já sabe que o turno extra vai ser sujo. Sem a ajuda do guarda-costas oficial, o coroa intimou os pirralhos para assumirem o serviço doméstico de emergência. Mas quando o mais velho manda, os mais novos obedecem, por lealdade e, principalmente, amor.`;
+                
+                // Caminho exato da imagem da capa do Capítulo 2 na pasta assets
+                coverImage = "assets/capitulo_2.webp?v=2";
+            } else if (String(chap.id).trim() === "1") {
+                // Manter dados isolados do Capítulo 1
+                synopsisText = chap.synopsis || "O chefe dormiu de novo. Agora cabe ao resto do grupo...";
+                coverImage = chap.cover_url || "assets/capitulo_1.webp";
+            } else {
+                // Fallback genérico para capítulos futuros
+                synopsisText = chap.synopsis || "Sinopse em breve.";
+                coverImage = chap.cover_url || "assets/default_cover.webp";
+            }
+
+            console.log("[Debug Conflito] ID do Banco: " + chap.id + " | Encontrou Local? " + (localDefault ? "Sim" : "Não"));
+
             // Define Thumbnail
             let thumbSrc = `assets/chapter${chap.id}_thumb.jpg`;
             let isUsingSupabase = false;
@@ -541,7 +562,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Busca defensiva da capa
-            const coverImage = chap.cover_url || (localDefault ? localDefault.cover : "assets/capitulo_2.webp?v=2");
             thumbSrc = coverImage || thumbSrc;
 
             const chapterCard = document.createElement('article');
@@ -578,9 +598,6 @@ document.addEventListener('DOMContentLoaded', () => {
             drawer.className = 'chapter-drawer';
             drawer.id = `drawer-cap-${chap.id}`;
             
-            const localDefault = defaultChapters.find(c => String(c.id).trim() === String(chap.id).trim());
-            const synopsisText = chap.synopsis || (localDefault ? localDefault.synopsis : "Quando o seu pai te liga de madrugada, te chama pelo apelido de criança...");
-            console.log("[Debug Conflito] ID do Banco: " + chap.id + " | Encontrou Local? " + (localDefault ? "Sim" : "Não"));
             const isPago = !!chap.isPago;
             const priceVal = chap.price || 1.50;
             const priceBadgeHTML = isPago 
