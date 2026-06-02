@@ -539,16 +539,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // --- INÍCIO DO HARDCODE DE SEGURANÇA BINDADO ---
-            let finalSynopsis = "";
-            let finalCover = "";
-
-            if (cleanId === "2" || parseInt(cleanId) === 2) {
-                finalSynopsis = `Quando o seu pai te liga de madrugada, te chama pelo apelido de criança e pede para você levar um pudim e um estoque de desinfetante, você já sabe que o turno extra vai ser sujo. Sem a ajuda do guarda-costas oficial, o coroa intimou os pirralhos para assumirem o serviço doméstico de emergência. Mas quando o mais velho manda, os mais novos obedecem, por lealdade e, principalmente, amor.`;
-                finalCover = "assets/capitulo_2.webp?v=2";
-            } else {
-                finalSynopsis = chap.synopsis || "Sinopse em breve.";
-                finalCover = chap.cover_url || "assets/default_cover.webp";
-            }
+            let finalSynopsis = chap.synopsis || "Sinopse em breve.";
+            let finalCover = chap.cover_url || "assets/default_cover.webp";
             // --- FIM DO HARDCODE DE SEGURANÇA BINDADO ---
 
             const chapterCard = document.createElement('article');
