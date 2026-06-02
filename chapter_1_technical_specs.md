@@ -13,7 +13,7 @@ Este documento detalha o mapeamento técnico completo, arquivos envolvidos, proc
 *   **Engine de Renderização**: [js/dashboard.js](file:///C:/Users/Barbara/Desktop/miles/site-fiovermelho/js/dashboard.js)
     *   Executa a consulta remota e monta a interface visual de cards e gavetas.
 *   **Interface Principal**: [dashboard.html](file:///C:/Users/Barbara/Desktop/miles/site-fiovermelho/dashboard.html)
-    *   Contem a tag de destino (`#chapter-list-container`) onde o HTML do capítulo é inserido.
+    *   Contém a tag de destino (`#chapter-list-container`) onde o HTML do capítulo é inserido.
 *   **Leitor Vertical**: [ler.html](file:///C:/Users/Barbara/Desktop/miles/site-fiovermelho/ler.html) & [js/ler.js](file:///C:/Users/Barbara/Desktop/miles/site-fiovermelho/js/ler.js)
     *   Processa as páginas contínuas do capítulo quando o usuário clica em "Ler Capítulo".
 
