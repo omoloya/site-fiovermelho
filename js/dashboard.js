@@ -354,7 +354,8 @@ document.addEventListener('DOMContentLoaded', () => {
             pages_count: 4, 
             release_date: "20 de Maio, 2026",
             synopsis: "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.",
-            price: 1.50
+            price: 1.50,
+            cover: "assets/capitulo_1.webp"
         },
         { 
             id: 2, 
@@ -362,7 +363,8 @@ document.addEventListener('DOMContentLoaded', () => {
             pages_count: 4, 
             release_date: "25 de Maio, 2026",
             synopsis: `Quando o seu pai te liga de madrugada, te chama pelo apelido de criança e pede para você levar um pudim e um estoque de desinfetante, você já sabe que o turno extra vai ser sujo. Sem a ajuda do guarda-costas oficial, o coroa intimou os pirralhos para assumirem o serviço doméstico de emergência. Mas quando o mais velho manda, os mais novos obedecem, por lealdade e, principalmente, amor.`,
-            price: 1.50
+            price: 1.50,
+            cover: "assets/capitulo_2.webp?v=2"
         },
         { 
             id: 3, 
@@ -370,7 +372,8 @@ document.addEventListener('DOMContentLoaded', () => {
             pages_count: 4, 
             release_date: "29 de Maio, 2026",
             synopsis: "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.",
-            price: 1.50
+            price: 1.50,
+            cover: "assets/chapter3_thumb.jpg"
         }
     ];
 
@@ -506,6 +509,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const chapIdStr = chap.id.toString();
             const isRead = readChapters.includes(chapIdStr);
             
+            // Busca defensiva de metadados locais com tratamento de tipagem
+            const localDefault = defaultChapters.find(c => String(c.id).trim() === String(chap.id).trim());
+
             // Define Thumbnail
             let thumbSrc = `assets/chapter${chap.id}_thumb.jpg`;
             let isUsingSupabase = false;
@@ -534,12 +540,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 thumbSrc = tempUrl || `assets/chapter1_thumb.jpg`; // Fallback
             }
 
-            // Sobregravação rígida para o card de chamada do Capítulo 1 e Capítulo 2 usar assets do repositório
-            if (chap.id === 1) {
-                thumbSrc = "assets/capitulo_1.webp";
-            } else if (chap.id === 2) {
-                thumbSrc = "assets/capitulo_2.webp?v=2";
-            }
+            // Busca defensiva da capa
+            const coverImage = chap.cover_url || (localDefault ? localDefault.cover : "assets/capitulo_2.webp?v=2");
+            thumbSrc = coverImage || thumbSrc;
 
             const chapterCard = document.createElement('article');
             chapterCard.className = 'chapter-card glass-card';
@@ -575,8 +578,9 @@ document.addEventListener('DOMContentLoaded', () => {
             drawer.className = 'chapter-drawer';
             drawer.id = `drawer-cap-${chap.id}`;
             
-            const localDefault = defaultChapters.find(c => c.id === chap.id);
-            const synopsisText = chap.synopsis || (localDefault ? localDefault.synopsis : "Sinopse em breve.");
+            const localDefault = defaultChapters.find(c => String(c.id).trim() === String(chap.id).trim());
+            const synopsisText = chap.synopsis || (localDefault ? localDefault.synopsis : "Quando o seu pai te liga de madrugada, te chama pelo apelido de criança...");
+            console.log("[Debug Conflito] ID do Banco: " + chap.id + " | Encontrou Local? " + (localDefault ? "Sim" : "Não"));
             const isPago = !!chap.isPago;
             const priceVal = chap.price || 1.50;
             const priceBadgeHTML = isPago 
