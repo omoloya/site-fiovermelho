@@ -575,7 +575,8 @@ document.addEventListener('DOMContentLoaded', () => {
             drawer.className = 'chapter-drawer';
             drawer.id = `drawer-cap-${chap.id}`;
             
-            const synopsisText = chap.synopsis || "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.";
+            const localDefault = defaultChapters.find(c => c.id === chap.id);
+            const synopsisText = chap.synopsis || (localDefault ? localDefault.synopsis : "Sinopse em breve.");
             const isPago = !!chap.isPago;
             const priceVal = chap.price || 1.50;
             const priceBadgeHTML = isPago 
