@@ -938,17 +938,51 @@ a {
     .chapter-drawer {
         grid-column: 1 / -1 !important;
         width: 100% !important;
+        height: auto !important;
     }
     
     .chapter-drawer.active {
-        padding: 16px !important;
+        max-height: none !important; /* Permite que o contêiner cresça livremente */
+        overflow: visible !important; /* Evita que o botão ou outros elementos sejam cortados */
+        padding: 20px 16px !important;
         margin-top: 12px !important;
         margin-bottom: 16px !important;
     }
     
     .chapter-drawer-content {
-        grid-template-columns: 1fr !important;
+        display: flex !important;
+        flex-direction: column !important;
         gap: 16px !important;
+    }
+
+    .chapter-drawer-info {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .chapter-drawer .read-btn {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        margin: 20px auto 10px auto !important; /* Respiro e alinhamento do botão */
+        width: 100% !important; /* Facilidade de toque */
+        text-align: center !important;
+        position: relative !important;
+        z-index: 105 !important;
+    }
+
+    .chapter-drawer-actions {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        width: 100% !important;
+    }
+
+    .chapter-drawer-actions .btn {
+        display: block !important;
+        width: 100% !important;
+        text-align: center !important;
+        margin: 0 !important;
     }
 }
 

@@ -489,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <p>${synopsisText}</p>
                             </div>
                             <div class="chapter-drawer-actions">
-                                <a href="ler.html?cap=${chap.id}" class="btn btn-primary">
+                                <a href="ler.html?cap=${chap.id}" class="btn btn-primary read-btn">
                                     <i class="fa-solid fa-book-open" style="margin-right: 8px;"></i> Ler Capítulo
                                 </a>
                                 <button class="btn btn-secondary btn-toggle-read" id="drawer-btn-toggle-${chap.id}" type="button">
