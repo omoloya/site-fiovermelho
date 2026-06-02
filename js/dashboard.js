@@ -494,7 +494,14 @@ document.addEventListener('DOMContentLoaded', () => {
             drawer.id = `drawer-cap-${chap.id}`;
             
             const synopsisText = chap.synopsis || "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.";
+            const isPago = !!chap.isPago;
             const priceVal = chap.price || 1.50;
+            const priceBadgeHTML = isPago 
+                ? `<span class="tag-badge" style="background: rgba(255, 42, 59, 0.15); color: var(--primary-red); border: 1px solid rgba(255, 42, 59, 0.25);">R$ ${priceVal.toFixed(2).replace('.', ',')}</span>`
+                : '';
+            const buttonText = isPago 
+                ? `Ler Capítulo (R$ ${priceVal.toFixed(2).replace('.', ',')})`
+                : 'Ler Capítulo';
 
             drawer.innerHTML = `
                 <div class="chapter-drawer-inner">
@@ -509,9 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="tag-badge ${isRead ? 'chapter-badge-read' : 'chapter-badge-unread'}" id="drawer-badge-cap-${chap.id}">
                                     ${isRead ? 'Lido' : 'Não Lido'}
                                 </span>
-                                <span class="tag-badge" style="background: rgba(255, 42, 59, 0.15); color: var(--primary-red); border: 1px solid rgba(255, 42, 59, 0.25);">
-                                    R$ ${priceVal.toFixed(2).replace('.', ',')}
-                                </span>
+                                ${priceBadgeHTML}
                             </div>
                             <h3 class="modal-chapter-title">${chap.title}</h3>
                             <div class="chapter-drawer-synopsis">
@@ -519,7 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <div class="chapter-drawer-actions">
                                 <a href="ler.html?cap=${chap.id}" class="btn btn-primary read-btn">
-                                    <i class="fa-solid fa-book-open" style="margin-right: 8px;"></i> Ler Capítulo (R$ ${priceVal.toFixed(2).replace('.', ',')})
+                                    <i class="fa-solid fa-book-open" style="margin-right: 8px;"></i> ${buttonText}
                                 </a>
                                 <button class="btn btn-secondary btn-toggle-read" id="drawer-btn-toggle-${chap.id}" type="button">
                                     ${isRead 
