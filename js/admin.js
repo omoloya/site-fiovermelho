@@ -515,6 +515,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         chaptersListCache = chapters;
         renderChaptersListUI(chapters);
+        if (typeof populateChapterManageSelector === 'function') {
+            populateChapterManageSelector(chapters);
+        }
     }
 
     function renderChaptersListUI(chapters) {
@@ -1011,24 +1014,57 @@ document.addEventListener('DOMContentLoaded', () => {
     const chapterManageSelector = document.getElementById('chapter-manage-selector');
     const chapterManageSynopsis = document.getElementById('chapter-manage-synopsis');
     const chapterManageCoverInput = document.getElementById('chapter-manage-cover-input');
+    const btnTriggerNewsletter = document.getElementById('btn-trigger-newsletter');
 
-    if (chapterManageForm && chapterManageSynopsis && chapterManageSelector) {
-        const synopsesDefault = {
-            "1": "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.",
-            "2": "Quando o seu pai te liga de madrugada, te chama pelo apelido de criança e pede para você levar um pudim e um estoque de desinfetante, você já sabe que o turno extra vai ser sujo. Sem a ajuda do guarda-costas oficial, o coroa intimou os pirralhos para assumirem o serviço doméstico de emergência. Mas quando o mais velho manda, os mais novos obedecem, por lealdade e, principalmente, amor."
-        };
+    const synopsesDefault = {
+        "1": "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.",
+        "2": "Quando o seu pai te liga de madrugada, te chama pelo apelido de criança e pede para você levar um pudim e um estoque de desinfetante, você já sabe que o turno extra vai ser sujo. Sem a ajuda do guarda-costas oficial, o coroa intimou os pirralhos para assumirem o serviço doméstico de emergência. Mas quando o mais velho manda, os mais novos obedecem, por lealdade e, principalmente, amor."
+    };
 
-        // Função para preencher a sinopse baseada na seleção
-        function updatePrefilledSynopsis() {
-            const selectedCap = chapterManageSelector.value;
-            const savedSynopsis = localStorage.getItem(`fio-chapter-${selectedCap}-synopsis`);
-            chapterManageSynopsis.value = savedSynopsis !== null ? savedSynopsis : synopsesDefault[selectedCap];
+    // Função para preencher a sinopse baseada na seleção
+    function updatePrefilledSynopsis() {
+        if (!chapterManageSelector || !chapterManageSynopsis) return;
+        const selectedCap = chapterManageSelector.value;
+        const savedSynopsis = localStorage.getItem(`fio-chapter-${selectedCap}-synopsis`);
+        
+        if (savedSynopsis !== null) {
+            chapterManageSynopsis.value = savedSynopsis;
+        } else if (synopsesDefault[selectedCap]) {
+            chapterManageSynopsis.value = synopsesDefault[selectedCap];
+        } else {
+            chapterManageSynopsis.value = ""; // Capítulos futuros sem edição exibem o campo limpo
+        }
+    }
+
+    // População dinâmica do dropdown seletor de capítulos
+    window.populateChapterManageSelector = function(chapters) {
+        if (!chapterManageSelector) return;
+        
+        const currentVal = chapterManageSelector.value;
+        chapterManageSelector.innerHTML = '';
+        
+        chapters.forEach(chap => {
+            const opt = document.createElement('option');
+            opt.value = chap.id;
+            opt.textContent = `Capítulo ${chap.id.toString().padStart(2, '0')} - ${chap.title}`;
+            chapterManageSelector.appendChild(opt);
+        });
+
+        // Restaura a seleção ou seleciona o primeiro
+        if (currentVal && chapters.some(c => c.id.toString() === currentVal)) {
+            chapterManageSelector.value = currentVal;
+        } else if (chapters.length > 0) {
+            chapterManageSelector.value = chapters[0].id;
         }
 
-        // Executa inicialização e vincula evento de alteração
         updatePrefilledSynopsis();
-        chapterManageSelector.addEventListener('change', updatePrefilledSynopsis);
+    };
 
+    if (chapterManageSelector) {
+        chapterManageSelector.addEventListener('change', updatePrefilledSynopsis);
+    }
+
+    if (chapterManageForm && chapterManageSynopsis && chapterManageSelector) {
         chapterManageForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -1081,6 +1117,67 @@ document.addEventListener('DOMContentLoaded', () => {
             } finally {
                 btnSave.innerHTML = originalBtnHTML;
                 btnSave.removeAttribute('disabled');
+            }
+        });
+    }
+
+    // Lógica do botão de disparo manual da newsletter associado ao dropdown de administração
+    if (btnTriggerNewsletter && chapterManageSelector) {
+        btnTriggerNewsletter.addEventListener('click', async () => {
+            const chosenId = chapterManageSelector.value;
+            const selectedOpt = chapterManageSelector.options[chapterManageSelector.selectedIndex];
+            
+            // Extrai o título limpo do capítulo
+            let chosenTitle = "Novo Capítulo";
+            if (selectedOpt) {
+                const text = selectedOpt.textContent;
+                const parts = text.split(" - ");
+                if (parts.length > 1) {
+                    chosenTitle = parts.slice(1).join(" - ");
+                }
+            }
+
+            const confirmAction = confirm(`Tem certeza de que o corre está pronto e deseja avisar o bando agora sobre o Capítulo ${chosenId} (${chosenTitle})?`);
+            if (!confirmAction) return;
+
+            const originalBtnHTML = btnTriggerNewsletter.innerHTML;
+            btnTriggerNewsletter.innerHTML = '<div class="pix-status-spinner" style="width:14px; height:14px; margin-right:8px; border-top-color:#fff; display:inline-block; vertical-align:middle;"></div> Enviando...';
+            btnTriggerNewsletter.setAttribute('disabled', 'true');
+
+            try {
+                const mockLeads = JSON.parse(localStorage.getItem('fio-mock-leads') || '[]');
+                let response;
+
+                if (window.isOfflineMode) {
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    response = {
+                        ok: true,
+                        json: async () => ({ count: mockLeads.length || 3 })
+                    };
+                } else {
+                    response = await fetch('/api/disparar-newsletter', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chapterId: parseInt(chosenId),
+                            chapterTitle: chosenTitle,
+                            fallbackEmails: mockLeads
+                        })
+                    });
+                }
+
+                if (response.ok) {
+                    alert("🎉 Notificação disparada para o bando com sucesso!");
+                } else {
+                    const errBody = await response.json();
+                    throw new Error(errBody.error || "Erro no processamento da rota.");
+                }
+            } catch (dispatchErr) {
+                console.error("Falha ao disparar newsletter:", dispatchErr);
+                alert(`⚠️ Ocorreu um erro no processamento do disparo: ${dispatchErr.message}`);
+            } finally {
+                btnTriggerNewsletter.innerHTML = originalBtnHTML;
+                btnTriggerNewsletter.removeAttribute('disabled');
             }
         });
     }

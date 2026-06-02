@@ -440,8 +440,7 @@
                 <div class="input-group">
                     <label for="chapter-manage-selector" class="input-label">Selecionar Capítulo</label>
                     <select id="chapter-manage-selector" class="input-field" style="padding: 10px; background: rgba(0,0,0,0.3); color: var(--text-primary); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); width: 100%;">
-                        <option value="1">Capítulo 1</option>
-                        <option value="2">Capítulo 2</option>
+                        <!-- Gerado dinamicamente pelo js/admin.js -->
                     </select>
                 </div>
 
@@ -459,6 +458,16 @@
                     <i class="fa-solid fa-floppy-disk" style="margin-right: 8px;"></i> Salvar Alterações do Capítulo
                 </button>
             </form>
+
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); width: 100%;">
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+                    <i class="fa-solid fa-circle-info" style="color: var(--primary-red); margin-right: 4px;"></i>
+                    Aviso: Este botão enviará uma notificação para todos os e-mails cadastrados na newsletter. Use apenas quando terminar de organizar o capítulo.
+                </p>
+                <button id="btn-trigger-newsletter" class="btn btn-primary btn-trigger-newsletter" type="button" style="width: 100%; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fa-solid fa-paper-plane"></i> Disparar Aviso de Novo Capítulo
+                </button>
+            </div>
         </section>
 
         <!-- COLUNA ESQUERDA: LISTA DE CAPÍTULOS PUBLICADOS -->
