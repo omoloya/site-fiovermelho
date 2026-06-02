@@ -273,9 +273,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const defaultChapters = [
-        { id: 1, title: "O Elo Perdido", pages_count: 4, release_date: "20 de Maio, 2026" },
-        { id: 2, title: "Cortes no Destino", pages_count: 4, release_date: "25 de Maio, 2026" },
-        { id: 3, title: "O Laço Carmim", pages_count: 4, release_date: "29 de Maio, 2026" }
+        { 
+            id: 1, 
+            title: "O Elo Perdido", 
+            pages_count: 4, 
+            release_date: "20 de Maio, 2026",
+            synopsis: "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.",
+            price: 1.50
+        },
+        { 
+            id: 2, 
+            title: "Cortes no Destino", 
+            pages_count: 4, 
+            release_date: "25 de Maio, 2026",
+            synopsis: "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.",
+            price: 1.50
+        },
+        { 
+            id: 3, 
+            title: "O Laço Carmim", 
+            pages_count: 4, 
+            release_date: "29 de Maio, 2026",
+            synopsis: "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.",
+            price: 1.50
+        }
     ];
 
     async function loadChaptersAndRenderGrid() {
@@ -472,13 +493,8 @@ document.addEventListener('DOMContentLoaded', () => {
             drawer.className = 'chapter-drawer';
             drawer.id = `drawer-cap-${chap.id}`;
             
-            const synopses = {
-                1: "O destino começa a se mover em Chinatown. Em meio ao som de motores e à poeira das ruas, Kensuke Shinoda e sua gangue se deparam com os primeiros indícios de um elo sombrio que ameaça o frágil equilíbrio do submundo. As respostas podem ser mais perigosas do que as perguntas.",
-                2: "A tensão atinge o ponto de ruptura. Quando pendências do passado retornam para cobrar sua parte do sangue, os laços de lealdade são colocados à prova máxima nas vielas escuras. As escolhas feitas hoje definirão quem sobreviverá ao amanhã.",
-                3: "A revelação final e o peso do fio de sangue. Kensuke descobre que proteger sua família exige sacrifícios que ele talvez não esteja preparado para fazer. A teia do destino se fecha, restando apenas agir antes que seja tarde demais."
-            };
-            const defaultSynopsis = "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.";
-            const synopsisText = synopses[chap.id] || defaultSynopsis;
+            const synopsisText = chap.synopsis || "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.";
+            const priceVal = chap.price || 1.50;
 
             drawer.innerHTML = `
                 <div class="chapter-drawer-inner">
@@ -494,7 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     ${isRead ? 'Lido' : 'Não Lido'}
                                 </span>
                                 <span class="tag-badge" style="background: rgba(255, 42, 59, 0.15); color: var(--primary-red); border: 1px solid rgba(255, 42, 59, 0.25);">
-                                    R$ 1,50
+                                    R$ ${priceVal.toFixed(2).replace('.', ',')}
                                 </span>
                             </div>
                             <h3 class="modal-chapter-title">${chap.title}</h3>
@@ -503,7 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <div class="chapter-drawer-actions">
                                 <a href="ler.html?cap=${chap.id}" class="btn btn-primary read-btn">
-                                    <i class="fa-solid fa-book-open" style="margin-right: 8px;"></i> Ler Capítulo
+                                    <i class="fa-solid fa-book-open" style="margin-right: 8px;"></i> Ler Capítulo (R$ ${priceVal.toFixed(2).replace('.', ',')})
                                 </a>
                                 <button class="btn btn-secondary btn-toggle-read" id="drawer-btn-toggle-${chap.id}" type="button">
                                     ${isRead 
