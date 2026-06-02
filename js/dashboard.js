@@ -627,6 +627,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
 
+            // Onde a imagem da capa do capítulo é definida
+            const elementoImg = chapterCard.querySelector(`#thumb-cap-${chap.id}`);
+            if (elementoImg) {
+                elementoImg.src = finalCover;
+            }
+
+            // Onde o texto da sinopse da gaveta é injetado
+            const elementoText = drawer.querySelector('.chapter-drawer-synopsis p');
+            if (elementoText) {
+                elementoText.textContent = finalSynopsis;
+            }
+
+            console.log(`[DOM Render] Cap: ${chap.id} | Capa aplicada: ${finalCover} | Texto aplicado: ${finalSynopsis.substring(0, 20)}...`);
+
             // Configurar clique no botão de marcar lido/não lido da aba expansiva
             const toggleBtn = drawer.querySelector(`#drawer-btn-toggle-${chap.id}`);
             if (toggleBtn) {
