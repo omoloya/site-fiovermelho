@@ -253,6 +253,6 @@ Resolvemos em definitivo o problema de corte e visibilidade do botão **"Ler Cap
     *   `position: relative !important; z-index: 105 !important;` (evita sobreposições e o mantém no topo absoluto de qualquer camada de texto ou imagem de capa)
 ### 4. Readequação de Metadados e Sincronização de Capas (Junho, 2026)
 Como a estrutura atual do banco de dados remoto Supabase não dispõe de colunas para metadados secundários (`synopsis` e `cover_url`), restabelecemos a integridade das gavetas sincronizando o front-end via Hardcode de Segurança Bindado:
-*   **Capítulo 1**: Renderiza a sinopse completa de forma limpa (recuperada do escopo oficial do `assets/config.json`) e carrega `assets/capitulo_1.webp`.
+*   **Capítulo 1**: Renderiza a sinopse completa de forma limpa (recuperada do escopo oficial do `assets/config.json`) e carrega `assets/capitulo_2.webp`.
 *   **Capítulo 2**: Renderiza a sinopse detalhada e carrega `assets/capitulo_2.webp` (sem o sufixo `?v=2` que causava quebras de carregamento).
 *   **Documentação**: Atualizamos os guias técnicos e especificações de deploy (`chapter_1_technical_specs.md`, `chapter_2_technical_specs.md` e `developer_handover_guide.md`) para garantir que o fluxo de injeção síncrona esteja 100% alinhado com o código em produção.

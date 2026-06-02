@@ -74,7 +74,7 @@ if (cleanId === "2" || parseInt(cleanId) === 2) {
     finalSynopsis = `O chefe dormiu de novo.
 Agora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivais, anime e o que vão fazer no próximo dia de folga.
 Cochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.`;
-    finalCover = "assets/capitulo_1.webp";
+    finalCover = "assets/capitulo_2.webp";
 } else {
     finalSynopsis = chap.synopsis || "Sinopse em breve.";
     finalCover = chap.cover_url || "assets/default_cover.webp";

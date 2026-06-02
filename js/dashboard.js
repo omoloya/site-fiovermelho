@@ -355,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
             release_date: "20 de Maio, 2026",
             synopsis: "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.",
             price: 1.50,
-            cover: "assets/capitulo_1.webp"
+            cover: "assets/capitulo_2.webp"
         },
         { 
             id: 2, 
@@ -549,7 +549,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 finalSynopsis = `O chefe dormiu de novo.
 Agora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivais, anime e o que vão fazer no próximo dia de folga.
 Cochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.`;
-                finalCover = "assets/capitulo_1.webp";
+                finalCover = "assets/capitulo_2.webp";
             } else if (cleanId === "3" || parseInt(cleanId) === 3) {
                 finalSynopsis = "blablablablabla mmahjaaanabak";
                 finalCover = "assets/capitulo_2.webp";
