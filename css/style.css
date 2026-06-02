@@ -871,6 +871,7 @@ a {
     overflow: hidden;
     border-radius: var(--radius-sm);
     border: 1px solid rgba(255, 255, 255, 0.05);
+    background: #0b0b0e; /* Fallback de fundo escuro para carregamento da capa */
 }
 
 .chapter-drawer-cover img {
