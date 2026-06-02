@@ -16,6 +16,80 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    // --- 1.2 Proteção de Propriedade Intelectual (ECA & Direitos Autorais) ---
+    const adminWhitelist = ["miles.kensuke@gmail.com", "omoloyaartes@gmail.com"];
+    const isSuperAdmin = session && session.user && adminWhitelist.includes(session.user.email);
+
+    if (!isSuperAdmin) {
+        // Bloquear Clique Direito (contextmenu) nas imagens e página
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            return false;
+        });
+
+        // Bloquear Atalhos de Cópia e Ferramentas do Desenvolvedor (F12, Ctrl+S, Ctrl+C, Ctrl+Shift+I, Cmd+Option+I)
+        document.addEventListener('keydown', (e) => {
+            // F12
+            if (e.key === 'F12' || e.keyCode === 123) {
+                e.preventDefault();
+                return false;
+            }
+            // Ctrl+S / Cmd+S
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                return false;
+            }
+            // Ctrl+C / Cmd+C
+            if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+                e.preventDefault();
+                return false;
+            }
+            // Ctrl+Shift+I / Cmd+Option+I
+            if ((e.ctrlKey && e.shiftKey && e.key === 'I') || (e.metaKey && e.altKey && e.key === 'i')) {
+                e.preventDefault();
+                return false;
+            }
+            // Ctrl+Shift+J / Cmd+Option+J
+            if ((e.ctrlKey && e.shiftKey && e.key === 'J') || (e.metaKey && e.altKey && e.key === 'j')) {
+                e.preventDefault();
+                return false;
+            }
+            // Ctrl+U / Cmd+U (View Source)
+            if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Bloquear Arrastar (Drag and Drop)
+        document.addEventListener('dragstart', (e) => {
+            if (e.target.tagName === 'IMG') {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Aplicar draggable="false" e classe protected-image periodicamente nas imagens
+        setInterval(() => {
+            document.querySelectorAll('img').forEach(img => {
+                if (!img.classList.contains('protected-image')) {
+                    img.classList.add('protected-image');
+                    img.setAttribute('draggable', 'false');
+                }
+            });
+        }, 500);
+    } else {
+        // Exceção de Admin: garante que nenhuma trava ou classe protected permaneça ativa
+        setInterval(() => {
+            document.querySelectorAll('img').forEach(img => {
+                if (img.classList.contains('protected-image')) {
+                    img.classList.remove('protected-image');
+                    img.removeAttribute('draggable');
+                }
+            });
+        }, 500);
+    }
+
     // --- 1.1 Verificação de Maioridade / Status do Perfil (ECA) ---
     try {
         checkProfileStatus();

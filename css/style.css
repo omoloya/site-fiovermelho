@@ -1482,3 +1482,22 @@ a {
         margin: 0 !important; /* Limpa margens inline antigas para alinhar perfeitamente */
     }
 }
+
+/* ==========================================================================
+   SISTEMA DE PROTEÇÃO DE PROPRIEDADE INTELECTUAL (BLINDAGEM VISUAL)
+   ========================================================================== */
+.protected-image {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -webkit-user-drag: none !important;
+    pointer-events: none !important; /* Impede interações diretas como salvar ou arrastar */
+}
+
+/* Garante que o toque de rolagem (scroll) seja capturado pelo contêiner pai */
+.webtoon-canvas,
+.webtoon-placeholder,
+.chapter-drawer,
+.chapter-drawer-cover,
+.chapter-card-thumb-container {
+    pointer-events: auto !important;
+}
