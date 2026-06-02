@@ -6,17 +6,21 @@ const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
 const adminEmails = process.env.ADMIN_EMAILS || 'miles.kensuke@gmail.com, omoloyaartes@gmail.com';
 
-// Conteúdo formatado sem risco de aspas quebradas
-const fileContent = `/* ==========================================================================
-   CONFIGURAÇÕES DE PRODUÇÃO (Geradas de forma robusta no Deploy)
-   ========================================================================== */
+const adminEmailsArray = adminEmails.split(',').map(e => e.trim());
 
-window.env = {
-    SUPABASE_URL: "${supabaseUrl}",
-    SUPABASE_ANON_KEY: "${supabaseAnonKey}",
-    ADMIN_EMAILS: ${JSON.stringify(adminEmails.split(',').map(e => e.trim()))}
-};
-`;
+// Conteúdo formatado sem risco de aspas quebradas ou injeção de template literals
+const fileContent = [
+    "/* ==========================================================================",
+    "   CONFIGURAÇÕES DE PRODUÇÃO (Geradas de forma robusta no Deploy)",
+    "   ========================================================================== */",
+    "",
+    "window.env = {",
+    "    SUPABASE_URL: " + JSON.stringify(supabaseUrl) + ",",
+    "    SUPABASE_ANON_KEY: " + JSON.stringify(supabaseAnonKey) + ",",
+    "    ADMIN_EMAILS: " + JSON.stringify(adminEmailsArray),
+    "};",
+    ""
+].join("\n");
 
 const destPath = path.join(__dirname, '../env.js');
 
