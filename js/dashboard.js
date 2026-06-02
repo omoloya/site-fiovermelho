@@ -16,23 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("[dashboard.js] Cache expirado. Hard Reset executado para versão " + CURRENT_SYSTEM_VERSION);
     }
 
-    // --- 0. Carregamento de Configurações Dinâmicas do Servidor ---
-    fetch('assets/config.json')
-        .then(response => {
-            if (response.ok) return response.json();
-            return null;
-        })
-        .then(config => {
-            if (config) {
-                if (config.chapter_1_synopsis) {
-                    localStorage.setItem('fio-chapter-1-synopsis', config.chapter_1_synopsis);
-                }
-                if (config.chapter_2_synopsis) {
-                    localStorage.setItem('fio-chapter-2-synopsis', config.chapter_2_synopsis);
-                }
-            }
-        })
-        .catch(err => console.log("[dashboard.js] Config.json não disponível ou erro no carregamento:", err.message));
+
 
     // --- 1. Proteção de Rota & Verificação de Sessão ---
     if (!window.sessionHelper) {
@@ -647,8 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (localCover) {
                     thumbSrc = localCover;
                 } else {
-                    const coverVer = localStorage.getItem('fio-chapter-2-cover-version') || '1';
-                    thumbSrc = `assets/capitulo_2.webp?v=${coverVer}`;
+                    thumbSrc = `assets/capitulo_2.webp?v=${Date.now()}`;
                 }
             }
 
@@ -696,6 +679,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const localSynopsis = localStorage.getItem('fio-chapter-2-synopsis');
                 if (localSynopsis !== null) {
                     synopsisText = localSynopsis;
+                } else {
+                    synopsisText = "Quando o seu pai te liga de madrugada, te chama pelo apelido de criança e pede para você levar um pudim e um estoque de desinfetante, você já sabe que o turno extra vai ser sujo. Sem a ajuda do guarda-costas oficial, o coroa intimou os pirralhos para assumirem o serviço doméstico de emergência. Mas quando o mais velho manda, os mais novos obedecem, por lealdade e, principalmente, amor.";
                 }
             }
             const isPago = !!chap.isPago;

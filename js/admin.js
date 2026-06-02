@@ -1006,36 +1006,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 9. GERENCIAMENTO DE CAPÍTULO 1 (Sinopse e Capa) ---
+    // --- 9. GERENCIAMENTO DE CAPÍTULO (Sinopse e Capa via LocalStorage) ---
     const chapterManageForm = document.getElementById('admin-chapter-manage-form');
+    const chapterManageSelector = document.getElementById('chapter-manage-selector');
     const chapterManageSynopsis = document.getElementById('chapter-manage-synopsis');
     const chapterManageCoverInput = document.getElementById('chapter-manage-cover-input');
 
-    if (chapterManageForm && chapterManageSynopsis) {
-        // Prefila a sinopse atualizada (lê do localStorage ou usa o padrão oficial)
-        const defaultSynopsis = "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.";
-        const savedSynopsis = localStorage.getItem('fio-chapter-1-synopsis');
-        chapterManageSynopsis.value = savedSynopsis !== null ? savedSynopsis : defaultSynopsis;
+    if (chapterManageForm && chapterManageSynopsis && chapterManageSelector) {
+        const synopsesDefault = {
+            "1": "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.",
+            "2": "Quando o seu pai te liga de madrugada, te chama pelo apelido de criança e pede para você levar um pudim e um estoque de desinfetante, você já sabe que o turno extra vai ser sujo. Sem a ajuda do guarda-costas oficial, o coroa intimou os pirralhos para assumirem o serviço doméstico de emergência. Mas quando o mais velho manda, os mais novos obedecem, por lealdade e, principalmente, amor."
+        };
 
-        // Se localStorage estiver vazio, tenta fazer um fetch defensivo do assets/config.json
-        if (savedSynopsis === null) {
-            fetch('assets/config.json')
-                .then(response => {
-                    if (response.ok) return response.json();
-                    return null;
-                })
-                .then(config => {
-                    if (config && config.chapter_1_synopsis) {
-                        chapterManageSynopsis.value = config.chapter_1_synopsis;
-                        localStorage.setItem('fio-chapter-1-synopsis', config.chapter_1_synopsis);
-                    }
-                })
-                .catch(err => console.log("Sem config.json prévio carregado. Usando padrão."));
+        // Função para preencher a sinopse baseada na seleção
+        function updatePrefilledSynopsis() {
+            const selectedCap = chapterManageSelector.value;
+            const savedSynopsis = localStorage.getItem(`fio-chapter-${selectedCap}-synopsis`);
+            chapterManageSynopsis.value = savedSynopsis !== null ? savedSynopsis : synopsesDefault[selectedCap];
         }
+
+        // Executa inicialização e vincula evento de alteração
+        updatePrefilledSynopsis();
+        chapterManageSelector.addEventListener('change', updatePrefilledSynopsis);
 
         chapterManageForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            const selectedCap = chapterManageSelector.value;
             const btnSave = chapterManageForm.querySelector('.btn-save-chapter');
             const originalBtnHTML = btnSave.innerHTML;
             btnSave.innerHTML = '<div class="pix-status-spinner" style="width:14px; height:14px; margin-right:8px; border-top-color:#fff; display:inline-block; vertical-align:middle;"></div> Salvando...';
@@ -1048,58 +1045,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // 1. Processar a imagem de capa se houver upload
                 if (file) {
-                    // Feedback visual temporário de processamento
                     btnSave.innerHTML = '<div class="pix-status-spinner" style="width:14px; height:14px; margin-right:8px; border-top-color:#fff; display:inline-block; vertical-align:middle;"></div> Comprimindo Capa WebP...';
 
                     const tempUrl = URL.createObjectURL(file);
-                    // Comprime via Canvas
                     const compressed = await compressSingleFileWebP(file, tempUrl);
                     URL.revokeObjectURL(tempUrl);
 
-                    // Converter o Blob WebP resultante para Base64 Data URL
                     coverBase64 = await new Promise((resolve, reject) => {
                         const reader = new FileReader();
                         reader.onloadend = () => resolve(reader.result);
                         reader.onerror = reject;
                         reader.readAsDataURL(compressed.blob);
                     });
+                }
 
+                // 2. Salvar rigidamente no LocalStorage
+                localStorage.setItem(`fio-chapter-${selectedCap}-synopsis`, synopsisVal);
+                if (coverBase64) {
+                    localStorage.setItem(`fio-chapter-${selectedCap}-cover`, coverBase64);
+                    const currentVersion = parseInt(localStorage.getItem(`fio-chapter-${selectedCap}-cover-version`) || '1');
+                    localStorage.setItem(`fio-chapter-${selectedCap}-cover-version`, (currentVersion + 1).toString());
+                    
                     // Diagnóstico no console (Otimização Crítica)
                     const origMB = (file.size / (1024 * 1024)).toFixed(2);
                     const base64MB = (coverBase64.length / (1024 * 1024)).toFixed(2);
-                    console.log(`[Gerenciamento Capa] Capa: ${file.name} | Original: ${origMB} MB | Base64 Comprimida: ${base64MB} MB`);
+                    console.log(`[Gerenciamento Capa] Cap. ${selectedCap}: ${file.name} | Original: ${origMB} MB | Base64 Comprimida: ${base64MB} MB`);
                 }
 
-                // 2. Salvar no LocalStorage para renderização instantânea (Frontend)
-                localStorage.setItem('fio-chapter-1-synopsis', synopsisVal);
-                if (coverBase64) {
-                    localStorage.setItem('fio-chapter-1-cover', coverBase64);
-                    // Incrementa o número de versão para estourar o cache na exibição
-                    const currentVersion = parseInt(localStorage.getItem('fio-chapter-1-cover-version') || '1');
-                    localStorage.setItem('fio-chapter-1-cover-version', (currentVersion + 1).toString());
-                }
-
-                // 3. Enviar ao Servidor local via API Serverless para gravação física em disco
-                btnSave.innerHTML = '<div class="pix-status-spinner" style="width:14px; height:14px; margin-right:8px; border-top-color:#fff; display:inline-block; vertical-align:middle;"></div> Salvando no Servidor...';
-                
-                let apiSuccess = false;
-                try {
-                    const response = await fetch('/api/atualizar-capitulo', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            synopsis: synopsisVal,
-                            coverBase64: coverBase64
-                        })
-                    });
-                    if (response.ok) {
-                        apiSuccess = true;
-                    }
-                } catch (apiErr) {
-                    console.warn("⚠️ Falha ao se conectar com a API de atualização no servidor (esperado em produção Vercel estática):", apiErr.message);
-                }
-
-                alert("🎉 Capítulo atualizado com sucesso!");
+                alert(`🎉 Capítulo ${selectedCap} atualizado com sucesso no navegador!`);
                 location.reload();
 
             } catch (err) {

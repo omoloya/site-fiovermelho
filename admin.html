@@ -431,14 +431,22 @@
             </form>
         </section>
 
-        <!-- COLUNA ESQUERDA: GERENCIAMENTO DE CAPÍTULO (SINOPSE & CAPA DO CAPÍTULO 1) -->
+        <!-- COLUNA ESQUERDA: GERENCIAMENTO DE CAPÍTULO (SINOPSE & CAPA DOS CAPÍTULOS) -->
         <section class="admin-card glass-card" style="margin-top: 24px;">
             <h2 class="admin-card-title">
-                <i class="fa-solid fa-pen-fancy"></i> Gerenciamento de Capítulo 1
+                <i class="fa-solid fa-pen-fancy"></i> Gerenciamento de Capítulo
             </h2>
             <form id="admin-chapter-manage-form">
                 <div class="input-group">
-                    <label for="chapter-manage-synopsis" class="input-label">Sinopse do Capítulo 1</label>
+                    <label for="chapter-manage-selector" class="input-label">Selecionar Capítulo</label>
+                    <select id="chapter-manage-selector" class="input-field" style="padding: 10px; background: rgba(0,0,0,0.3); color: var(--text-primary); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); width: 100%;">
+                        <option value="1">Capítulo 1</option>
+                        <option value="2">Capítulo 2</option>
+                    </select>
+                </div>
+
+                <div class="input-group" style="margin-top: 16px;">
+                    <label for="chapter-manage-synopsis" class="input-label">Sinopse do Capítulo</label>
                     <textarea id="chapter-manage-synopsis" class="input-field" rows="6" placeholder="Digite a sinopse..." style="resize: vertical; font-family: inherit; line-height: 1.6;"></textarea>
                 </div>
                 
