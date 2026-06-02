@@ -14,7 +14,7 @@ window.SUPABASE_ANON_KEY = window.env.SUPABASE_ANON_KEY;
 // Preserva o objeto global da biblioteca carregado pela CDN
 window.supabaseLib = window.supabase;
 window.supabase = null;
-window.isOfflineMode = true;
+window.isOfflineMode = false;
 
 // Inicialização segura do cliente Supabase
 try {
@@ -34,10 +34,14 @@ try {
             console.log("🧶 Supabase: Conectado com sucesso ao banco remoto.");
         } else {
             console.warn("⚠️ A biblioteca CDN do Supabase não forneceu o criador de cliente.");
+            window.isOfflineMode = true;
         }
+    } else {
+        window.isOfflineMode = true;
     }
 } catch (error) {
     console.warn("⚠️ Falha na inicialização do Supabase remoto. Entrando em modo Offline / LocalStorage:", error);
+    window.isOfflineMode = true;
 }
 
 if (window.isOfflineMode) {
