@@ -172,10 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
-                
-                // Redimensionamento Inteligente (Ações de Otimização Crítica)
-                const isHorizontal = width > height;
-                const maxWidth = isHorizontal ? 1920 : 1080;
+                const maxWidth = 1600;
 
                 if (width > maxWidth) {
                     height = Math.round((maxWidth * height) / width);
@@ -197,17 +194,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         item.reduction = Math.round(((item.originalSize - blob.size) / item.originalSize) * 100);
                         item.status = 'compressed';
                         
-                        // Diagnóstico no console (Otimização Crítica)
-                        const origMB = (item.originalSize / (1024 * 1024)).toFixed(2);
-                        const compMB = (blob.size / (1024 * 1024)).toFixed(2);
-                        console.log(`[Canvas Compress] Fila - Arquivo: ${item.name} | Original: ${origMB} MB | WebP Comprimido: ${compMB} MB | Redução: ${item.reduction}%`);
-
                         updateQueueItemUI(item);
                         checkQueueReadyStatus();
                     } else {
                         throw new Error("Erro na geração do Blob WebP.");
                     }
-                }, 'image/webp', 0.75);
+                }, 'image/webp', 0.85);
             };
 
             img.onerror = () => {
@@ -515,9 +507,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         chaptersListCache = chapters;
         renderChaptersListUI(chapters);
-        if (typeof populateChapterManageSelector === 'function') {
-            populateChapterManageSelector(chapters);
-        }
     }
 
     function renderChaptersListUI(chapters) {
@@ -809,10 +798,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
-                
-                // Redimensionamento Inteligente (Ações de Otimização Crítica)
-                const isHorizontal = width > height;
-                const maxWidth = isHorizontal ? 1920 : 1080;
+                const maxWidth = 1600;
 
                 if (width > maxWidth) {
                     height = Math.round((maxWidth * height) / width);
@@ -827,17 +813,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 canvas.toBlob((blob) => {
                     if (blob) {
-                        // Diagnóstico no console (Otimização Crítica)
-                        const origMB = (file.size / (1024 * 1024)).toFixed(2);
-                        const compMB = (blob.size / (1024 * 1024)).toFixed(2);
-                        const reduction = Math.round(((file.size - blob.size) / file.size) * 100);
-                        console.log(`[Canvas Compress Single] Arquivo: ${file.name} | Original: ${origMB} MB | WebP Comprimido: ${compMB} MB | Redução: ${reduction}%`);
-
                         resolve({ blob: blob });
                     } else {
                         reject(new Error("Falha ao exportar Blob WebP."));
                     }
-                }, 'image/webp', 0.75);
+                }, 'image/webp', 0.85);
             };
             img.onerror = () => reject(new Error("Erro ao carregar a imagem no Canvas."));
         });
@@ -1007,179 +987,6 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("Erro ao excluir capítulo: " + err.message);
             loadChaptersList();
         }
-    }
-
-    // --- 9. GERENCIAMENTO DE CAPÍTULO (Sinopse e Capa via LocalStorage) ---
-    const chapterManageForm = document.getElementById('admin-chapter-manage-form');
-    const chapterManageSelector = document.getElementById('chapter-manage-selector');
-    const chapterManageSynopsis = document.getElementById('chapter-manage-synopsis');
-    const chapterManageCoverInput = document.getElementById('chapter-manage-cover-input');
-    const btnTriggerNewsletter = document.getElementById('btn-trigger-newsletter');
-
-    const synopsesDefault = {
-        "1": "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.",
-        "2": "Quando o seu pai te liga de madrugada, te chama pelo apelido de criança e pede para você levar um pudim e um estoque de desinfetante, você já sabe que o turno extra vai ser sujo. Sem a ajuda do guarda-costas oficial, o coroa intimou os pirralhos para assumirem o serviço doméstico de emergência. Mas quando o mais velho manda, os mais novos obedecem, por lealdade e, principalmente, amor."
-    };
-
-    // Função para preencher a sinopse baseada na seleção
-    function updatePrefilledSynopsis() {
-        if (!chapterManageSelector || !chapterManageSynopsis) return;
-        const selectedCap = chapterManageSelector.value;
-        const savedSynopsis = localStorage.getItem(`fio-chapter-${selectedCap}-synopsis`);
-        
-        if (savedSynopsis !== null) {
-            chapterManageSynopsis.value = savedSynopsis;
-        } else if (synopsesDefault[selectedCap]) {
-            chapterManageSynopsis.value = synopsesDefault[selectedCap];
-        } else {
-            chapterManageSynopsis.value = ""; // Capítulos futuros sem edição exibem o campo limpo
-        }
-    }
-
-    // População dinâmica do dropdown seletor de capítulos
-    window.populateChapterManageSelector = function(chapters) {
-        if (!chapterManageSelector) return;
-        
-        const currentVal = chapterManageSelector.value;
-        chapterManageSelector.innerHTML = '';
-        
-        chapters.forEach(chap => {
-            const opt = document.createElement('option');
-            opt.value = chap.id;
-            opt.textContent = `Capítulo ${chap.id.toString().padStart(2, '0')} - ${chap.title}`;
-            chapterManageSelector.appendChild(opt);
-        });
-
-        // Restaura a seleção ou seleciona o primeiro
-        if (currentVal && chapters.some(c => c.id.toString() === currentVal)) {
-            chapterManageSelector.value = currentVal;
-        } else if (chapters.length > 0) {
-            chapterManageSelector.value = chapters[0].id;
-        }
-
-        updatePrefilledSynopsis();
-    };
-
-    if (chapterManageSelector) {
-        chapterManageSelector.addEventListener('change', updatePrefilledSynopsis);
-    }
-
-    if (chapterManageForm && chapterManageSynopsis && chapterManageSelector) {
-        chapterManageForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const selectedCap = chapterManageSelector.value;
-            const btnSave = chapterManageForm.querySelector('.btn-save-chapter');
-            const originalBtnHTML = btnSave.innerHTML;
-            btnSave.innerHTML = '<div class="pix-status-spinner" style="width:14px; height:14px; margin-right:8px; border-top-color:#fff; display:inline-block; vertical-align:middle;"></div> Salvando...';
-            btnSave.setAttribute('disabled', 'true');
-
-            try {
-                const synopsisVal = chapterManageSynopsis.value.trim();
-                const file = chapterManageCoverInput.files[0];
-                let coverBase64 = null;
-
-                // 1. Processar a imagem de capa se houver upload
-                if (file) {
-                    btnSave.innerHTML = '<div class="pix-status-spinner" style="width:14px; height:14px; margin-right:8px; border-top-color:#fff; display:inline-block; vertical-align:middle;"></div> Comprimindo Capa WebP...';
-
-                    const tempUrl = URL.createObjectURL(file);
-                    const compressed = await compressSingleFileWebP(file, tempUrl);
-                    URL.revokeObjectURL(tempUrl);
-
-                    coverBase64 = await new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve(reader.result);
-                        reader.onerror = reject;
-                        reader.readAsDataURL(compressed.blob);
-                    });
-                }
-
-                // 2. Salvar rigidamente no LocalStorage
-                localStorage.setItem(`fio-chapter-${selectedCap}-synopsis`, synopsisVal);
-                if (coverBase64) {
-                    localStorage.setItem(`fio-chapter-${selectedCap}-cover`, coverBase64);
-                    const currentVersion = parseInt(localStorage.getItem(`fio-chapter-${selectedCap}-cover-version`) || '1');
-                    localStorage.setItem(`fio-chapter-${selectedCap}-cover-version`, (currentVersion + 1).toString());
-                    
-                    // Diagnóstico no console (Otimização Crítica)
-                    const origMB = (file.size / (1024 * 1024)).toFixed(2);
-                    const base64MB = (coverBase64.length / (1024 * 1024)).toFixed(2);
-                    console.log(`[Gerenciamento Capa] Cap. ${selectedCap}: ${file.name} | Original: ${origMB} MB | Base64 Comprimida: ${base64MB} MB`);
-                }
-
-                alert(`🎉 Capítulo ${selectedCap} atualizado com sucesso no navegador!`);
-                location.reload();
-
-            } catch (err) {
-                console.error("Falha ao salvar modificações do capítulo:", err);
-                alert(`⚠️ Ocorreu um erro ao salvar as alterações: ${err.message}`);
-            } finally {
-                btnSave.innerHTML = originalBtnHTML;
-                btnSave.removeAttribute('disabled');
-            }
-        });
-    }
-
-    // Lógica do botão de disparo manual da newsletter associado ao dropdown de administração
-    if (btnTriggerNewsletter && chapterManageSelector) {
-        btnTriggerNewsletter.addEventListener('click', async () => {
-            const chosenId = chapterManageSelector.value;
-            const selectedOpt = chapterManageSelector.options[chapterManageSelector.selectedIndex];
-            
-            // Extrai o título limpo do capítulo
-            let chosenTitle = "Novo Capítulo";
-            if (selectedOpt) {
-                const text = selectedOpt.textContent;
-                const parts = text.split(" - ");
-                if (parts.length > 1) {
-                    chosenTitle = parts.slice(1).join(" - ");
-                }
-            }
-
-            const confirmAction = confirm(`Tem certeza de que o corre está pronto e deseja avisar o bando agora sobre o Capítulo ${chosenId} (${chosenTitle})?`);
-            if (!confirmAction) return;
-
-            const originalBtnHTML = btnTriggerNewsletter.innerHTML;
-            btnTriggerNewsletter.innerHTML = '<div class="pix-status-spinner" style="width:14px; height:14px; margin-right:8px; border-top-color:#fff; display:inline-block; vertical-align:middle;"></div> Enviando...';
-            btnTriggerNewsletter.setAttribute('disabled', 'true');
-
-            try {
-                const mockLeads = JSON.parse(localStorage.getItem('fio-mock-leads') || '[]');
-                let response;
-
-                if (window.isOfflineMode) {
-                    await new Promise(resolve => setTimeout(resolve, 1500));
-                    response = {
-                        ok: true,
-                        json: async () => ({ count: mockLeads.length || 3 })
-                    };
-                } else {
-                    response = await fetch('/api/disparar-newsletter', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            chapterId: parseInt(chosenId),
-                            chapterTitle: chosenTitle,
-                            fallbackEmails: mockLeads
-                        })
-                    });
-                }
-
-                if (response.ok) {
-                    alert("🎉 Notificação disparada para o bando com sucesso!");
-                } else {
-                    const errBody = await response.json();
-                    throw new Error(errBody.error || "Erro no processamento da rota.");
-                }
-            } catch (dispatchErr) {
-                console.error("Falha ao disparar newsletter:", dispatchErr);
-                alert(`⚠️ Ocorreu um erro no processamento do disparo: ${dispatchErr.message}`);
-            } finally {
-                btnTriggerNewsletter.innerHTML = originalBtnHTML;
-                btnTriggerNewsletter.removeAttribute('disabled');
-            }
-        });
     }
 
     // --- Inicialização Automática de Carga Inicial ---

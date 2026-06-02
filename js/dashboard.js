@@ -3,21 +3,6 @@
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- 0.0 Limpeza de Cache de Configuração (Hard Reset) ---
-    const CURRENT_SYSTEM_VERSION = "2.1"; // Versão incrementada para expirar cache antigo do usuário
-    const savedSystemVersion = localStorage.getItem('fio-system-version');
-    if (savedSystemVersion !== CURRENT_SYSTEM_VERSION) {
-        localStorage.removeItem('fio-chapter-1-synopsis');
-        localStorage.removeItem('fio-chapter-2-synopsis');
-        localStorage.removeItem('fio-chapter-1-cover');
-        localStorage.removeItem('fio-chapter-2-cover');
-        localStorage.removeItem('fio-mock-chapters');
-        localStorage.setItem('fio-system-version', CURRENT_SYSTEM_VERSION);
-        console.log("[dashboard.js] Cache expirado. Hard Reset executado para versão " + CURRENT_SYSTEM_VERSION);
-    }
-
-
-
     // --- 1. Proteção de Rota & Verificação de Sessão ---
     if (!window.sessionHelper) {
         console.error("Erro: sessionHelper não foi inicializado.");
@@ -362,74 +347,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- LÓGICA DE GERENCIAMENTO DE NEWSLETTER PARA ADMINS ---
-    const adminControlsPanel = document.getElementById('admin-controls-panel');
-    const btnTriggerNewsletter = document.getElementById('btn-trigger-newsletter');
-
-    if (adminControlsPanel) {
-        if (isOfficialAdmin) {
-            // Exibir o painel para administradores
-            adminControlsPanel.style.setProperty('display', 'block', 'important');
-            
-            if (btnTriggerNewsletter) {
-                btnTriggerNewsletter.addEventListener('click', async () => {
-                    // Confirmação nativa preventiva
-                    const confirmAction = confirm("Tem certeza de que o corre está pronto e deseja avisar o bando agora?");
-                    if (!confirmAction) return;
-
-                    // Desabilitar botão e mudar estado
-                    const originalBtnHTML = btnTriggerNewsletter.innerHTML;
-                    btnTriggerNewsletter.innerHTML = '<div class="pix-status-spinner" style="width:14px; height:14px; margin-right:8px; border-top-color:#fff; display:inline-block; vertical-align:middle;"></div> Enviando...';
-                    btnTriggerNewsletter.setAttribute('disabled', 'true');
-
-                    try {
-                        // Coleta e-mails locais do mock para enviar no payload em modo local/desenvolvimento
-                        const mockLeads = JSON.parse(localStorage.getItem('fio-mock-leads') || '[]');
-                        
-                        let response;
-                        if (window.isOfflineMode) {
-                            // Em modo estritamente offline, simulamos o tempo de resposta diretamente no front
-                            await new Promise(resolve => setTimeout(resolve, 1500));
-                            response = {
-                                ok: true,
-                                json: async () => ({ count: mockLeads.length || 3 })
-                            };
-                        } else {
-                            // Envio real ao backend
-                            response = await fetch('/api/disparar-newsletter', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    chapterId: 1, // Pode dinamicamente representar o capítulo ativo/mais recente
-                                    chapterTitle: "O Elo Perdido",
-                                    fallbackEmails: mockLeads
-                                })
-                            });
-                        }
-
-                        if (response.ok) {
-                            alert("🎉 Notificação disparada para o bando com sucesso!");
-                        } else {
-                            const errBody = await response.json();
-                            throw new Error(errBody.error || "Erro no processamento da rota.");
-                        }
-
-                    } catch (dispatchErr) {
-                        console.error("Falha ao disparar newsletter:", dispatchErr);
-                        alert(`⚠️ Ocorreu um erro no processamento do disparo: ${dispatchErr.message}`);
-                    } finally {
-                        // Restaurar estado do botão
-                        btnTriggerNewsletter.innerHTML = originalBtnHTML;
-                        btnTriggerNewsletter.removeAttribute('disabled');
-                    }
-                });
-            }
-        } else {
-            // Segurança Absoluta: Deletar do DOM para não-admins
-            adminControlsPanel.remove();
-        }
-    }
-
     const defaultChapters = [
         { 
             id: 1, 
@@ -444,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
             title: "Cortes no Destino", 
             pages_count: 4, 
             release_date: "25 de Maio, 2026",
-            synopsis: "Quando o seu pai te liga de madrugada, te chama pelo apelido de criança e pede para você levar um pudim e um estoque de desinfetante, você já sabe que o turno extra vai ser sujo. Sem a ajuda do guarda-costas oficial, o coroa intimou os pirralhos para assumirem o serviço doméstico de emergência. Mas quando o mais velho manda, os mais novos obedecem, por lealdade e, principalmente, amor.",
+            synopsis: "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.",
             price: 1.50
         },
         { 
@@ -617,22 +534,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 thumbSrc = tempUrl || `assets/chapter1_thumb.jpg`; // Fallback
             }
 
-            // Sobregravação rígida para os cards de chamada do Capítulo 1 e Capítulo 2
+            // Sobregravação rígida para o card de chamada do Capítulo 1 usar assets/capitulo_1.webp
             if (chap.id === 1) {
-                const localCover = localStorage.getItem('fio-chapter-1-cover');
-                if (localCover) {
-                    thumbSrc = localCover;
-                } else {
-                    const coverVer = localStorage.getItem('fio-chapter-1-cover-version') || '1';
-                    thumbSrc = `assets/capitulo_1.webp?v=${coverVer}`;
-                }
-            } else if (chap.id === 2) {
-                const localCover = localStorage.getItem('fio-chapter-2-cover');
-                if (localCover) {
-                    thumbSrc = localCover;
-                } else {
-                    thumbSrc = `assets/capitulo_2.webp?v=${Date.now()}`;
-                }
+                thumbSrc = "assets/capitulo_1.webp";
             }
 
             const chapterCard = document.createElement('article');
@@ -669,20 +573,7 @@ document.addEventListener('DOMContentLoaded', () => {
             drawer.className = 'chapter-drawer';
             drawer.id = `drawer-cap-${chap.id}`;
             
-            let synopsisText = chap.synopsis || "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.";
-            if (chap.id === 1) {
-                const localSynopsis = localStorage.getItem('fio-chapter-1-synopsis');
-                if (localSynopsis !== null) {
-                    synopsisText = localSynopsis;
-                }
-            } else if (chap.id === 2) {
-                const localSynopsis = localStorage.getItem('fio-chapter-2-synopsis');
-                if (localSynopsis !== null) {
-                    synopsisText = localSynopsis;
-                } else {
-                    synopsisText = "Quando o seu pai te liga de madrugada, te chama pelo apelido de criança e pede para você levar um pudim e um estoque de desinfetante, você já sabe que o turno extra vai ser sujo. Sem a ajuda do guarda-costas oficial, o coroa intimou os pirralhos para assumirem o serviço doméstico de emergência. Mas quando o mais velho manda, os mais novos obedecem, por lealdade e, principalmente, amor.";
-                }
-            }
+            const synopsisText = chap.synopsis || "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.";
             const isPago = !!chap.isPago;
             const priceVal = chap.price || 1.50;
             const priceBadgeHTML = isPago 
