@@ -120,12 +120,13 @@ Implementamos um sistema premium de doações no dashboard que permite aos leito
 - **Ampliação Localizada (Foco no Toque)**:
   * Ao tocar/clicar em qualquer ponto de uma imagem, o sistema calcula as coordenadas X e Y relativas do toque e configura o `transform-origin` dinamicamente para o pixel tocado.
   * A imagem amplia na proporção exata de $1.8\times$ (`transform: scale(1.8);`) centralizando exatamente onde o dedo do usuário encostou.
+  * **Memória de Posição de Leitura (Scroll Memory)**: Ao acionar a ampliação localized (primeiro toque), o sistema memoriza instantaneamente a posição de rolagem vertical atual da tela (`window.scrollY`). No segundo toque (zoom out), o sistema remove o zoom e força de forma imediata o navegador a rolar exatamente para o mesmo ponto físico original (`window.scrollTo({ top: leituraPosicao, behavior: 'instant' })`), evitando "pulos" visuais ou desvio de foco da leitura.
   * Um segundo toque/clique na imagem reverte-a instantaneamente para a escala original $1.0\times$ com origem central.
 - **Transição de Alto Desempenho**: Aplicada a regra CSS `"transition: transform 0.25s ease, transform-origin 0s;"`, fornecendo uma animação fluida sem engasgos de processamento.
 - **Deslocamento de Foco e Rolagem Inteligente**:
   * O contêiner pai `.webtoon-placeholder.loaded` recebeu `overflow: hidden !important; position: relative !important;` para recortar o transbordo da ampliação.
   * Enquanto a imagem estiver ampliada (`.is-zoomed`), o usuário pode arrastá-la livremente para os lados (eixo X) para ajustar o foco das falas e detalhes da arte.
-  * O gesto vertical continua operando o scroll normal do navegador para uma leitura fluida, a menos que o arraste seja predominantemente horizontal, caso em que o gesto bloqueia o scroll da página para priorizar o panning.
+  * O gesto vertical continua operando o scroll normal do navegador para uma leitura fluida e 100% nativa de forma leve e rápida, bloqueando-o apenas quando o movimento horizontal predomina para realizar o pan do zoom.
 - **Compatibilidade Absoluta com Proteção anticópia**:
   * Para leitores normais, os eventos de clique e arrasto são registrados e controlados no contêiner pai `.webtoon-placeholder` (`pointer-events: auto`).
   * As imagens reais contam com a propriedade de segurança `pointer-events: none` ativa, impossibilitando qualquer tentativa de arrastar o arquivo original ou ativar o menu de contexto "Salvar imagem" no celular, mantendo a proteção ativa em todos os momentos!
