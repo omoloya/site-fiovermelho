@@ -114,7 +114,17 @@ if (String(chap.id).trim() === "2") {
 ```
 
 ### B. Vinculação Sólida no DOM (Atribuição Direta e Sanitização)
-Para evitar conflitos de tipos (String vs Number) ou espaços indevidos vindos do Supabase, o ID é sanitizado usando `const cleanId = String(chap.id).trim()`. Em seguida, os elementos visuais são injetados de forma síncrona e explícita no DOM, garantindo que o acoplamento ocorra sem latências:
+Para evitar conflitos de tipos (String vs Number) ou espaços indevidos vindos do Supabase, o ID é sanitizado usando `const cleanId = String(chap.id).trim()`. Para evitar vazamento de escopo na renderização (onde dados de um capítulo poderiam vazar para outro):
+1. As variáveis temporárias são reiniciadas no início de cada ciclo de renderização:
+   ```javascript
+   let finalSynopsis = "";
+   let finalCover = "";
+   ```
+2. Cada gaveta gerada recebe uma marcação única via atributo de dados no DOM:
+   ```javascript
+   drawer.setAttribute('data-id', cleanId);
+   ```
+3. A pesquisa e atribuição de elementos visuais no DOM são feitas de forma síncrona e estritamente restrita ao escopo da gaveta atual via `drawer.querySelector`:
 
 ```javascript
 // Onde a imagem da capa do capítulo é definida
@@ -129,7 +139,7 @@ if (elementoImgDrawer) {
     elementoImgDrawer.src = finalCover;
 }
 
-// Onde o texto da sinopse da gaveta é injetado
+// Onde o texto da sinopse da gaveta é injetado (usando escopo restrito da gaveta atual)
 const elementoText = drawer.querySelector('.chapter-drawer-synopsis p');
 if (elementoText) {
     elementoText.textContent = finalSynopsis;
