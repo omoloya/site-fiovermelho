@@ -1468,7 +1468,8 @@ a {
         display: block !important; /* Força quebra de linha individual acima dos botões */
     }
 
-    .nav-actions .btn {
+    .nav-actions #btn-logout,
+    .nav-actions #btn-admin-panel.is-admin {
         flex: 1 !important; /* Distribui botões Admin e Sair com larguras iguais */
         min-width: 120px !important;
         min-height: 44px !important; /* Diretriz de toque recomendada de 44px */

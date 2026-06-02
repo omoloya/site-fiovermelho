@@ -333,16 +333,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let readChapters = JSON.parse(localStorage.getItem(userKey) || '[]');
     let totalChaptersCount = 3;
 
-    // Habilita o botão Admin no painel apenas para emails autorizados na whitelist
-    const adminEmails = (window.env && window.env.ADMIN_EMAILS) || [];
-    const isAdmin = session && session.user && adminEmails.includes(session.user.email);
+    // Habilita o botão Admin no painel APENAS para os dois administradores oficiais
+    const officialAdmins = ["miles.kensuke@gmail.com", "omoloyaartes@gmail.com"];
+    const isOfficialAdmin = session && session.user && officialAdmins.includes(session.user.email);
 
     const adminBtn = document.getElementById('btn-admin-panel');
     if (adminBtn) {
-        if (isAdmin) {
-            adminBtn.style.display = 'inline-flex';
+        if (isOfficialAdmin) {
+            adminBtn.classList.add('is-admin');
+            adminBtn.style.setProperty('display', 'inline-flex', 'important');
         } else {
-            adminBtn.style.display = 'none';
+            adminBtn.remove(); // Remove completamente do DOM para segurança absoluta de não-administradores
         }
     }
 
