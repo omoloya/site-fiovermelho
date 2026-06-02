@@ -68,11 +68,14 @@ let finalSynopsis = "";
 let finalCover = "";
 
 if (cleanId === "2" || parseInt(cleanId) === 2) {
-    // Capítulo 2 mantém o override estático
-    finalSynopsis = `Quando o seu pai te liga de madrugada...`;
-    finalCover = "assets/capitulo_2.webp?v=2";
+    finalSynopsis = `Quando o seu pai te liga de madrugada, te chama pelo apelido de criança e pede para você levar um pudim e um estoque de desinfetante, você já sabe que o turno extra vai ser sujo. Sem a ajuda do guarda-costas oficial, o coroa intimou os pirralhos para assumirem o serviço doméstico de emergência. Mas quando o mais velho manda, os mais novos obedecem, por lealdade e, principalmente, amor.`;
+    finalCover = "assets/capitulo_2.webp";
+} else if (cleanId === "1" || parseInt(cleanId) === 1) {
+    finalSynopsis = `O chefe dormiu de novo.
+Agora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivais, anime e o que vão fazer no próximo dia de folga.
+Cochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.`;
+    finalCover = "assets/capitulo_1.webp";
 } else {
-    // Capítulo 1 entra aqui, herdando os dados reais cadastrados no banco
     finalSynopsis = chap.synopsis || "Sinopse em breve.";
     finalCover = chap.cover_url || "assets/default_cover.webp";
 }
