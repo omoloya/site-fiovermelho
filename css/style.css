@@ -1595,3 +1595,10 @@ a {
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-right: none;
 }
+
+/* Link de Esqueceu a Senha */
+.forgot-password-link:hover {
+    color: var(--primary-red) !important;
+    text-shadow: 0 0 8px rgba(255, 42, 59, 0.6);
+    text-decoration: underline !important;
+}

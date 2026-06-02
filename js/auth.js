@@ -686,4 +686,113 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // --- 7. Recuperação de Senha (Esqueceu a Senha) ---
+    const btnForgot = document.getElementById('btn-forgot-password');
+    const forgotModal = document.getElementById('forgot-password-modal');
+    const btnCloseForgotModal = document.getElementById('btn-close-forgot-modal');
+    const btnCloseForgotSuccess = document.getElementById('btn-close-forgot-success');
+    const forgotForm = document.getElementById('forgot-password-form');
+    const forgotEmailInput = document.getElementById('forgot-email-input');
+    const forgotInputArea = document.getElementById('forgot-modal-input-area');
+    const forgotMessageArea = document.getElementById('forgot-modal-message-area');
+    const forgotStatusBox = document.getElementById('forgot-status-box');
+    const btnSubmitForgot = document.getElementById('btn-submit-forgot');
+
+    if (btnForgot && forgotModal) {
+        btnForgot.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (forgotEmailInput) forgotEmailInput.value = "";
+            if (forgotInputArea) forgotInputArea.style.display = 'block';
+            if (forgotMessageArea) forgotMessageArea.style.display = 'none';
+            forgotModal.style.display = 'flex';
+        });
+    }
+
+    function closeForgotModal() {
+        if (forgotModal) {
+            forgotModal.style.display = 'none';
+        }
+    }
+
+    if (btnCloseForgotModal) {
+        btnCloseForgotModal.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeForgotModal();
+        });
+    }
+    if (btnCloseForgotSuccess) {
+        btnCloseForgotSuccess.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeForgotModal();
+        });
+    }
+
+    if (forgotModal) {
+        forgotModal.addEventListener('click', (e) => {
+            if (e.target === forgotModal) {
+                closeForgotModal();
+            }
+        });
+    }
+
+    if (forgotForm) {
+        forgotForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = forgotEmailInput.value.trim();
+            if (!email) return;
+
+            const originalBtnHTML = btnSubmitForgot.innerHTML;
+            btnSubmitForgot.innerHTML = '<div class="pix-status-spinner" style="width:14px; height:14px; margin-right:8px; border-top-color:#fff; display:inline-block; vertical-align:middle;"></div> Enviando...';
+            btnSubmitForgot.setAttribute('disabled', 'true');
+
+            try {
+                if (window.isOfflineMode) {
+                    // --- MODO SIMULADO / OFFLINE ---
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    if (forgotStatusBox) {
+                        forgotStatusBox.style.color = 'var(--success-green)';
+                        forgotStatusBox.style.backgroundColor = 'rgba(16, 185, 129, 0.05)';
+                        forgotStatusBox.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+                        forgotStatusBox.innerHTML = '<i class="fa-solid fa-paper-plane" style="margin-right: 6px;"></i> Oe, kyoudai! Enviamos um corvo com as instruções de recuperação para seu e-mail. Checa sua caixa de entrada! 🦅📬';
+                    }
+                    if (forgotInputArea) forgotInputArea.style.display = 'none';
+                    if (forgotMessageArea) forgotMessageArea.style.display = 'block';
+                } else {
+                    // --- MODO REAL SUPABASE ---
+                    if (window.supabase) {
+                        const { error } = await window.supabase.auth.resetPasswordForEmail(email, {
+                            redirectTo: window.location.origin + '/index.html'
+                        });
+
+                        if (error) throw error;
+
+                        if (forgotStatusBox) {
+                            forgotStatusBox.style.color = 'var(--success-green)';
+                            forgotStatusBox.style.backgroundColor = 'rgba(16, 185, 129, 0.05)';
+                            forgotStatusBox.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+                            forgotStatusBox.innerHTML = '<i class="fa-solid fa-paper-plane" style="margin-right: 6px;"></i> Oe, kyoudai! Enviamos um corvo com as instruções de recuperação para seu e-mail. Checa sua caixa de entrada! 🦅📬';
+                        }
+                        if (forgotInputArea) forgotInputArea.style.display = 'none';
+                        if (forgotMessageArea) forgotMessageArea.style.display = 'block';
+                    } else {
+                        throw new Error('Cliente Supabase não inicializado.');
+                    }
+                }
+            } catch (err) {
+                console.error("Erro ao enviar recuperação de senha:", err);
+                if (forgotStatusBox) {
+                    forgotStatusBox.style.color = 'var(--primary-red)';
+                    forgotStatusBox.style.backgroundColor = 'rgba(255, 42, 59, 0.05)';
+                    forgotStatusBox.style.borderColor = 'rgba(255, 42, 59, 0.2)';
+                    forgotStatusBox.innerHTML = `<i class="fa-solid fa-circle-exclamation" style="margin-right: 6px;"></i> Falha ao enviar: ${err.message || 'Erro inesperado'}`;
+                }
+                if (forgotInputArea) forgotInputArea.style.display = 'none';
+                if (forgotMessageArea) forgotMessageArea.style.display = 'block';
+            } finally {
+                btnSubmitForgot.innerHTML = originalBtnHTML;
+                btnSubmitForgot.removeAttribute('disabled');
+            }
+        });
+    }
 });
