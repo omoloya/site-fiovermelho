@@ -341,6 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
             d.style.padding = '0';
             d.style.margin = '0';
             d.style.borderWidth = '0';
+            d.style.overflow = 'hidden';
         });
         
         document.querySelectorAll('.chapter-card').forEach(c => {
@@ -355,6 +356,14 @@ document.addEventListener('DOMContentLoaded', () => {
             targetDrawer.style.marginTop = '16px';
             targetDrawer.style.marginBottom = '24px';
             targetDrawer.style.borderWidth = '1px';
+            targetDrawer.style.overflow = 'hidden';
+            
+            // Ao finalizar a animação de abertura da gaveta, muda o overflow para visible no celular/geral
+            setTimeout(() => {
+                if (targetDrawer.classList.contains('active')) {
+                    targetDrawer.style.overflow = 'visible';
+                }
+            }, 400);
             
             if (targetCard) {
                 targetCard.classList.add('drawer-open');
@@ -385,6 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
             d.style.padding = '0';
             d.style.margin = '0';
             d.style.borderWidth = '0';
+            d.style.overflow = 'hidden';
         });
         document.querySelectorAll('.chapter-card').forEach(c => {
             c.classList.remove('drawer-open');

@@ -167,6 +167,20 @@ Substituímos o antigo modal flutuante por uma **Aba Expansiva Integrada (estilo
 *   **Destravamento Mobile & Centralização Suave**:
     *   No mobile, a aba ocupa a largura total física da tela de forma integrada.
     *   O corpo (`body`) permanece com rolagem livre e inercial o tempo todo.
+    *   Para evitar cortes de botões ou conteúdos no final do drawer em telas pequenas, configuramos `.chapter-drawer.active` no mobile para mudar para `max-height: none !important` e `overflow: visible !important` síncronamente.
+    *   Reestruturamos a aba no mobile com Flexbox vertical (`chapter-drawer-content` e `chapter-drawer-info` no modo flex-direction: column).
+    *   Adicionamos margens explícitas e facilidade de toque no botão principal definindo a classe dedicada `.chapter-drawer .read-btn` com largura completa `100%` e respiro de `20px` para evitar cliques acidentais ou sobreposições.
     *   Ao expandir a aba no celular, executamos um `scrollIntoView({ behavior: 'smooth', block: 'nearest' })` no card com atraso de `150ms` para centralizá-lo de forma fluida nos olhos do usuário.
 *   **Controle de Histórico (Botão Voltar)**: Quando o drawer se expande, empurramos um estado virtual de histórico (`#detalhes-capitulo-X`). Se o leitor executar o gesto/botão físico "Voltar" no celular, capturamos o evento via `popstate` e fechamos a aba expansiva de forma suave, sem sair da rota ou deslogar.
+
+### 3. Ação de Refinamento de Interface Mobile (Junho, 2026)
+Resolvemos em definitivo o problema de corte e visibilidade do botão **"Ler Capítulo"** no celular, ajustando a estrutura flexível e o comportamento de transição:
+*   **Transição de Transbordamento (Overflow)**: Implementamos controle dinâmico de `overflow` em JavaScript. O contêiner do drawer inicia a transição de abertura como `overflow: hidden` para uma animação fluida e, exatamente ao finalizar a animação após `400ms`, o JavaScript atualiza o estado para `overflow: visible` síncronamente no celular. No fechamento, o `overflow: hidden` é reestabelecido para garantir recolhimento suave.
+*   **Flexbox Vertical Forçado**: Garantimos que tanto a classe semântica `.chapter-drawer-content` quanto `.drawer-content` no mobile adotem a estrutura `flex-direction: column !important;` e `display: flex !important;`, assegurando o fluxo linear perfeito do layout sem sobreposição de textos.
+*   **Margens e Z-Index do Botão**: Ajustamos as especificações de `.chapter-drawer .read-btn` no mobile com as seguintes propriedades de alta prioridade:
+    *   `display: block !important; visibility: visible !important; opacity: 1 !important;`
+    *   `margin: 20px auto 10px auto !important;` (centraliza e adiciona respiro confortável para toque)
+    *   `width: 100% !important;` (tamanho completo facilitando o clique no celular)
+    *   `position: relative !important; z-index: 105 !important;` (evita sobreposições e o mantém no topo absoluto de qualquer camada de texto ou imagem de capa)
+
 

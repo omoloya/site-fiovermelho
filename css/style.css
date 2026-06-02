@@ -942,13 +942,14 @@ a {
     }
     
     .chapter-drawer.active {
-        max-height: none !important; /* Permite que o contêiner cresça livremente */
-        overflow: visible !important; /* Evita que o botão ou outros elementos sejam cortados */
+        max-height: none !important; /* Permite que o contêiner cresça livremente no mobile sem cortar */
+        overflow: visible !important; /* Garante que elementos internos não sejam cortados após abertura */
         padding: 20px 16px !important;
         margin-top: 12px !important;
         margin-bottom: 16px !important;
     }
     
+    .drawer-content,
     .chapter-drawer-content {
         display: flex !important;
         flex-direction: column !important;
@@ -964,11 +965,11 @@ a {
         display: block !important;
         visibility: visible !important;
         opacity: 1 !important;
-        margin: 20px auto 10px auto !important; /* Respiro e alinhamento do botão */
-        width: 100% !important; /* Facilidade de toque */
+        margin: 20px auto 10px auto !important; /* Dá um respiro e centraliza o botão */
+        width: 100% !important; /* Ocupa a largura do celular para facilitar o clique */
         text-align: center !important;
         position: relative !important;
-        z-index: 105 !important;
+        z-index: 105 !important; /* Camada acima de qualquer texto ou imagem */
     }
 
     .chapter-drawer-actions {
