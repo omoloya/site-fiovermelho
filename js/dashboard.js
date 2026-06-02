@@ -10,8 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return null;
         })
         .then(config => {
-            if (config && config.chapter_1_synopsis) {
-                localStorage.setItem('fio-chapter-1-synopsis', config.chapter_1_synopsis);
+            if (config) {
+                if (config.chapter_1_synopsis) {
+                    localStorage.setItem('fio-chapter-1-synopsis', config.chapter_1_synopsis);
+                }
+                if (config.chapter_2_synopsis) {
+                    localStorage.setItem('fio-chapter-2-synopsis', config.chapter_2_synopsis);
+                }
             }
         })
         .catch(err => console.log("[dashboard.js] Config.json não disponível ou erro no carregamento:", err.message));
@@ -442,7 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
             title: "Cortes no Destino", 
             pages_count: 4, 
             release_date: "25 de Maio, 2026",
-            synopsis: "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.",
+            synopsis: "Quando o seu pai te liga de madrugada, te chama pelo apelido de criança e pede para você levar um pudim e um estoque de desinfetante, você já sabe que o turno extra vai ser sujo. Sem a ajuda do guarda-costas oficial, o coroa intimou os pirralhos para assumirem o serviço doméstico de emergência. Mas quando o mais velho manda, os mais novos obedecem, por lealdade e, principalmente, amor.",
             price: 1.50
         },
         { 
@@ -615,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 thumbSrc = tempUrl || `assets/chapter1_thumb.jpg`; // Fallback
             }
 
-            // Sobregravação rígida para o card de chamada do Capítulo 1 usar assets/capitulo_1.webp
+            // Sobregravação rígida para os cards de chamada do Capítulo 1 e Capítulo 2
             if (chap.id === 1) {
                 const localCover = localStorage.getItem('fio-chapter-1-cover');
                 if (localCover) {
@@ -623,6 +628,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     const coverVer = localStorage.getItem('fio-chapter-1-cover-version') || '1';
                     thumbSrc = `assets/capitulo_1.webp?v=${coverVer}`;
+                }
+            } else if (chap.id === 2) {
+                const localCover = localStorage.getItem('fio-chapter-2-cover');
+                if (localCover) {
+                    thumbSrc = localCover;
+                } else {
+                    const coverVer = localStorage.getItem('fio-chapter-2-cover-version') || '1';
+                    thumbSrc = `assets/capitulo_2.webp?v=${coverVer}`;
                 }
             }
 
@@ -663,6 +676,11 @@ document.addEventListener('DOMContentLoaded', () => {
             let synopsisText = chap.synopsis || "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.";
             if (chap.id === 1) {
                 const localSynopsis = localStorage.getItem('fio-chapter-1-synopsis');
+                if (localSynopsis !== null) {
+                    synopsisText = localSynopsis;
+                }
+            } else if (chap.id === 2) {
+                const localSynopsis = localStorage.getItem('fio-chapter-2-synopsis');
                 if (localSynopsis !== null) {
                     synopsisText = localSynopsis;
                 }
