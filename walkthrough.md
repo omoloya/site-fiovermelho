@@ -118,10 +118,10 @@ Implementamos um sistema premium de doações no dashboard que permite aos leito
 ### 🔍 Lupa de Toque Direta / Tap-to-Zoom Localizado (`ler.html`, `js/ler.js` & `css/style.css`)
 - **Zero Zoom Out e Comportamento Nativo**: As imagens mantêm por padrão o comportamento original do leitor (ocupando 100% da largura da tela do celular para rolagem vertical contínua), eliminando qualquer tela preta ou afastamento indesejado.
 - **Ampliação Localizada (Foco no Toque)**:
-  * Ao tocar/clicar em qualquer ponto de uma imagem, o sistema calcula as coordenadas X e Y relativas do toque e configura o `transform-origin` dinamicamente para o pixel tocado.
-  * A imagem amplia na proporção exata de $1.8\times$ (`transform: scale(1.8);`) centralizando exatamente onde o dedo do usuário encostou.
+  * **Dois Toques Rápidos (Double Tap)**: Para evitar zooms indesejados durante a leitura normal por scroll, o zoom-in foi mapeado estritamente para um duplo toque rápido (intervalo menor que `300ms`). O sistema espera a fração de tempo por debounce para diferenciar cliques acidentais e atriula o zoom no ponto preciso tocado.
+  * **Um Toque Simples (Single Tap) para Sair**: Caso o zoom já esteja ativo (`.is-zoomed`), basta um único clique ou toque simples em qualquer local da imagem ampliada para voltar ao tamanho normal de forma imediata.
+  * **Foco no Toque**: Ao acionar a ampliação, o sistema calcula as coordenadas X e Y relativas do toque e configura o `transform-origin` dinamicamente para o pixel tocado. A imagem amplia na proporção exata de $1.8\times$ (`transform: scale(1.8);`) centralizando exatamente onde o dedo do usuário encostou.
   * **Memória de Posição de Leitura (Scroll Memory)**: Ao acionar a ampliação localized (primeiro toque), o sistema memoriza instantaneamente a posição de rolagem vertical atual da tela (`window.scrollY`). No segundo toque (zoom out), o sistema remove o zoom e força de forma imediata o navegador a rolar exatamente para o mesmo ponto físico original (`window.scrollTo({ top: leituraPosicao, behavior: 'instant' })`), evitando "pulos" visuais ou desvio de foco da leitura.
-  * Um segundo toque/clique na imagem reverte-a instantaneamente para a escala original $1.0\times$ com origem central.
 - **Transição de Alto Desempenho**: Aplicada a regra CSS `"transition: transform 0.25s ease, transform-origin 0s;"`, fornecendo uma animação fluida sem engasgos de processamento.
 - **Deslocamento de Foco e Rolagem Inteligente**:
   * O contêiner pai `.webtoon-placeholder.loaded` recebeu `overflow: hidden !important; position: relative !important;` para recortar o transbordo da ampliação.
@@ -148,10 +148,11 @@ Implementamos um sistema premium de doações no dashboard que permite aos leito
    * Certifique-se de que a mensagem de sucesso (envio por corvo) é exibida e que clicar em **Voltar para o Login** recolhe o modal.
 3. **Lupa de Toque Direta (Tap-to-Zoom Localizado)**:
    * Abra o leitor vertical (`ler.html`) de qualquer capítulo.
-   * Clique/toque em qualquer detalhe de uma página do quadrinho. A imagem correspondente deve expandir imediatamente a partir do ponto tocado.
-   * Arraste o dedo lateralmente: a imagem deve se deslocar horizontalmente dentro da coluna de leitura para ajustar o foco.
-   * Dê um segundo clique/toque rápido na imagem: ela deve retornar instantaneamente ao tamanho original de forma suave.
-   * Verifique que tentar salvar a imagem (clique direito ou toque pressionado) continua totalmente desabilitado e bloqueado!
+   * **Para Ampliar (Zoom-In)**: Dê **dois cliques/toques rápidos** (Double Tap) em qualquer detalhe de uma página do quadrinho. A imagem correspondente deve expandir imediatamente a partir do ponto tocado, memorizando seu scroll.
+   * **Para Navegar**: Arraste o dedo lateralmente para rolar horizontalmente a parte ampliada de forma fluida.
+   * **Para Retornar (Zoom-Out)**: Dê um **único clique/toque simples** (Single Tap) em qualquer ponto da imagem ampliada. A página deve retornar suavemente ao tamanho original e reposicionar o scroll vertical instantaneamente no ponto exato anterior.
+   * **Teste de Foco**: Tente um único clique rápido na imagem que *não* está ampliada: verifique que nada acontece (o debounce de 300ms aguarda e previne disparos acidentais, permitindo rolar a página verticalmente sem incômodos).
+   * **Teste de Segurança**: Tente salvar a imagem (clique direito ou toque longo no celular): verifique que permanece 100% inacessível e protegida!
 4. **Segurança do Backend**:
    * O backend garante que qualquer valor abaixo de R$ 1,00 seja elevado para o mínimo regulamentar, prevenindo transações inválidas no Mercado Pago.
 5. **Validação de Cadastro**:
