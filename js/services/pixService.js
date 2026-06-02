@@ -7,7 +7,7 @@ window.PixService = {
      * Gera uma nova cobrança Pix para validação de idade.
      * Na versão real, você fará uma requisição POST/Fetch para o seu backend ou gateway (Asaas, Mercado Pago, etc.)
      * 
-     * @param {number} amount Valor em reais (ex: 0.10)
+     * @param {number} amount Valor em reais (ex: 1.50)
      * @param {string} reference Identificador/CPF/Referência interna
      * @returns {Promise<{transactionId: string, qrCodeUrl: string, copyPasteCode: string}>}
      */

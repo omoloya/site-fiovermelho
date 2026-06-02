@@ -1,6 +1,8 @@
 // API Serverless Vercel: Gerar cobrança Pix dinâmica no Mercado Pago de forma segura
 // Sintaxe Clássica Node.js CommonJS para produção na Vercel
 
+const CHAPTER_PRICE = 1.50; // Preço oficial por capítulo para validação
+
 module.exports = async (req, res) => {
     // Configura headers CORS e de segurança
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -42,7 +44,7 @@ module.exports = async (req, res) => {
                 'X-Idempotency-Key': 'key_' + Math.random().toString(36).substring(2, 15)
             },
             body: JSON.stringify({
-                transaction_amount: 0.10, // Pix simbólico de 10 centavos para KYC de maioridade
+                transaction_amount: CHAPTER_PRICE, // Pix oficial para KYC de maioridade e acesso ao capítulo
                 description: "Validação de Maioridade (ECA) - Fio Vermelho",
                 payment_method_id: "pix",
                 payer: {

@@ -493,6 +493,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="tag-badge ${isRead ? 'chapter-badge-read' : 'chapter-badge-unread'}" id="drawer-badge-cap-${chap.id}">
                                     ${isRead ? 'Lido' : 'Não Lido'}
                                 </span>
+                                <span class="tag-badge" style="background: rgba(255, 42, 59, 0.15); color: var(--primary-red); border: 1px solid rgba(255, 42, 59, 0.25);">
+                                    R$ 1,50
+                                </span>
                             </div>
                             <h3 class="modal-chapter-title">${chap.title}</h3>
                             <div class="chapter-drawer-synopsis">

@@ -3,6 +3,9 @@
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Configurações Globais de Checkout ---
+    const CHAPTER_PRICE = 1.50; // Preço oficial do capítulo/validação
+
     // --- DOM Elements ---
     const stepAgeGate = document.getElementById('step-age-gate');
     const stepPixPayment = document.getElementById('step-pix-payment');
@@ -313,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Inicia o simulador Pix padrão para testes locais
             if (window.PixService) {
-                const charge = await window.PixService.generatePixCharge(0.10, "verificacao_local");
+                const charge = await window.PixService.generatePixCharge(CHAPTER_PRICE, "verificacao_local");
                 
                 if (pixQrElement) pixQrElement.src = charge.qrCodeUrl;
                 if (pixCodeField) pixCodeField.value = charge.copyPasteCode;
