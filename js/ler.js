@@ -340,6 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let hasDragged = false;
                 let startTouchX = 0;
                 let startTouchY = 0;
+                let scrollPositionBeforeZoom = 0;
 
                 pageWrapper.addEventListener('touchstart', (e) => {
                     startTouchX = e.touches[0].clientX;
@@ -429,6 +430,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const touchY = clientY - rect.top;
 
                     if (!img.classList.contains('is-zoomed')) {
+                        // Salva a posição exata de scroll antes de ampliar
+                        scrollPositionBeforeZoom = window.scrollY || document.documentElement.scrollTop;
+
                         // Limpa zoom de todas as outras imagens antes de aplicar (Zoom único)
                         document.querySelectorAll('.webtoon-page-img.is-zoomed').forEach(el => {
                             el.style.transform = 'scale(1)';
@@ -441,9 +445,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         img.style.transform = 'scale(1.8) translate(0px, 0px)';
                         img.classList.add('is-zoomed');
                     } else {
+                        // Remove o zoom e restaura instantaneamente o scroll para evitar "pulos"
                         img.style.transform = 'scale(1)';
                         img.style.transformOrigin = 'center center';
                         img.classList.remove('is-zoomed');
+                        
+                        window.scrollTo({ top: scrollPositionBeforeZoom, behavior: 'instant' });
                     }
                 }
 
