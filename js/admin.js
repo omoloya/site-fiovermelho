@@ -172,7 +172,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
-                const maxWidth = 1600;
+                
+                // Redimensionamento Inteligente (Ações de Otimização Crítica)
+                const isHorizontal = width > height;
+                const maxWidth = isHorizontal ? 1920 : 1080;
 
                 if (width > maxWidth) {
                     height = Math.round((maxWidth * height) / width);
@@ -194,12 +197,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         item.reduction = Math.round(((item.originalSize - blob.size) / item.originalSize) * 100);
                         item.status = 'compressed';
                         
+                        // Diagnóstico no console (Otimização Crítica)
+                        const origMB = (item.originalSize / (1024 * 1024)).toFixed(2);
+                        const compMB = (blob.size / (1024 * 1024)).toFixed(2);
+                        console.log(`[Canvas Compress] Fila - Arquivo: ${item.name} | Original: ${origMB} MB | WebP Comprimido: ${compMB} MB | Redução: ${item.reduction}%`);
+
                         updateQueueItemUI(item);
                         checkQueueReadyStatus();
                     } else {
                         throw new Error("Erro na geração do Blob WebP.");
                     }
-                }, 'image/webp', 0.85);
+                }, 'image/webp', 0.75);
             };
 
             img.onerror = () => {
@@ -798,7 +806,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
-                const maxWidth = 1600;
+                
+                // Redimensionamento Inteligente (Ações de Otimização Crítica)
+                const isHorizontal = width > height;
+                const maxWidth = isHorizontal ? 1920 : 1080;
 
                 if (width > maxWidth) {
                     height = Math.round((maxWidth * height) / width);
@@ -813,11 +824,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 canvas.toBlob((blob) => {
                     if (blob) {
+                        // Diagnóstico no console (Otimização Crítica)
+                        const origMB = (file.size / (1024 * 1024)).toFixed(2);
+                        const compMB = (blob.size / (1024 * 1024)).toFixed(2);
+                        const reduction = Math.round(((file.size - blob.size) / file.size) * 100);
+                        console.log(`[Canvas Compress Single] Arquivo: ${file.name} | Original: ${origMB} MB | WebP Comprimido: ${compMB} MB | Redução: ${reduction}%`);
+
                         resolve({ blob: blob });
                     } else {
                         reject(new Error("Falha ao exportar Blob WebP."));
                     }
-                }, 'image/webp', 0.85);
+                }, 'image/webp', 0.75);
             };
             img.onerror = () => reject(new Error("Erro ao carregar a imagem no Canvas."));
         });
@@ -1046,6 +1063,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         reader.onerror = reject;
                         reader.readAsDataURL(compressed.blob);
                     });
+
+                    // Diagnóstico no console (Otimização Crítica)
+                    const origMB = (file.size / (1024 * 1024)).toFixed(2);
+                    const base64MB = (coverBase64.length / (1024 * 1024)).toFixed(2);
+                    console.log(`[Gerenciamento Capa] Capa: ${file.name} | Original: ${origMB} MB | Base64 Comprimida: ${base64MB} MB`);
                 }
 
                 // 2. Salvar no LocalStorage para renderização instantânea (Frontend)
