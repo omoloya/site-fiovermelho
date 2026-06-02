@@ -107,6 +107,14 @@ Implementamos um sistema premium de doações no dashboard que permite aos leito
   > *"Valeu kyoudai! O bando agradece o fortalecimento. Tamo junto!"*
 - **Fallback de Ambiente Local**: Caso o site seja executado localmente sem suporte a Serverless, o JavaScript intercepta a chamada de API e aciona o gerador de simulação `window.PixService` automaticamente, mantendo a experiência fluida para desenvolvedores.
 
+### 🔑 Sistema de Recuperação de Senha ("Esqueceu a Senha?")
+- **Link no Formulário de Login**: Inserido um link discreto `.forgot-password-link` no formulário de login (`index.html`) posicionado estrategicamente abaixo do campo de entrada da senha. Estilizado com efeitos de hover com tom carmim Yakuza e brilho neon (`text-shadow: 0 0 8px rgba(255, 42, 59, 0.6)`).
+- **Modal de Recuperação**: Acoplado o painel `#forgot-password-modal` no final do HTML com fundo embaçado (glassmorphism/blur), campo de e-mail integrado e botão de envio adaptado para áreas de clique confortáveis (mínimo de `44px` de altura).
+- **Lógica e Integração de Rede (`js/auth.js`)**:
+  - Intercepta o evento de clique e envio para impedir que o formulário de login principal seja submetido indevidamente.
+  - **Modo Produção (Online)**: Dispara a chamada nativa do Supabase `window.supabase.auth.resetPasswordForEmail(email)` para disparar o e-mail de redefinição oficial, fornecendo feedbacks imediatos de sucesso ou falhas no modal.
+  - **Modo Desenvolvimento (Offline)**: Executa um atraso simulado de 1 segundo e apresenta a mensagem de corvo oficial: *"Oe, kyoudai! Enviamos um corvo com as instruções de recuperação para seu e-mail. Checa sua caixa de entrada! 🦅📬"*.
+
 ---
 
 ## 🚦 Roteiro de Validação e Testes no Ar
@@ -116,9 +124,15 @@ Implementamos um sistema premium de doações no dashboard que permite aos leito
    * Insira um valor customizado no modal (ex: R$ 10,00) e clique em **Gerar PIX de Apoio**.
    * Verifique se o QR Code dinâmico e o código Copia e Cola são renderizados instantaneamente junto ao agradecimento do bando.
    * Clique no botão de copiar e verifique se o feedback visual de check verde funciona.
-2. **Segurança do Backend**:
+2. **Fluxo de Recuperação de Senha**:
+   * Na página inicial (`index.html`), clique em **Entrar** para exibir a tela de login.
+   * Abaixo do campo de senha, localize e clique no link **Esqueceu sua senha?**.
+   * Verifique se o modal de recuperação de senha abre de forma isolada e limpa.
+   * Digite seu e-mail cadastrado e clique em **Enviar Link de Recuperação**.
+   * Certifique-se de que a mensagem de sucesso (envio por corvo) é exibida e que clicar em **Voltar para o Login** recolhe o modal.
+3. **Segurança do Backend**:
    * O backend garante que qualquer valor abaixo de R$ 1,00 seja elevado para o mínimo regulamentar, prevenindo transações inválidas no Mercado Pago.
-3. **Validação de Cadastro**:
+4. **Validação de Cadastro**:
    * O fluxo original de validação de maioridade continua operando perfeitamente a R$ 1,50, consumindo a mesma rota de geração de Pix de forma isolada e segura.
 
 9. Clique em **"Visualizar no Leitor"** e veja as páginas otimizadas do seu novo Capítulo 4 carregarem perfeitamente na proporção certa!
