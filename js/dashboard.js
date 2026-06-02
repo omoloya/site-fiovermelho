@@ -757,4 +757,124 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         leadSuccessMsg.style.display = 'block';
     }
+
+    // --- 6. Sistema de Apoio / Doação Opcional via PIX Dinâmico ---
+    const btnOpenDonation = document.getElementById('btn-open-donation');
+    const donationModal = document.getElementById('donation-modal');
+    const btnCloseDonationModal = document.getElementById('btn-close-donation-modal');
+    const btnGenerateDonationPix = document.getElementById('btn-generate-donation-pix');
+    const donationAmountInput = document.getElementById('donation-amount-input');
+    const donationModalInputArea = document.getElementById('donation-modal-input-area');
+    const donationModalPixArea = document.getElementById('donation-modal-pix-area');
+    const donationQrElement = document.getElementById('donation-qr-element');
+    const donationPixCodeField = document.getElementById('donation-pix-code-field');
+    const btnCopyDonationPix = document.getElementById('btn-copy-donation-pix');
+
+    if (btnOpenDonation && donationModal) {
+        btnOpenDonation.addEventListener('click', () => {
+            // Reseta o estado do modal antes de abrir
+            if (donationAmountInput) donationAmountInput.value = "5.00";
+            if (donationModalInputArea) donationModalInputArea.style.display = 'block';
+            if (donationModalPixArea) donationModalPixArea.style.display = 'none';
+            
+            donationModal.style.display = 'flex';
+        });
+    }
+
+    if (btnCloseDonationModal && donationModal) {
+        btnCloseDonationModal.addEventListener('click', () => {
+            donationModal.style.display = 'none';
+        });
+        
+        // Fechar clicando fora do card do modal
+        donationModal.addEventListener('click', (e) => {
+            if (e.target === donationModal) {
+                donationModal.style.display = 'none';
+            }
+        });
+    }
+
+    if (btnGenerateDonationPix) {
+        btnGenerateDonationPix.addEventListener('click', async () => {
+            let amount = parseFloat(donationAmountInput.value);
+            if (isNaN(amount) || amount < 1.00) {
+                alert("⚠️ Por favor, insira um valor de apoio de no mínimo R$ 1,00.");
+                return;
+            }
+
+            const originalBtnText = btnGenerateDonationPix.innerHTML;
+            btnGenerateDonationPix.innerHTML = '<div class="pix-status-spinner" style="width:14px; height:14px; margin-right:8px; border-top-color:#fff; display:inline-block; vertical-align:middle;"></div> Gerando Pix...';
+            btnGenerateDonationPix.setAttribute('disabled', 'true');
+
+            const email = session?.user?.email || "apoiador@fiovermelho.com";
+            // O CPF é fictício/simulado para a transação de apoio se não coletado
+            const cpf = "000.000.000-00"; 
+
+            try {
+                if (window.isOfflineMode) {
+                    // --- MODO SIMULADO / OFFLINE ---
+                    if (window.PixService) {
+                        const charge = await window.PixService.generatePixCharge(amount, "apoio_bando");
+                        if (donationQrElement) donationQrElement.src = charge.qrCodeUrl;
+                        if (donationPixCodeField) donationPixCodeField.value = charge.copyPasteCode;
+                        
+                        if (donationModalInputArea) donationModalInputArea.style.display = 'none';
+                        if (donationModalPixArea) donationModalPixArea.style.display = 'block';
+                    }
+                } else {
+                    // --- MODO REAL MERCADO PAGO ---
+                    const response = await fetch('/api/criar-pix', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, cpf, amount })
+                    });
+
+                    if (response.ok) {
+                        const charge = await response.json();
+                        if (donationQrElement) donationQrElement.src = `data:image/jpeg;base64,${charge.qrCodeUrl}`;
+                        if (donationPixCodeField) donationPixCodeField.value = charge.copyPasteCode;
+
+                        if (donationModalInputArea) donationModalInputArea.style.display = 'none';
+                        if (donationModalPixArea) donationModalPixArea.style.display = 'block';
+                    } else {
+                        const errData = await response.json();
+                        throw new Error(errData.error || 'Erro na API');
+                    }
+                }
+            } catch (err) {
+                console.warn("⚠️ API do Mercado Pago indisponível localmente para doações. Iniciando simulação de teste local:", err.message);
+                // Fallback de simulação local caso esteja em ambiente sem serverless
+                if (window.PixService) {
+                    const charge = await window.PixService.generatePixCharge(amount, "apoio_bando");
+                    if (donationQrElement) donationQrElement.src = charge.qrCodeUrl;
+                    if (donationPixCodeField) donationPixCodeField.value = charge.copyPasteCode;
+                    
+                    if (donationModalInputArea) donationModalInputArea.style.display = 'none';
+                    if (donationModalPixArea) donationModalPixArea.style.display = 'block';
+                }
+            } finally {
+                btnGenerateDonationPix.innerHTML = originalBtnText;
+                btnGenerateDonationPix.removeAttribute('disabled');
+            }
+        });
+    }
+
+    if (btnCopyDonationPix && donationPixCodeField) {
+        btnCopyDonationPix.addEventListener('click', () => {
+            donationPixCodeField.select();
+            donationPixCodeField.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(donationPixCodeField.value)
+                .then(() => {
+                    const originalHTML = btnCopyDonationPix.innerHTML;
+                    btnCopyDonationPix.innerHTML = '<i class="fa-solid fa-check" style="color: var(--success-green);"></i>';
+                    setTimeout(() => {
+                        btnCopyDonationPix.innerHTML = originalHTML;
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error("Erro ao copiar código Pix: ", err);
+                    alert("Não foi possível copiar automaticamente. Selecione o código e copie manualmente!");
+                });
+        });
+    }
 });

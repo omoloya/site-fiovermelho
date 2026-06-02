@@ -17,7 +17,7 @@ module.exports = async (req, res) => {
         return res.status(405).json({ error: 'Método não permitido. Utilize POST.' });
     }
 
-    const { email, cpf } = req.body;
+    const { email, cpf, amount } = req.body;
     const token = process.env.MERCADO_PAGO_ACCESS_TOKEN;
 
     if (!email || !cpf) {
@@ -35,6 +35,9 @@ module.exports = async (req, res) => {
         const cleanCpf = cpf.replace(/[^\d]+/g, '');
         console.log(`[criar-pix] Gerando cobrança Pix para o e-mail: ${email}`);
         
+        const chargeAmount = amount ? Math.max(1.00, parseFloat(amount)) : CHAPTER_PRICE;
+        const descriptionText = amount ? "Apoio / Doação ao Autor - Fio Vermelho" : "Validação de Maioridade (ECA) - Fio Vermelho";
+
         // Chamada oficial à API do Mercado Pago (Segura - Lado do Servidor)
         const response = await fetch('https://api.mercadopago.com/v1/payments', {
             method: 'POST',
@@ -44,8 +47,8 @@ module.exports = async (req, res) => {
                 'X-Idempotency-Key': 'key_' + Math.random().toString(36).substring(2, 15)
             },
             body: JSON.stringify({
-                transaction_amount: CHAPTER_PRICE, // Pix oficial para KYC de maioridade e acesso ao capítulo
-                description: "Validação de Maioridade (ECA) - Fio Vermelho",
+                transaction_amount: chargeAmount, 
+                description: descriptionText,
                 payment_method_id: "pix",
                 payer: {
                     email: email || "leitor@fiovermelho.com",
