@@ -3,6 +3,19 @@
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // --- 0.0 Limpeza de Cache de Configuração (Hard Reset) ---
+    const CURRENT_SYSTEM_VERSION = "2.1"; // Versão incrementada para expirar cache antigo do usuário
+    const savedSystemVersion = localStorage.getItem('fio-system-version');
+    if (savedSystemVersion !== CURRENT_SYSTEM_VERSION) {
+        localStorage.removeItem('fio-chapter-1-synopsis');
+        localStorage.removeItem('fio-chapter-2-synopsis');
+        localStorage.removeItem('fio-chapter-1-cover');
+        localStorage.removeItem('fio-chapter-2-cover');
+        localStorage.removeItem('fio-mock-chapters');
+        localStorage.setItem('fio-system-version', CURRENT_SYSTEM_VERSION);
+        console.log("[dashboard.js] Cache expirado. Hard Reset executado para versão " + CURRENT_SYSTEM_VERSION);
+    }
+
     // --- 0. Carregamento de Configurações Dinâmicas do Servidor ---
     fetch('assets/config.json')
         .then(response => {
