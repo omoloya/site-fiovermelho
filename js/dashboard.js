@@ -508,16 +508,17 @@ document.addEventListener('DOMContentLoaded', () => {
         chapters.forEach(chap => {
             const chapIdStr = chap.id.toString();
             const isRead = readChapters.includes(chapIdStr);
+            const cleanId = String(chap.id).trim();
             
             // Define Thumbnail fallback
-            let thumbSrc = `assets/chapter${chap.id}_thumb.jpg`;
+            let thumbSrc = `assets/chapter${cleanId}_thumb.jpg`;
             let isUsingSupabase = false;
             
             if (!window.isOfflineMode && window.supabase) {
                 try {
                     const res = window.supabase.storage
                         .from('paginas-quadrinho')
-                        .getPublicUrl(`capitulo-${chap.id}/pagina-1.webp`);
+                        .getPublicUrl(`capitulo-${cleanId}/pagina-1.webp`);
                     if (res && res.data && res.data.publicUrl) {
                         thumbSrc = res.data.publicUrl;
                         isUsingSupabase = true;
@@ -532,7 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error("Erro ao obter URL publica do storage:", urlErr);
                 }
             } else if (window.isOfflineMode) {
-                const sessionKey = `fio-temp-page-${chap.id}-1`;
+                const sessionKey = `fio-temp-page-${cleanId}-1`;
                 const tempUrl = sessionStorage.getItem(sessionKey);
                 thumbSrc = tempUrl || `assets/chapter1_thumb.jpg`; // Fallback
             }
@@ -541,10 +542,10 @@ document.addEventListener('DOMContentLoaded', () => {
             let finalSynopsis = "";
             let finalCover = "";
 
-            if (String(chap.id).trim() === "2") {
+            if (cleanId === "2" || parseInt(cleanId) === 2) {
                 finalSynopsis = `Quando o seu pai te liga de madrugada, te chama pelo apelido de criança e pede para você levar um pudim e um estoque de desinfetante, você já sabe que o turno extra vai ser sujo. Sem a ajuda do guarda-costas oficial, o coroa intimou os pirralhos para assumirem o serviço doméstico de emergência. Mas quando o mais velho manda, os mais novos obedecem, por lealdade e, principalmente, amor.`;
                 finalCover = "assets/capitulo_2.webp?v=2";
-            } else if (String(chap.id).trim() === "1") {
+            } else if (cleanId === "1" || parseInt(cleanId) === 1) {
                 finalSynopsis = "O chefe dormiu de novo. Agora cabe ao resto do grupo...";
                 finalCover = "assets/capitulo_1.webp";
             } else {
@@ -562,10 +563,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             chapterCard.innerHTML = `
                 <div class="chapter-card-thumb-container">
-                    <img src="${finalCover}" alt="Capítulo ${chap.id} Thumbnail" class="chapter-card-thumb" id="thumb-cap-${chap.id}" onerror="this.onerror=null; this.src='assets/default_cover.webp';">
+                    <img src="${finalCover}" alt="Capítulo ${chap.id} Thumbnail" class="chapter-card-thumb" id="thumb-cap-${cleanId}" onerror="this.onerror=null; this.src='assets/default_cover.webp';">
                     <div class="chapter-card-overlay">
                         <div class="chapter-card-overlay-top">
-                            <span class="chapter-card-status-badge ${isRead ? 'chapter-badge-read' : 'chapter-badge-unread'}" id="badge-cap-${chap.id}">
+                            <span class="chapter-card-status-badge ${isRead ? 'chapter-badge-read' : 'chapter-badge-unread'}" id="badge-cap-${cleanId}">
                                 ${isRead ? 'Lido' : 'Não Lido'}
                             </span>
                         </div>
@@ -579,13 +580,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Clique no card abre ou fecha o drawer embutido
             chapterCard.addEventListener('click', () => {
-                toggleChapterDrawer(chap.id);
+                toggleChapterDrawer(cleanId);
             });
 
             // Cria a aba expansiva logo abaixo do card no DOM
             const drawer = document.createElement('div');
             drawer.className = 'chapter-drawer';
-            drawer.id = `drawer-cap-${chap.id}`;
+            drawer.id = `drawer-cap-${cleanId}`;
             
             const isPago = !!chap.isPago;
             const priceVal = chap.price || 1.50;
@@ -599,11 +600,15 @@ document.addEventListener('DOMContentLoaded', () => {
             drawer.innerHTML = `
                 <div class="chapter-drawer-inner">
                     <div class="chapter-drawer-content">
+                        <!-- Capa do capítulo na gaveta -->
+                        <div class="chapter-drawer-cover">
+                            <img src="${finalCover}" alt="Capa do Capítulo ${chap.id}" onerror="this.onerror=null; this.src='assets/default_cover.webp';">
+                        </div>
                         <div class="chapter-drawer-info">
                             <div class="chapter-drawer-meta-row">
                                 <span class="modal-chapter-number">Capítulo ${chap.id.toString().padStart(2, '0')}</span>
                                 <span class="modal-chapter-date">${chap.release_date || 'Data não disponível'}</span>
-                                <span class="tag-badge ${isRead ? 'chapter-badge-read' : 'chapter-badge-unread'}" id="drawer-badge-cap-${chap.id}">
+                                <span class="tag-badge ${isRead ? 'chapter-badge-read' : 'chapter-badge-unread'}" id="drawer-badge-cap-${cleanId}">
                                     ${isRead ? 'Lido' : 'Não Lido'}
                                 </span>
                                 ${priceBadgeHTML}
@@ -613,10 +618,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <p>${finalSynopsis}</p>
                             </div>
                             <div class="chapter-drawer-actions">
-                                <a href="ler.html?cap=${chap.id}" class="btn btn-primary read-btn">
+                                <a href="ler.html?cap=${cleanId}" class="btn btn-primary read-btn">
                                     <i class="fa-solid fa-book-open" style="margin-right: 8px;"></i> ${buttonText}
                                 </a>
-                                <button class="btn btn-secondary btn-toggle-read" id="drawer-btn-toggle-${chap.id}" type="button">
+                                <button class="btn btn-secondary btn-toggle-read" id="drawer-btn-toggle-${cleanId}" type="button">
                                     ${isRead 
                                         ? '<i class="fa-solid fa-circle-xmark" style="margin-right: 8px;"></i> Marcar como Não Lido'
                                         : '<i class="fa-regular fa-circle-check" style="margin-right: 8px;"></i> Marcar como Lido'}
@@ -628,9 +633,15 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
 
             // Onde a imagem da capa do capítulo é definida
-            const elementoImg = chapterCard.querySelector(`#thumb-cap-${chap.id}`);
+            const elementoImg = chapterCard.querySelector(`#thumb-cap-${cleanId}`);
             if (elementoImg) {
                 elementoImg.src = finalCover;
+            }
+
+            // Onde a capa do capítulo na gaveta é definida
+            const elementoImgDrawer = drawer.querySelector('.chapter-drawer-cover img');
+            if (elementoImgDrawer) {
+                elementoImgDrawer.src = finalCover;
             }
 
             // Onde o texto da sinopse da gaveta é injetado
@@ -639,17 +650,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 elementoText.textContent = finalSynopsis;
             }
 
+            // Logs de diagnóstico em console.group para rastrear problemas de DOM ou CSS
+            console.group(`[DOM Render Diagnostic - Cap ${cleanId}]`);
+            console.log("ID original do banco:", chap.id, " | ID sanitizado (cleanId):", cleanId);
+            console.log("Variável finalCover vinculada:", finalCover);
+            console.log("Variável finalSynopsis vinculada:", finalSynopsis.substring(0, 40) + "...");
+            console.log("Seletor imagem do card (#thumb-cap-...):", elementoImg ? "OK" : "NULO");
+            console.log("Seletor imagem da gaveta (.chapter-drawer-cover img):", elementoImgDrawer ? "OK" : "NULO");
+            console.log("Seletor texto da sinopse (.chapter-drawer-synopsis p):", elementoText ? "OK" : "NULO");
+            console.groupEnd();
+
             console.log(`[DOM Render] Cap: ${chap.id} | Capa aplicada: ${finalCover} | Texto aplicado: ${finalSynopsis.substring(0, 20)}...`);
 
             // Configurar clique no botão de marcar lido/não lido da aba expansiva
-            const toggleBtn = drawer.querySelector(`#drawer-btn-toggle-${chap.id}`);
+            const toggleBtn = drawer.querySelector(`#drawer-btn-toggle-${cleanId}`);
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', (e) => {
                     e.stopPropagation(); // Evita cliques no drawer de fechar a aba
                     
                     const nowRead = readChapters.includes(chapIdStr);
-                    const badgeCard = document.getElementById(`badge-cap-${chap.id}`);
-                    const drawerBadge = document.getElementById(`drawer-badge-cap-${chap.id}`);
+                    const badgeCard = document.getElementById(`badge-cap-${cleanId}`);
+                    const drawerBadge = document.getElementById(`drawer-badge-cap-${cleanId}`);
 
                     if (nowRead) {
                         readChapters = readChapters.filter(id => id !== chapIdStr);
