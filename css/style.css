@@ -1432,3 +1432,53 @@ a {
         user-select: none !important;
     }
 }
+
+/* ==========================================================================
+   MOBILE HEADER NAVIGATION & TOUCH REORGANIZATION
+   ========================================================================== */
+@media (max-width: 768px) {
+    .nav-container {
+        position: relative !important;
+        z-index: 110 !important; /* Superior ao z-index da aba expansiva e outros elementos */
+        flex-direction: column !important; /* Alinhamento vertical para otimizar espaço */
+        gap: 12px !important;
+        padding: 16px 12px !important;
+        align-items: center !important;
+        background: rgba(10, 10, 14, 0.96) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border-bottom: 1px solid rgba(255, 42, 59, 0.15) !important; /* Glow sutil noir */
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .nav-actions {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+        width: 100% !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+
+    #user-display-email {
+        width: 100% !important;
+        text-align: center !important;
+        margin-bottom: 4px !important;
+        font-size: 0.8rem !important;
+        display: block !important; /* Força quebra de linha individual acima dos botões */
+    }
+
+    .nav-actions .btn {
+        flex: 1 !important; /* Distribui botões Admin e Sair com larguras iguais */
+        min-width: 120px !important;
+        min-height: 44px !important; /* Diretriz de toque recomendada de 44px */
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 10px 16px !important;
+        font-size: 0.85rem !important;
+        border-radius: var(--radius-sm) !important;
+        box-sizing: border-box !important;
+        margin: 0 !important; /* Limpa margens inline antigas para alinhar perfeitamente */
+    }
+}
