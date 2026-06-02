@@ -371,9 +371,9 @@ document.addEventListener('DOMContentLoaded', () => {
             title: "O Laço Carmim", 
             pages_count: 4, 
             release_date: "29 de Maio, 2026",
-            synopsis: "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.",
+            synopsis: "blablablablabla mmahjaaanabak",
             price: 1.50,
-            cover: "assets/chapter3_thumb.jpg"
+            cover: "assets/capitulo_2.webp"
         }
     ];
 
@@ -550,6 +550,9 @@ document.addEventListener('DOMContentLoaded', () => {
 Agora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivais, anime e o que vão fazer no próximo dia de folga.
 Cochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.`;
                 finalCover = "assets/capitulo_1.webp";
+            } else if (cleanId === "3" || parseInt(cleanId) === 3) {
+                finalSynopsis = "blablablablabla mmahjaaanabak";
+                finalCover = "assets/capitulo_2.webp";
             } else {
                 finalSynopsis = chap.synopsis || "Sinopse em breve.";
                 finalCover = chap.cover_url || "assets/default_cover.webp";
