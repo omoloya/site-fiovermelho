@@ -477,7 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 2: "A tensão atinge o ponto de ruptura. Quando pendências do passado retornam para cobrar sua parte do sangue, os laços de lealdade são colocados à prova máxima nas vielas escuras. As escolhas feitas hoje definirão quem sobreviverá ao amanhã.",
                 3: "A revelação final e o peso do fio de sangue. Kensuke descobre que proteger sua família exige sacrifícios que ele talvez não esteja preparado para fazer. A teia do destino se fecha, restando apenas agir antes que seja tarde demais."
             };
-            const defaultSynopsis = "[Esta não é uma história sobre heróis ou vilões. Prepare-se para vivenciar os dilemas morais, conflitos bizarros e laços afetivos profundos desta família marginalizada em Chinatown...]";
+            const defaultSynopsis = "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.";
             const synopsisText = synopses[chap.id] || defaultSynopsis;
 
             drawer.innerHTML = `
