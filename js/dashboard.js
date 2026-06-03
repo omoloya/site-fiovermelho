@@ -507,7 +507,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             editBtn.innerHTML = '<div class="pix-status-spinner" style="width:14px; height:14px; margin-right:8px; border-top-color:#fff; display:inline-block; vertical-align:middle;"></div> Salvando...';
                             editBtn.setAttribute('disabled', 'true');
                             
-                            // 1. Controle de erros com try/catch isolado ao redor do update do Supabase (para capturar RLS)
                             try {
                                 if (window.isOfflineMode) {
                                     // Atualiza no array local/LocalStorage mock
@@ -519,35 +518,34 @@ document.addEventListener('DOMContentLoaded', () => {
                                     
                                     localStorage.setItem('fio-mock-chapters', JSON.stringify(chapters));
                                 } else if (window.supabase) {
-                                    // Supabase update
-                                    const { error } = await window.supabase
+                                    // Supabase update com .select() ao final da query para evitar congelamento de Promise
+                                    const { data, error } = await window.supabase
                                         .from('chapters')
                                         .update({ synopsis: newSynopsis })
-                                        .eq('id', chap.id);
+                                        .eq('id', chap.id)
+                                        .select();
                                         
                                     if (error) {
-                                        console.log(error);
-                                        console.error("[Supabase Update Error - RLS Check]:", error);
+                                        console.log("Erro do Supabase:", error);
                                         alert("⚠️ Restrição de RLS/Permissão detectada no Supabase. O erro foi logado no console.");
                                     }
                                 }
                             } catch (err) {
-                                console.log(err);
-                                console.error("[Supabase Connection Error]:", err);
+                                console.log("Erro do Supabase:", err);
                                 alert("⚠️ Erro de rede ou conexão ao tentar atualizar o banco.");
+                            } finally {
+                                // 2. ATUALIZAÇÃO DO DOM (Injeta o texto digitado de volta no parágrafo síncronamente)
+                                container.innerHTML = `<p class="chapter-synopsis"></p>`;
+                                container.querySelector('.chapter-synopsis').textContent = newSynopsis;
+                                
+                                // Atualiza a propriedade do capítulo em memória para manter o sincronismo se reaberto
+                                chap.synopsis = newSynopsis;
+     
+                                // 3. ALTERNÂNCIA DE INTERFACE (Oculta o campo de edição e volta o botão ao estado normal)
+                                editBtn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar Sinopse';
+                                editBtn.className = 'btn btn-secondary btn-edit-synopsis';
+                                editBtn.removeAttribute('disabled');
                             }
-                            
-                            // 2. ATUALIZAÇÃO DO DOM (Injeta o texto digitado de volta no parágrafo síncronamente)
-                            container.innerHTML = `<p class="chapter-synopsis"></p>`;
-                            container.querySelector('.chapter-synopsis').textContent = newSynopsis;
-                            
-                            // Atualiza a propriedade do capítulo em memória para manter o sincronismo se reaberto
-                            chap.synopsis = newSynopsis;
- 
-                            // 3. ALTERNÂNCIA DE INTERFACE (Oculta o campo de edição e volta o botão ao estado normal)
-                            editBtn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar Sinopse';
-                            editBtn.className = 'btn btn-secondary btn-edit-synopsis';
-                            editBtn.removeAttribute('disabled');
                         }
                     });
                 }
