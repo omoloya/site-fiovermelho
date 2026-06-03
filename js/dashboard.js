@@ -436,27 +436,20 @@ document.addEventListener('DOMContentLoaded', () => {
             itemLink.className = 'chapter-list-item';
             itemLink.href = `ler.html?cap=${cleanId}`;
 
-            let thumbnailHTML = '';
             let extraTextHTML = '';
             let displayTitle = chap.title;
             if (cleanId === '1') {
                 displayTitle = "Fim de Turno";
-                thumbnailHTML = `
-                    <img src="assets/capitulo_1.webp" alt="Capítulo 1 Thumbnail" style="width: 100px; height: 100px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid rgba(255, 42, 59, 0.2); flex-shrink: 0;" />
-                `;
                 extraTextHTML = `
                     <div style="color: #ffffff; font-size: 0.9rem; line-height: 1.5; margin-top: 8px; font-weight: normal; max-width: 100%; white-space: pre-line;">O chefe dormiu de novo. Agora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga. Cochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.</div>
                 `;
             }
 
             itemLink.innerHTML = `
-                <div style="display: flex; align-items: flex-start; gap: 16px; flex: 1;">
-                    ${thumbnailHTML}
-                    <div style="display: flex; flex-direction: column; align-items: flex-start; flex: 1;">
-                        <span class="chapter-number">Capítulo ${chap.id}</span>
-                        <span class="chapter-title" style="margin-top: 2px;">${displayTitle}</span>
-                        ${extraTextHTML}
-                    </div>
+                <div style="display: flex; flex-direction: column; align-items: flex-start; flex: 1;">
+                    <span class="chapter-number">Capítulo ${chap.id}</span>
+                    <span class="chapter-title" style="margin-top: 2px;">${displayTitle}</span>
+                    ${extraTextHTML}
                 </div>
             `;
 
