@@ -3,6 +3,9 @@
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Esconde o body por padrão até validar as permissões de admin de forma segura
+    document.body.style.display = 'none';
+
     // --- 1. Proteção de Rota & Sessão com Whitelist de Email ---
     if (!window.sessionHelper) {
         console.error("Erro: sessionHelper não foi inicializado.");
@@ -16,14 +19,38 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    const adminEmails = (window.env && window.env.ADMIN_EMAILS) || [];
-    const isAdmin = session && session.user && adminEmails.includes(session.user.email);
+    (async () => {
+        let isAuthor = false;
+        if (window.isOfflineMode) {
+            const offlineAdmins = ["miles.kensuke@gmail.com", "omoloyaartes@gmail.com"];
+            isAuthor = session && session.user && offlineAdmins.includes(session.user.email);
+        } else {
+            try {
+                const { data: authData } = await window.supabase.auth.getSession();
+                const sessionToken = authData?.session?.access_token;
+                if (sessionToken) {
+                    const adminCheckRes = await fetch('/api/verificar-admin', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: sessionToken })
+                    });
+                    if (adminCheckRes.ok) {
+                        const adminCheckJson = await adminCheckRes.json();
+                        isAuthor = adminCheckJson.isAdmin;
+                    }
+                }
+            } catch (e) {
+                console.error("Falha ao verificar status de admin no painel:", e);
+            }
+        }
 
-    if (!isAdmin) {
-        alert("Acesso Negado! Este painel é de uso exclusivo dos administradores e autores de Fio Vermelho.");
-        window.location.replace('dashboard.html');
-        return;
-    }
+        if (!isAuthor) {
+            alert("Acesso Negado! Este painel é de uso exclusivo dos administradores e autores de Fio Vermelho.");
+            window.location.replace('dashboard.html');
+        } else {
+            document.body.style.display = ''; // Restaura o display original
+        }
+    })();
 
     // --- DOM Elements ---
     const chapterForm = document.getElementById('admin-chapter-form');
@@ -490,7 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (window.supabase) {
                     const { data, error } = await window.supabase
                         .from('chapters')
-                        .select('*')
+                        .select('id, title, pages_count, release_date')
                         .order('id', { ascending: true });
 
                     if (!error && data && data.length > 0) {

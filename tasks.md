@@ -20,6 +20,11 @@ Lista de tarefas organizada para o desenvolvimento do site do quadrinho digital 
     - [x] Update `admin_system_specifications.md` to correct the canvas compression specifications (1600px width limit, 0.85 quality)
     - [x] Delete `chapter_1_technical_specs.md` and `chapter_2_technical_specs.md`
     - [x] Create `chapters_technical_specs.md` to document Chapters 1-4 with direct links, white styling, and reader properties
+- [x] Frontend Security Optimization
+    - [x] Create serverless function `api/verificar-admin.js`
+    - [x] Remove `ADMIN_EMAILS` from `scripts/build-env.js` and client-side `env.js`
+    - [x] Audit and optimize Supabase queries to select specific columns in `js/dashboard.js`, `js/ler.js`, `js/admin.js`, and `js/auth.js`
+    - [x] Refactor client-side logic to remove hardcoded whitelist arrays and fetch `/api/verificar-admin` instead
 - [x] Desenvolver o serviço modular de pagamento `js/services/pixService.js` (com mock expansível para APIs reais).
 - [x] Desenvolver o fluxo de autenticação e verificação em `js/auth.js` conectando ao Supabase.
 - [x] Implementar a proteção de rotas no `dashboard.html` e `ler.html` via `js/dashboard.js` e `js/ler.js`.

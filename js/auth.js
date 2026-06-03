@@ -186,10 +186,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let userId = null;
 
-            // Sobregravação automática de verificação para administradores autorizados no Cadastro!
-            const adminEmails = (window.env && window.env.ADMIN_EMAILS) || [];
-            const isAdminEmail = adminEmails.includes(email);
-            const initialStatus = isAdminEmail ? 'verificado' : 'pendente_verificacao';
+            // Sobregravação automática de verificação para administradores autorizados no Cadastro (Apenas Mock Offline)
+            let isAdminEmail = false;
+            let initialStatus = 'pendente_verificacao';
+
+            if (window.isOfflineMode) {
+                const offlineAdmins = ["miles.kensuke@gmail.com", "omoloyaartes@gmail.com"];
+                isAdminEmail = offlineAdmins.includes(email);
+                initialStatus = isAdminEmail ? 'verificado' : 'pendente_verificacao';
+            }
 
             // 3. Cadastra a Conta Primeiro
             if (window.isOfflineMode) {
@@ -244,10 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Cria o usuário de autenticação no Supabase Auth
                         const { data: authData, error: authError } = await window.supabase.auth.signUp({
                             email: email,
-                            password: password,
-                            options: {
-                                data: { is_verified: isAdminEmail }
-                            }
+                            password: password
                         });
 
                         if (authError) throw authError;
@@ -260,22 +262,18 @@ document.addEventListener('DOMContentLoaded', () => {
                                 id: userId,
                                 email: email,
                                 cpf: cleanCpf,
-                                status: initialStatus
-                            }]);
+                                status: 'pendente_verificacao'
+                            }])
+                            .select();
 
                         if (profileError) throw profileError;
 
                         if (window.sessionHelper) {
-                            window.sessionHelper.setSession(email, isAdminEmail, userId);
+                            window.sessionHelper.setSession(email, false, userId);
                         }
 
-                        if (isAdminEmail) {
-                            alert("🧶 Bem-vindo, Administrador! Cadastro efetuado com verificação automática.");
-                            window.location.href = 'dashboard.html';
-                        } else {
-                            // Dispara Geração de Pix Real via endpoint do Mercado Pago
-                            await initiatePixGeneration(email, cleanCpf, userId, submitBtn);
-                        }
+                        // Dispara Geração de Pix Real via endpoint do Mercado Pago
+                        await initiatePixGeneration(email, cleanCpf, userId, submitBtn);
                     }
                 } catch (err) {
                     console.error("Erro no cadastro:", err.message);
@@ -550,8 +548,30 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
 
                         // Sobregravação/Override de Conveniência e Segurança para administradores!
-                        const adminEmails = (window.env && window.env.ADMIN_EMAILS) || [];
-                        if (adminEmails.includes(email)) {
+                        let isUserAdmin = false;
+                        if (window.isOfflineMode) {
+                            const offlineAdmins = ["miles.kensuke@gmail.com", "omoloyaartes@gmail.com"];
+                            isUserAdmin = offlineAdmins.includes(email);
+                        } else {
+                            try {
+                                const sessionToken = data.session?.access_token;
+                                if (sessionToken) {
+                                    const adminCheckRes = await fetch('/api/verificar-admin', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ token: sessionToken })
+                                    });
+                                    if (adminCheckRes.ok) {
+                                        const adminCheckJson = await adminCheckRes.json();
+                                        isUserAdmin = adminCheckJson.isAdmin;
+                                    }
+                                }
+                            } catch (e) {
+                                console.error("Falha ao verificar status de admin no login:", e);
+                            }
+                        }
+
+                        if (isUserAdmin) {
                             isVerified = true;
                             
                             // Se o profile do admin não existir no banco (ex: criado direto no painel auth), cria agora
@@ -559,7 +579,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 try {
                                     await window.supabase
                                         .from('profiles')
-                                        .insert([{ id: data.user.id, email: email, status: 'verificado' }]);
+                                        .insert([{ id: data.user.id, email: email, status: 'verificado' }])
+                                        .select();
                                 } catch (insertErr) {
                                     console.warn("Falha ao registrar perfil de admin no banco (RLS ou restrição de insert):", insertErr);
                                 }
@@ -569,7 +590,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     await window.supabase
                                         .from('profiles')
                                         .update({ status: 'verificado' })
-                                        .eq('id', data.user.id);
+                                        .eq('id', data.user.id)
+                                        .select();
                                 } catch (updateErr) {
                                     console.warn("Falha ao promover status do admin no banco (RLS restringe atualização de status):", updateErr);
                                 }

@@ -9,5 +9,7 @@
   "scripts": {
     "build": "node scripts/build-env.js"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.4"
+  }
 }

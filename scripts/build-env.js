@@ -4,9 +4,6 @@ const path = require('path');
 // Obtém as chaves das variáveis de ambiente de produção
 const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
-const adminEmails = process.env.ADMIN_EMAILS || 'miles.kensuke@gmail.com, omoloyaartes@gmail.com';
-
-const adminEmailsArray = adminEmails.split(',').map(e => e.trim());
 
 // Conteúdo formatado sem risco de aspas quebradas ou injeção de template literals
 const fileContent = [
@@ -16,8 +13,7 @@ const fileContent = [
     "",
     "window.env = {",
     "    SUPABASE_URL: " + JSON.stringify(supabaseUrl) + ",",
-    "    SUPABASE_ANON_KEY: " + JSON.stringify(supabaseAnonKey) + ",",
-    "    ADMIN_EMAILS: " + JSON.stringify(adminEmailsArray),
+    "    SUPABASE_ANON_KEY: " + JSON.stringify(supabaseAnonKey) + "",
     "};",
     ""
 ].join("\n");

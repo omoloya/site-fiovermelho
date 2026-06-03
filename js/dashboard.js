@@ -17,78 +17,114 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 1.2 Proteção de Propriedade Intelectual (ECA & Direitos Autorais) ---
-    const adminWhitelist = ["miles.kensuke@gmail.com", "omoloyaartes@gmail.com"];
-    const isSuperAdmin = session && session.user && adminWhitelist.includes(session.user.email);
+    // --- 1.2 Proteção de Propriedade Intelectual (ECA & Direitos Autorais) ---
+    let isSuperAdmin = false;
 
-    if (!isSuperAdmin) {
-        // Bloquear Clique Direito (contextmenu) nas imagens e página
-        document.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            return false;
-        });
+    function applyIntellectualPropertyProtection() {
+        if (!isSuperAdmin) {
+            // Bloquear Clique Direito (contextmenu) nas imagens e página
+            document.addEventListener('contextmenu', (e) => {
+                if (isSuperAdmin) return;
+                e.preventDefault();
+                return false;
+            });
 
-        // Bloquear Atalhos de Cópia e Ferramentas do Desenvolvedor (F12, Ctrl+S, Ctrl+C, Ctrl+Shift+I, Cmd+Option+I)
-        document.addEventListener('keydown', (e) => {
-            // F12
-            if (e.key === 'F12' || e.keyCode === 123) {
-                e.preventDefault();
-                return false;
-            }
-            // Ctrl+S / Cmd+S
-            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                e.preventDefault();
-                return false;
-            }
-            // Ctrl+C / Cmd+C
-            if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-                e.preventDefault();
-                return false;
-            }
-            // Ctrl+Shift+I / Cmd+Option+I
-            if ((e.ctrlKey && e.shiftKey && e.key === 'I') || (e.metaKey && e.altKey && e.key === 'i')) {
-                e.preventDefault();
-                return false;
-            }
-            // Ctrl+Shift+J / Cmd+Option+J
-            if ((e.ctrlKey && e.shiftKey && e.key === 'J') || (e.metaKey && e.altKey && e.key === 'j')) {
-                e.preventDefault();
-                return false;
-            }
-            // Ctrl+U / Cmd+U (View Source)
-            if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
-                e.preventDefault();
-                return false;
-            }
-        });
-
-        // Bloquear Arrastar (Drag and Drop)
-        document.addEventListener('dragstart', (e) => {
-            if (e.target.tagName === 'IMG') {
-                e.preventDefault();
-                return false;
-            }
-        });
-
-        // Aplicar draggable="false" e classe protected-image periodicamente nas imagens
-        setInterval(() => {
-            document.querySelectorAll('img').forEach(img => {
-                if (!img.classList.contains('protected-image')) {
-                    img.classList.add('protected-image');
-                    img.setAttribute('draggable', 'false');
+            // Bloquear Atalhos de Cópia e Ferramentas do Desenvolvedor (F12, Ctrl+S, Ctrl+C, Ctrl+Shift+I, Cmd+Option+I)
+            document.addEventListener('keydown', (e) => {
+                if (isSuperAdmin) return;
+                // F12
+                if (e.key === 'F12' || e.keyCode === 123) {
+                    e.preventDefault();
+                    return false;
+                }
+                // Ctrl+S / Cmd+S
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    return false;
+                }
+                // Ctrl+C / Cmd+C
+                if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+                    e.preventDefault();
+                    return false;
+                }
+                // Ctrl+Shift+I / Cmd+Option+I
+                if ((e.ctrlKey && e.shiftKey && e.key === 'I') || (e.metaKey && e.altKey && e.key === 'i')) {
+                    e.preventDefault();
+                    return false;
+                }
+                // Ctrl+Shift+J / Cmd+Option+J
+                if ((e.ctrlKey && e.shiftKey && e.key === 'J') || (e.metaKey && e.altKey && e.key === 'j')) {
+                    e.preventDefault();
+                    return false;
+                }
+                // Ctrl+U / Cmd+U (View Source)
+                if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+                    e.preventDefault();
+                    return false;
                 }
             });
-        }, 500);
-    } else {
-        // Exceção de Admin: garante que nenhuma trava ou classe protected permaneça ativa
-        setInterval(() => {
-            document.querySelectorAll('img').forEach(img => {
-                if (img.classList.contains('protected-image')) {
-                    img.classList.remove('protected-image');
-                    img.removeAttribute('draggable');
+
+            // Bloquear Arrastar (Drag and Drop)
+            document.addEventListener('dragstart', (e) => {
+                if (isSuperAdmin) return;
+                if (e.target.tagName === 'IMG') {
+                    e.preventDefault();
+                    return false;
                 }
             });
-        }, 500);
+
+            // Aplicar draggable="false" e classe protected-image periodicamente nas imagens
+            const protectInterval = setInterval(() => {
+                if (isSuperAdmin) {
+                    clearInterval(protectInterval);
+                    return;
+                }
+                document.querySelectorAll('img').forEach(img => {
+                    if (!img.classList.contains('protected-image')) {
+                        img.classList.add('protected-image');
+                        img.setAttribute('draggable', 'false');
+                    }
+                });
+            }, 500);
+        }
     }
+
+    // Inicializa a proteção imediatamente por segurança
+    applyIntellectualPropertyProtection();
+
+    // Valida dinamicamente se o usuário é super admin e remove a proteção se for
+    (async () => {
+        if (window.isOfflineMode) {
+            const offlineAdmins = ["miles.kensuke@gmail.com", "omoloyaartes@gmail.com"];
+            isSuperAdmin = session && session.user && offlineAdmins.includes(session.user.email);
+        } else {
+            try {
+                const { data: authData } = await window.supabase.auth.getSession();
+                const sessionToken = authData?.session?.access_token;
+                if (sessionToken) {
+                    const adminCheckRes = await fetch('/api/verificar-admin', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: sessionToken })
+                    });
+                    if (adminCheckRes.ok) {
+                        const adminCheckJson = await adminCheckRes.json();
+                        isSuperAdmin = adminCheckJson.isAdmin;
+                    }
+                }
+            } catch (e) {
+                console.error("Falha ao verificar status de admin no dashboard:", e);
+            }
+        }
+
+        // Se for admin, garante que nenhuma trava ou classe protected permaneça ativa
+        if (isSuperAdmin) {
+            document.querySelectorAll('img').forEach(img => {
+                img.classList.remove('protected-image');
+                img.removeAttribute('draggable');
+            });
+        }
+    })();
 
     // --- 1.1 Verificação de Maioridade / Status do Perfil (ECA) ---
     try {
@@ -169,8 +205,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Sobregravação automática de verificação para e-mails administradores autorizados!
-        const adminEmails = (window.env && window.env.ADMIN_EMAILS) || [];
-        if (session && session.user && adminEmails.includes(session.user.email)) {
+        let isUserAdmin = false;
+        if (window.isOfflineMode) {
+            const offlineAdmins = ["miles.kensuke@gmail.com", "omoloyaartes@gmail.com"];
+            isUserAdmin = session && session.user && offlineAdmins.includes(session.user.email);
+        } else {
+            try {
+                const { data: authData } = await window.supabase.auth.getSession();
+                const sessionToken = authData?.session?.access_token;
+                if (sessionToken) {
+                    const adminCheckRes = await fetch('/api/verificar-admin', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: sessionToken })
+                    });
+                    if (adminCheckRes.ok) {
+                        const adminCheckJson = await adminCheckRes.json();
+                        isUserAdmin = adminCheckJson.isAdmin;
+                    }
+                }
+            } catch (e) {
+                console.error("Falha ao verificar status de admin no status check:", e);
+            }
+        }
+
+        if (isUserAdmin) {
             status = 'pago';
         }
 
@@ -333,18 +392,43 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Habilita o botão Admin no painel APENAS para os dois administradores oficiais
-    const officialAdmins = ["miles.kensuke@gmail.com", "omoloyaartes@gmail.com"];
-    const isOfficialAdmin = session && session.user && officialAdmins.includes(session.user.email);
-
+    // Habilita o botão Admin no painel APENAS para administradores validados
     const adminBtn = document.getElementById('btn-admin-panel');
     if (adminBtn) {
-        if (isOfficialAdmin) {
-            adminBtn.classList.add('is-admin');
-            adminBtn.style.setProperty('display', 'inline-flex', 'important');
-        } else {
-            adminBtn.remove(); // Remove completamente do DOM para segurança absoluta de não-administradores
-        }
+        adminBtn.style.display = 'none'; // Esconde inicialmente por segurança
+        
+        (async () => {
+            let isOfficialAdmin = false;
+            if (window.isOfflineMode) {
+                const offlineAdmins = ["miles.kensuke@gmail.com", "omoloyaartes@gmail.com"];
+                isOfficialAdmin = session && session.user && offlineAdmins.includes(session.user.email);
+            } else {
+                try {
+                    const { data: authData } = await window.supabase.auth.getSession();
+                    const sessionToken = authData?.session?.access_token;
+                    if (sessionToken) {
+                        const adminCheckRes = await fetch('/api/verificar-admin', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ token: sessionToken })
+                        });
+                        if (adminCheckRes.ok) {
+                            const adminCheckJson = await adminCheckRes.json();
+                            isOfficialAdmin = adminCheckJson.isAdmin;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Falha ao verificar status de admin para exibir botão:", e);
+                }
+            }
+            
+            if (isOfficialAdmin) {
+                adminBtn.classList.add('is-admin');
+                adminBtn.style.setProperty('display', 'inline-flex', 'important');
+            } else {
+                adminBtn.remove(); // Remove completamente do DOM
+            }
+        })();
     }
 
     const defaultChapters = [
@@ -401,7 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (window.supabase) {
                     const { data, error } = await window.supabase
                         .from('chapters')
-                        .select('*')
+                        .select('id, title, pages_count, release_date, synopsis')
                         .order('id', { ascending: true });
 
                     if (!error && data && data.length > 0) {
