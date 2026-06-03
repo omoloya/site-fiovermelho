@@ -423,14 +423,125 @@ document.addEventListener('DOMContentLoaded', () => {
         gridContainer.innerHTML = '';
 
         chapters.forEach(chap => {
-            const link = document.createElement('a');
-            link.className = 'chapter-list-item';
-            link.href = `ler.html?cap=${chap.id}`;
-            link.innerHTML = `
+            const cleanId = String(chap.id).trim();
+            
+            // 1. Cria a linha/caixa clicável
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'chapter-list-item';
+            itemDiv.setAttribute('data-id', cleanId);
+            itemDiv.innerHTML = `
                 <span class="chapter-number">Capítulo ${chap.id}</span>
                 <span class="chapter-title">${chap.title}</span>
             `;
-            gridContainer.appendChild(link);
+
+            // 2. Cria a gaveta acordeão
+            const drawerDiv = document.createElement('div');
+            drawerDiv.className = 'chapter-list-drawer';
+            drawerDiv.id = `drawer-cap-${cleanId}`;
+
+            const adminButtonHTML = isSuperAdmin 
+                ? `<button class="btn btn-secondary btn-edit-synopsis"><i class="fa-solid fa-pen-to-square"></i> Editar Sinopse</button>`
+                : '';
+
+            drawerDiv.innerHTML = `
+                <div class="chapter-list-drawer-inner">
+                    <div class="synopsis-container">
+                        <p class="chapter-synopsis">${chap.synopsis || 'Sinopse em breve.'}</p>
+                    </div>
+                    <div class="chapter-drawer-actions">
+                        <a href="ler.html?cap=${cleanId}" class="btn btn-primary">
+                            <i class="fa-solid fa-book-open"></i> Ler Capítulo
+                        </a>
+                        ${adminButtonHTML}
+                    </div>
+                </div>
+            `;
+
+            // 3. Comportamento do Clique (Accordion)
+            itemDiv.addEventListener('click', () => {
+                const isActive = drawerDiv.classList.contains('active');
+                
+                // Fecha todas as outras gavetas e inativa outros itens
+                document.querySelectorAll('.chapter-list-drawer').forEach(d => {
+                    if (d !== drawerDiv) d.classList.remove('active');
+                });
+                document.querySelectorAll('.chapter-list-item').forEach(item => {
+                    if (item !== itemDiv) item.classList.remove('active');
+                });
+
+                // Toggle na gaveta atual
+                drawerDiv.classList.toggle('active', !isActive);
+                itemDiv.classList.toggle('active', !isActive);
+            });
+
+            // 4. Lógica do Painel de Edição In-Place para Admin
+            if (isSuperAdmin) {
+                const editBtn = drawerDiv.querySelector('.btn-edit-synopsis');
+                const container = drawerDiv.querySelector('.synopsis-container');
+
+                if (editBtn && container) {
+                    editBtn.addEventListener('click', async (e) => {
+                        e.stopPropagation(); // Evita bolha de evento
+                        
+                        const isEditing = editBtn.classList.toggle('editing');
+                        if (isEditing) {
+                            editBtn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar';
+                            editBtn.className = 'btn btn-primary btn-edit-synopsis';
+                            
+                            const currentText = container.querySelector('.chapter-synopsis')?.textContent || '';
+                            container.innerHTML = `
+                                <textarea class="edit-synopsis-textarea">${currentText === 'Sinopse em breve.' ? '' : currentText}</textarea>
+                            `;
+                            const textarea = container.querySelector('.edit-synopsis-textarea');
+                            textarea.focus();
+                        } else {
+                            const textarea = container.querySelector('.edit-synopsis-textarea');
+                            const newSynopsis = textarea.value.trim() || 'Sinopse em breve.';
+                            
+                            editBtn.innerHTML = '<div class="pix-status-spinner" style="width:14px; height:14px; margin-right:8px; border-top-color:#fff; display:inline-block; vertical-align:middle;"></div> Salvando...';
+                            editBtn.setAttribute('disabled', 'true');
+                            
+                            try {
+                                if (window.isOfflineMode) {
+                                    // Atualiza no array local/LocalStorage mock
+                                    const idx = chapters.findIndex(c => c.id === chap.id);
+                                    if (idx !== -1) chapters[idx].synopsis = newSynopsis;
+                                    
+                                    const defIdx = defaultChapters.findIndex(c => c.id === chap.id);
+                                    if (defIdx !== -1) defaultChapters[defIdx].synopsis = newSynopsis;
+                                    
+                                    localStorage.setItem('fio-mock-chapters', JSON.stringify(chapters));
+                                } else {
+                                    // Supabase update
+                                    const { error } = await window.supabase
+                                        .from('chapters')
+                                        .update({ synopsis: newSynopsis })
+                                        .eq('id', chap.id);
+                                        
+                                    if (error) throw error;
+                                }
+                                
+                                container.innerHTML = `<p class="chapter-synopsis">${newSynopsis}</p>`;
+                                // Atualiza a propriedade do capítulo em memória para manter o sincronismo se reaberto
+                                chap.synopsis = newSynopsis;
+
+                                editBtn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar Sinopse';
+                                editBtn.className = 'btn btn-secondary btn-edit-synopsis';
+                                editBtn.removeAttribute('disabled');
+                            } catch (err) {
+                                console.error("Erro ao salvar sinopse:", err);
+                                alert("⚠️ Erro ao salvar sinopse no banco de dados.");
+                                editBtn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar';
+                                editBtn.className = 'btn btn-primary btn-edit-synopsis editing';
+                                editBtn.removeAttribute('disabled');
+                            }
+                        }
+                    });
+                }
+            }
+
+            gridContainer.appendChild(itemDiv);
+            gridContainer.appendChild(drawerDiv);
         });
     }
 
