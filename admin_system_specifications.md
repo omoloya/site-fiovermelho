@@ -77,13 +77,12 @@ Disponível apenas no modo de edição do capítulo ativo. Renderiza uma grade d
 Toda imagem de página de capítulo ou capa inserida no portal passa obrigatoriamente pela engine de renderização em Canvas do navegador antes de ser enviada ao banco de dados ou salva localmente:
 
 1.  **Redimensionamento Proporcional Inteligente**:
-    *   O script lê a largura (`width`) e altura (`height`) originais da imagem para identificar o formato.
-    *   **Imagens Horizontais/Covers** (Ex: Capas de cards onde a largura é maior que a altura): A largura máxima é restrita a **1920px**.
-    *   **Páginas de Leitura Verticais** (Ex: Páginas de quadrinho no estilo Webtoon onde a altura é maior ou igual à largura): A largura máxima é limitada estritamente a **1080px** (largura ideal para dispositivos móveis).
-    *   A altura é recalculada proporcionalmente: `height = Math.round((maxWidth * height) / width)`.
+    *   O script lê a largura (`width`) e altura (`height`) originais da imagem.
+    *   Se a largura for maior do que o limite máximo de **1600px**, a imagem é redimensionada proporcionalmente definindo a largura para **1600px** e recalculando a altura:
+        `height = Math.round((maxWidth * height) / width)`.
 2.  **Quality Apex**:
-    *   Exporta a imagem desenhada no Canvas como blob WebP usando o parâmetro de compressão de qualidade ajustado exatamente em **`0.75`** (75% de qualidade):
-        `canvas.toBlob((blob) => { ... }, 'image/webp', 0.75);`
+    *   Exporta a imagem desenhada no Canvas como blob WebP usando o parâmetro de compressão de qualidade ajustado exatamente em **`0.85`** (85% de qualidade):
+        `canvas.toBlob((blob) => { ... }, 'image/webp', 0.85);`
 3.  **Logs de Diagnóstico no Console**:
     No final da otimização, o script calcula e imprime no console as métricas de economia para monitoramento técnico:
     ```javascript
