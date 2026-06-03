@@ -307,7 +307,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const userEmailSpan = document.getElementById('user-display-email');
     const btnLogout = document.getElementById('btn-logout');
     const btnStartReading = document.getElementById('btn-start-reading');
-    const progressIndicator = document.getElementById('progress-indicator');
     
     const leadForm = document.getElementById('lead-capture-form');
     const leadEmailInput = document.getElementById('lead-email');
@@ -327,11 +326,6 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.replace('index.html');
         });
     }
-
-    // --- 3. Lógica de Capítulos Lidos & Progresso ---
-    const userKey = `fio-read-chapters-${session.user.email}`;
-    let readChapters = JSON.parse(localStorage.getItem(userKey) || '[]');
-    let totalChaptersCount = 3;
 
     // Habilita o botão Admin no painel APENAS para os dois administradores oficiais
     const officialAdmins = ["miles.kensuke@gmail.com", "omoloyaartes@gmail.com"];
@@ -419,86 +413,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        totalChaptersCount = chapters.length;
         renderGrid(chapters);
-        updateOverallProgress();
         setupStartReadingButton(chapters);
     }
-
-    // --- 4. Aba Expansiva Integrada de Detalhes do Capítulo (Estilo Netflix/Accordion) ---
-    function toggleChapterDrawer(chapterId) {
-        const allDrawers = document.querySelectorAll('.chapter-drawer');
-        const targetDrawer = document.getElementById(`drawer-cap-${chapterId}`);
-        const targetCard = document.querySelector(`.chapter-card img[id="thumb-cap-${chapterId}"]`)?.closest('.chapter-card');
-        
-        const isCurrentlyActive = targetDrawer && targetDrawer.classList.contains('active');
-        
-        // Fecha todos os drawers primeiro de forma suave
-        allDrawers.forEach(d => {
-            d.classList.remove('active');
-            d.style.maxHeight = '0';
-            d.style.padding = '0';
-            d.style.margin = '0';
-            d.style.borderWidth = '0';
-            d.style.overflow = 'hidden';
-        });
-        
-        document.querySelectorAll('.chapter-card').forEach(c => {
-            c.classList.remove('drawer-open');
-        });
-        
-        if (!isCurrentlyActive && targetDrawer) {
-            // Abre o drawer selecionado
-            targetDrawer.classList.add('active');
-            targetDrawer.style.maxHeight = '600px';
-            targetDrawer.style.padding = '24px';
-            targetDrawer.style.marginTop = '16px';
-            targetDrawer.style.marginBottom = '24px';
-            targetDrawer.style.borderWidth = '1px';
-            targetDrawer.style.overflow = 'hidden';
-            
-            // Ao finalizar a animação de abertura da gaveta, muda o overflow para visible no celular/geral
-            setTimeout(() => {
-                if (targetDrawer.classList.contains('active')) {
-                    targetDrawer.style.overflow = 'visible';
-                }
-            }, 400);
-            
-            if (targetCard) {
-                targetCard.classList.add('drawer-open');
-                
-                // Rolar e centralizar suavemente no mobile
-                if (window.innerWidth <= 768) {
-                    setTimeout(() => {
-                        targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    }, 150);
-                }
-            }
-            
-            // Empurra âncora de histórico para fechar com o botão Voltar do celular
-            history.pushState({ drawerOpen: true, chapterId: chapterId }, '', `#detalhes-capitulo-${chapterId}`);
-        } else {
-            // Se fechou por clique, remove a âncora de hash voltando no histórico
-            if (window.location.hash.startsWith('#detalhes-capitulo-')) {
-                history.back();
-            }
-        }
-    }
-
-    // Escutar popstate (botão Voltar físico ou gestual) para fechar o drawer de forma nativa
-    window.addEventListener('popstate', () => {
-        document.querySelectorAll('.chapter-drawer').forEach(d => {
-            d.classList.remove('active');
-            d.style.maxHeight = '0';
-            d.style.padding = '0';
-            d.style.margin = '0';
-            d.style.borderWidth = '0';
-            d.style.overflow = 'hidden';
-        });
-        document.querySelectorAll('.chapter-card').forEach(c => {
-            c.classList.remove('drawer-open');
-        });
-    });
 
     function renderGrid(chapters) {
         const gridContainer = document.getElementById('chapter-list-container');
@@ -506,230 +423,15 @@ document.addEventListener('DOMContentLoaded', () => {
         gridContainer.innerHTML = '';
 
         chapters.forEach(chap => {
-            const chapIdStr = chap.id.toString();
-            const isRead = readChapters.includes(chapIdStr);
-            const cleanId = String(chap.id).trim();
-            
-            // Define Thumbnail fallback
-            let thumbSrc = `assets/chapter${cleanId}_thumb.jpg`;
-            let isUsingSupabase = false;
-            
-            if (!window.isOfflineMode && window.supabase) {
-                try {
-                    const res = window.supabase.storage
-                        .from('paginas-quadrinho')
-                        .getPublicUrl(`capitulo-${cleanId}/pagina-1.webp`);
-                    if (res && res.data && res.data.publicUrl) {
-                        thumbSrc = res.data.publicUrl;
-                        isUsingSupabase = true;
-                    } else if (res && res.publicURL) {
-                        thumbSrc = res.publicURL;
-                        isUsingSupabase = true;
-                    } else if (typeof res === 'string') {
-                        thumbSrc = res;
-                        isUsingSupabase = true;
-                    }
-                } catch (urlErr) {
-                    console.error("Erro ao obter URL publica do storage:", urlErr);
-                }
-            } else if (window.isOfflineMode) {
-                const sessionKey = `fio-temp-page-${cleanId}-1`;
-                const tempUrl = sessionStorage.getItem(sessionKey);
-                thumbSrc = tempUrl || `assets/chapter1_thumb.jpg`; // Fallback
-            }
-
-            // --- INÍCIO DO HARDCODE DE SEGURANÇA BINDADO ---
-            let finalSynopsis = "";
-            let finalCover = "";
-
-            if (cleanId === "2" || parseInt(cleanId) === 2) {
-                finalSynopsis = `Quando o seu pai te liga de madrugada, te chama pelo apelido de criança e pede para você levar um pudim e um estoque de desinfetante, você já sabe que o turno extra vai ser sujo. Sem a ajuda do guarda-costas oficial, o coroa intimou os pirralhos para assumirem o serviço doméstico de emergência. Mas quando o mais velho manda, os mais novos obedecem, por lealdade e, principalmente, amor.`;
-                finalCover = "assets/capitulo_2.webp";
-            } else if (cleanId === "1" || parseInt(cleanId) === 1) {
-                finalSynopsis = `O chefe dormiu de novo.
-Agora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivais, anime e o que vão fazer no próximo dia de folga.
-Cochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.`;
-                finalCover = "assets/capitulo_2.webp";
-            } else if (cleanId === "3" || parseInt(cleanId) === 3) {
-                finalSynopsis = "blablablablabla mmahjaaanabak";
-                finalCover = "assets/capitulo_2.webp";
-            } else {
-                finalSynopsis = chap.synopsis || "Sinopse em breve.";
-                finalCover = chap.cover_url || "assets/default_cover.webp";
-            }
-            // --- FIM DO HARDCODE DE SEGURANÇA BINDADO ---
-
-            const chapterCard = document.createElement('article');
-            chapterCard.className = 'chapter-card glass-card';
-            chapterCard.style.cursor = 'pointer';
-            if (isRead) {
-                chapterCard.style.border = "1px solid rgba(16, 185, 129, 0.25)";
-            }
-
-            chapterCard.innerHTML = `
-                <div class="chapter-card-thumb-container">
-                    <img src="${finalCover}" alt="Capítulo ${chap.id} Thumbnail" class="chapter-card-thumb" id="thumb-cap-${cleanId}" onerror="this.onerror=null; this.src='assets/default_cover.webp';">
-                    <div class="chapter-card-overlay">
-                        <div class="chapter-card-overlay-top">
-                            <span class="chapter-card-status-badge ${isRead ? 'chapter-badge-read' : 'chapter-badge-unread'}" id="badge-cap-${cleanId}">
-                                ${isRead ? 'Lido' : 'Não Lido'}
-                            </span>
-                        </div>
-                        <div class="chapter-card-overlay-bottom">
-                            <span class="chapter-number-overlay">Capítulo ${chap.id.toString().padStart(2, '0')}</span>
-                            <span class="chapter-title-overlay">${chap.title}</span>
-                        </div>
-                    </div>
-                </div>
+            const link = document.createElement('a');
+            link.className = 'chapter-list-item';
+            link.href = `ler.html?cap=${chap.id}`;
+            link.innerHTML = `
+                <span class="chapter-number">Capítulo ${chap.id}</span>
+                <span class="chapter-title">${chap.title}</span>
             `;
-
-            // Clique no card abre ou fecha o drawer embutido
-            chapterCard.addEventListener('click', () => {
-                toggleChapterDrawer(cleanId);
-            });
-
-            // Cria a aba expansiva logo abaixo do card no DOM
-            const drawer = document.createElement('div');
-            drawer.className = 'chapter-drawer';
-            drawer.id = `drawer-cap-${cleanId}`;
-            drawer.setAttribute('data-id', cleanId);
-            
-            const isPago = !!chap.isPago;
-            const priceVal = chap.price || 1.50;
-            const priceBadgeHTML = isPago 
-                ? `<span class="tag-badge" style="background: rgba(255, 42, 59, 0.15); color: var(--primary-red); border: 1px solid rgba(255, 42, 59, 0.25);">R$ ${priceVal.toFixed(2).replace('.', ',')}</span>`
-                : '';
-            const buttonText = isPago 
-                ? `Ler Capítulo (R$ ${priceVal.toFixed(2).replace('.', ',')})`
-                : 'Ler Capítulo';
-
-            drawer.innerHTML = `
-                <div class="chapter-drawer-inner">
-                    <div class="chapter-drawer-content">
-                        <!-- Capa do capítulo na gaveta -->
-                        <div class="chapter-drawer-cover">
-                            <img src="${finalCover}" alt="Capa do Capítulo ${chap.id}" onerror="this.onerror=null; this.src='assets/default_cover.webp';">
-                        </div>
-                        <div class="chapter-drawer-info">
-                            <div class="chapter-drawer-meta-row">
-                                <span class="modal-chapter-number">Capítulo ${chap.id.toString().padStart(2, '0')}</span>
-                                <span class="modal-chapter-date">${chap.release_date || 'Data não disponível'}</span>
-                                <span class="tag-badge ${isRead ? 'chapter-badge-read' : 'chapter-badge-unread'}" id="drawer-badge-cap-${cleanId}">
-                                    ${isRead ? 'Lido' : 'Não Lido'}
-                                </span>
-                                ${priceBadgeHTML}
-                            </div>
-                            <h3 class="modal-chapter-title">${chap.title}</h3>
-                            <div class="chapter-drawer-synopsis">
-                                <p>${finalSynopsis}</p>
-                            </div>
-                            <div class="chapter-drawer-actions">
-                                <a href="ler.html?cap=${cleanId}" class="btn btn-primary read-btn">
-                                    <i class="fa-solid fa-book-open" style="margin-right: 8px;"></i> ${buttonText}
-                                </a>
-                                <button class="btn btn-secondary btn-toggle-read" id="drawer-btn-toggle-${cleanId}" type="button">
-                                    ${isRead 
-                                        ? '<i class="fa-solid fa-circle-xmark" style="margin-right: 8px;"></i> Marcar como Não Lido'
-                                        : '<i class="fa-regular fa-circle-check" style="margin-right: 8px;"></i> Marcar como Lido'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Onde a imagem da capa do capítulo é definida
-            const elementoImg = chapterCard.querySelector(`#thumb-cap-${cleanId}`);
-            if (elementoImg) {
-                elementoImg.src = finalCover;
-            }
-
-            // Onde a capa do capítulo na gaveta é definida
-            const elementoImgDrawer = drawer.querySelector('.chapter-drawer-cover img');
-            if (elementoImgDrawer) {
-                elementoImgDrawer.src = finalCover;
-            }
-
-            // Onde o texto da sinopse da gaveta é injetado
-            const elementoText = drawer.querySelector('.chapter-drawer-synopsis p');
-            if (elementoText) {
-                elementoText.textContent = finalSynopsis;
-            }
-
-            // Logs de diagnóstico em console.group para rastrear problemas de DOM ou CSS
-            console.group(`[DOM Render Diagnostic - Cap ${cleanId}]`);
-            console.log("ID original do banco:", chap.id, " | ID sanitizado (cleanId):", cleanId);
-            console.log("Variável finalCover vinculada:", finalCover);
-            console.log("Variável finalSynopsis vinculada:", finalSynopsis.substring(0, 40) + "...");
-            console.log("Seletor imagem do card (#thumb-cap-...):", elementoImg ? "OK" : "NULO");
-            console.log("Seletor imagem da gaveta (.chapter-drawer-cover img):", elementoImgDrawer ? "OK" : "NULO");
-            console.log("Seletor texto da sinopse (.chapter-drawer-synopsis p):", elementoText ? "OK" : "NULO");
-            console.groupEnd();
-
-            console.log(`[DOM Render] Cap: ${chap.id} | Capa aplicada: ${finalCover} | Texto aplicado: ${finalSynopsis.substring(0, 20)}...`);
-
-            // Configurar clique no botão de marcar lido/não lido da aba expansiva
-            const toggleBtn = drawer.querySelector(`#drawer-btn-toggle-${cleanId}`);
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Evita cliques no drawer de fechar a aba
-                    
-                    const nowRead = readChapters.includes(chapIdStr);
-                    const badgeCard = document.getElementById(`badge-cap-${cleanId}`);
-                    const drawerBadge = document.getElementById(`drawer-badge-cap-${cleanId}`);
-
-                    if (nowRead) {
-                        readChapters = readChapters.filter(id => id !== chapIdStr);
-                        updateCardStatusVisual(chapterCard, badgeCard, false);
-                        
-                        if (drawerBadge) {
-                            drawerBadge.textContent = "Não Lido";
-                            drawerBadge.className = "tag-badge chapter-badge-unread";
-                        }
-                        toggleBtn.innerHTML = '<i class="fa-regular fa-circle-check" style="margin-right: 8px;"></i> Marcar como Lido';
-                    } else {
-                        readChapters.push(chapIdStr);
-                        updateCardStatusVisual(chapterCard, badgeCard, true);
-                        
-                        if (drawerBadge) {
-                            drawerBadge.textContent = "Lido";
-                            drawerBadge.className = "tag-badge chapter-badge-read";
-                        }
-                        toggleBtn.innerHTML = '<i class="fa-solid fa-circle-xmark" style="margin-right: 8px;"></i> Marcar como Não Lido';
-                    }
-
-                    localStorage.setItem(userKey, JSON.stringify(readChapters));
-                    updateOverallProgress();
-                });
-            }
-
-            gridContainer.appendChild(chapterCard);
-            gridContainer.appendChild(drawer);
+            gridContainer.appendChild(link);
         });
-    }
-
-    // Atualiza o progresso visual do card
-    function updateCardStatusVisual(card, badge, isRead) {
-        if (isRead) {
-            badge.textContent = "Lido";
-            badge.classList.remove('chapter-badge-unread');
-            badge.classList.add('chapter-badge-read');
-            card.style.border = "1px solid rgba(16, 185, 129, 0.25)";
-        } else {
-            badge.textContent = "Não Lido";
-            badge.classList.remove('chapter-badge-read');
-            badge.classList.add('chapter-badge-unread');
-            card.style.border = "";
-        }
-    }
-
-    // Calcula e atualiza a barra de progresso do leitor no cabeçalho
-    function updateOverallProgress() {
-        const count = readChapters.length;
-        const percentage = totalChaptersCount > 0 ? Math.round((count / totalChaptersCount) * 100) : 0;
-        if (progressIndicator) {
-            progressIndicator.textContent = `Lidos: ${count} / ${totalChaptersCount} (${percentage}%)`;
-        }
     }
 
     // Configura o botão "Começar a Ler"
@@ -740,14 +442,7 @@ Cochilos inesperados, amizades inabaláveis e uma normalidade completamente queb
             btnStartReading.parentNode.replaceChild(newBtn, btnStartReading);
             
             newBtn.addEventListener('click', () => {
-                let nextToRead = chapters[0] ? chapters[0].id.toString() : "1";
-                for (let i = 0; i < chapters.length; i++) {
-                    const cIdStr = chapters[i].id.toString();
-                    if (!readChapters.includes(cIdStr)) {
-                        nextToRead = cIdStr;
-                        break;
-                    }
-                }
+                let nextToRead = chapters[0] ? chapters[0].id : "1";
                 window.location.href = `ler.html?cap=${nextToRead}`;
             });
         }
