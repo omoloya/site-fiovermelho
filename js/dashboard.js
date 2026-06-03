@@ -496,11 +496,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             textarea.focus();
                         } else {
                             const textarea = container.querySelector('.edit-synopsis-textarea');
-                            const newSynopsis = textarea.value.trim() || 'Sinopse em breve.';
+                            const newSynopsis = textarea ? textarea.value.trim() || 'Sinopse em breve.' : 'Sinopse em breve.';
                             
                             editBtn.innerHTML = '<div class="pix-status-spinner" style="width:14px; height:14px; margin-right:8px; border-top-color:#fff; display:inline-block; vertical-align:middle;"></div> Salvando...';
                             editBtn.setAttribute('disabled', 'true');
                             
+                            // 1. Controle de erros com try/catch isolado ao redor do update do Supabase (para capturar RLS)
                             try {
                                 if (window.isOfflineMode) {
                                     // Atualiza no array local/LocalStorage mock
@@ -511,30 +512,34 @@ document.addEventListener('DOMContentLoaded', () => {
                                     if (defIdx !== -1) defaultChapters[defIdx].synopsis = newSynopsis;
                                     
                                     localStorage.setItem('fio-mock-chapters', JSON.stringify(chapters));
-                                } else {
+                                } else if (window.supabase) {
                                     // Supabase update
                                     const { error } = await window.supabase
                                         .from('chapters')
                                         .update({ synopsis: newSynopsis })
                                         .eq('id', chap.id);
                                         
-                                    if (error) throw error;
+                                    if (error) {
+                                        console.error("[Supabase Update Error - RLS Check]:", error);
+                                        alert("⚠️ Restrição de RLS/Permissão detectada no Supabase. O erro foi logado no console.");
+                                    }
                                 }
-                                
-                                container.innerHTML = `<p class="chapter-synopsis">${newSynopsis}</p>`;
-                                // Atualiza a propriedade do capítulo em memória para manter o sincronismo se reaberto
-                                chap.synopsis = newSynopsis;
-
-                                editBtn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar Sinopse';
-                                editBtn.className = 'btn btn-secondary btn-edit-synopsis';
-                                editBtn.removeAttribute('disabled');
                             } catch (err) {
-                                console.error("Erro ao salvar sinopse:", err);
-                                alert("⚠️ Erro ao salvar sinopse no banco de dados.");
-                                editBtn.innerHTML = '<i class="fa-solid fa-save"></i> Salvar';
-                                editBtn.className = 'btn btn-primary btn-edit-synopsis editing';
-                                editBtn.removeAttribute('disabled');
+                                console.error("[Supabase Connection Error]:", err);
+                                alert("⚠️ Erro de rede ou conexão ao tentar atualizar o banco.");
                             }
+                            
+                            // 2. ATUALIZAÇÃO DO DOM (Injeta o texto digitado de volta no parágrafo síncronamente)
+                            container.innerHTML = `<p class="chapter-synopsis"></p>`;
+                            container.querySelector('.chapter-synopsis').textContent = newSynopsis;
+                            
+                            // Atualiza a propriedade do capítulo em memória para manter o sincronismo se reaberto
+                            chap.synopsis = newSynopsis;
+ 
+                            // 3. ALTERNÂNCIA DE INTERFACE (Oculta o campo de edição e volta o botão ao estado normal)
+                            editBtn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Editar Sinopse';
+                            editBtn.className = 'btn btn-secondary btn-edit-synopsis';
+                            editBtn.removeAttribute('disabled');
                         }
                     });
                 }
