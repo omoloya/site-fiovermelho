@@ -1411,3 +1411,42 @@ a {
     text-shadow: 0 0 8px rgba(255, 42, 59, 0.6);
     text-decoration: underline !important;
 }
+
+/* ==========================================================================
+   AJUSTE DE RESPONSIVIDADE E CENTRALIZAÇÃO AUTOMÁTICA
+   ========================================================================== */
+
+/* 1. Centralização Flex - Apenas nos contêineres ativos para preservar display: none nos inativos */
+.auth-card, .auth-step.active, .modal-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 2. Espaçamento Uniforme via gap nos contêineres ativos */
+.auth-card, .auth-step.active, .modal-card {
+    gap: 16px;
+}
+
+/* 3. Consistência de Largura para os cards de autenticação */
+.auth-card {
+    width: 100%;
+    max-width: 480px;
+}
+
+/* Garante que os formulários dentro do card de autenticação ocupem toda a largura */
+.auth-card form {
+    width: 100%;
+}
+
+/* 4. Respiro - Margens automáticas nas laterais para evitar desalinhamento */
+.auth-card .btn, .auth-card .input-field,
+.modal-card .btn, .modal-card .input-field {
+    margin: 0 auto;
+}
+
+/* Mantém o espaçamento inferior padrão de 20px entre os grupos de entrada, com alinhamento central */
+.auth-card .input-group, .modal-card .input-group {
+    margin: 0 auto 20px auto;
+}
