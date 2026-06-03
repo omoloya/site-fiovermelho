@@ -104,8 +104,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (sessionToken) {
                     const adminCheckRes = await fetch('/api/verificar-admin', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ token: sessionToken })
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${sessionToken}`
+                        }
                     });
                     if (adminCheckRes.ok) {
                         const adminCheckJson = await adminCheckRes.json();
@@ -216,8 +218,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (sessionToken) {
                     const adminCheckRes = await fetch('/api/verificar-admin', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ token: sessionToken })
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${sessionToken}`
+                        }
                     });
                     if (adminCheckRes.ok) {
                         const adminCheckJson = await adminCheckRes.json();
@@ -409,8 +413,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (sessionToken) {
                         const adminCheckRes = await fetch('/api/verificar-admin', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ token: sessionToken })
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${sessionToken}`
+                            }
                         });
                         if (adminCheckRes.ok) {
                             const adminCheckJson = await adminCheckRes.json();

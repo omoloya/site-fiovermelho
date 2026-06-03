@@ -14,10 +14,12 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Método não permitido. Utilize POST.', isAdmin: false });
     }
 
-    const { token } = req.body;
-    if (!token) {
-        return res.status(400).json({ error: 'O token JWT é obrigatório.', isAdmin: false });
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'O cabeçalho Authorization com token Bearer é obrigatório.', isAdmin: false });
     }
+
+    const token = authHeader.split(' ')[1];
 
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
@@ -32,7 +34,7 @@ export default async function handler(req, res) {
     try {
         const supabase = createClient(supabaseUrl, supabaseAnonKey);
         
-        // Obtém o usuário associado ao token JWT enviado do frontend
+        // Obtém o usuário associado ao token JWT enviado do frontend via header
         const { data: { user }, error } = await supabase.auth.getUser(token);
         
         if (error || !user || !user.email) {
