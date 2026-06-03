@@ -556,15 +556,23 @@ document.addEventListener('DOMContentLoaded', () => {
                             
                             // Se o profile do admin não existir no banco (ex: criado direto no painel auth), cria agora
                             if (!profile) {
-                                await window.supabase
-                                    .from('profiles')
-                                    .insert([{ id: data.user.id, email: email, status: 'verificado' }]);
+                                try {
+                                    await window.supabase
+                                        .from('profiles')
+                                        .insert([{ id: data.user.id, email: email, status: 'verificado' }]);
+                                } catch (insertErr) {
+                                    console.warn("Falha ao registrar perfil de admin no banco (RLS ou restrição de insert):", insertErr);
+                                }
                             } else if (profile.status !== 'verificado') {
                                 // Se existir mas estiver pendente, promove automaticamente a verificado
-                                await window.supabase
-                                    .from('profiles')
-                                    .update({ status: 'verificado' })
-                                    .eq('id', data.user.id);
+                                try {
+                                    await window.supabase
+                                        .from('profiles')
+                                        .update({ status: 'verificado' })
+                                        .eq('id', data.user.id);
+                                } catch (updateErr) {
+                                    console.warn("Falha ao promover status do admin no banco (RLS restringe atualização de status):", updateErr);
+                                }
                             }
                         } else {
                             if (!profile) throw new Error("Perfil de usuário não encontrado. Por favor, registre-se primeiro.");

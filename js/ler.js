@@ -100,25 +100,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function checkProfileStatus() {
         let status = 'pendente_verificacao';
-        let userId = session && session.user && session.user.id;
+        let userId = null;
 
-        // Recuperação defensiva de ID no Supabase caso não esteja na sessão ativa
-        if (!userId && !window.isOfflineMode && window.supabase) {
+        // Recuperação estrita do ID autenticado diretamente do Supabase Client
+        if (!window.isOfflineMode && window.supabase) {
             try {
                 if (typeof window.supabase.auth.getUser === 'function') {
                     const { data } = await window.supabase.auth.getUser();
-                    if (data && data.user) userId = data.user.id;
-                }
-                if (!userId && typeof window.supabase.auth.user === 'function') {
-                    const u = window.supabase.auth.user();
-                    if (u) userId = u.id;
-                }
-                if (userId && window.sessionHelper) {
-                    window.sessionHelper.setSession(session.user.email, session.is_verified, userId);
+                    if (data && data.user) {
+                        userId = data.user.id;
+                        // Sincroniza a sessão local defensivamente se necessário
+                        if (window.sessionHelper && session) {
+                            window.sessionHelper.setSession(session.user.email, session.is_verified, userId);
+                        }
+                    }
                 }
             } catch (e) {
-                console.error("[ler.js] Falha ao recuperar ID do usuário:", e);
+                console.error("[ler.js] Falha ao recuperar usuário autenticado:", e);
             }
+        }
+
+        // Fallback para sessão local se offline ou se a chamada falhou
+        if (!userId) {
+            userId = session && session.user && session.user.id;
         }
 
         if (window.isOfflineMode) {

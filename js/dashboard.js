@@ -113,25 +113,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnLockLogout = document.getElementById('btn-lock-logout');
 
         let status = 'pendente_verificacao';
-        let userId = session && session.user && session.user.id;
+        let userId = null;
 
-        // Recuperação defensiva de ID no Supabase caso não esteja na sessão ativa
-        if (!userId && !window.isOfflineMode && window.supabase) {
+        // Recuperação estrita do ID autenticado diretamente do Supabase Client
+        if (!window.isOfflineMode && window.supabase) {
             try {
                 if (typeof window.supabase.auth.getUser === 'function') {
                     const { data } = await window.supabase.auth.getUser();
-                    if (data && data.user) userId = data.user.id;
-                }
-                if (!userId && typeof window.supabase.auth.user === 'function') {
-                    const u = window.supabase.auth.user();
-                    if (u) userId = u.id;
-                }
-                if (userId && window.sessionHelper) {
-                    window.sessionHelper.setSession(session.user.email, session.is_verified, userId);
+                    if (data && data.user) {
+                        userId = data.user.id;
+                        // Sincroniza a sessão local defensivamente se necessário
+                        if (window.sessionHelper && session) {
+                            window.sessionHelper.setSession(session.user.email, session.is_verified, userId);
+                        }
+                    }
                 }
             } catch (e) {
-                console.error("[dashboard.js] Falha ao recuperar ID do usuário:", e);
+                console.error("[dashboard.js] Falha ao recuperar usuário autenticado:", e);
             }
+        }
+
+        // Fallback para sessão local se offline ou se a chamada falhou
+        if (!userId) {
+            userId = session && session.user && session.user.id;
         }
 
         if (window.isOfflineMode) {
@@ -182,14 +186,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const statusPollInterval = setInterval(async () => {
                 if (window.isOfflineMode) return;
                 try {
-                    let pollUserId = session && session.user && session.user.id;
-                    if (!pollUserId && window.supabase && typeof window.supabase.auth.user === 'function') {
-                        const u = window.supabase.auth.user();
-                        if (u) pollUserId = u.id;
+                    let pollUserId = null;
+                    if (window.supabase && typeof window.supabase.auth.getUser === 'function') {
+                        const { data } = await window.supabase.auth.getUser();
+                        if (data && data.user) pollUserId = data.user.id;
                     }
 
                     if (!pollUserId) {
-                        console.error("[dashboard.js] Polling: ID do usuário está undefined.");
+                        console.error("[dashboard.js] Polling: ID do usuário autenticado está undefined.");
                         return;
                     }
 
@@ -245,14 +249,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnLockReverify.setAttribute('disabled', 'true');
 
                     try {
-                        let revUserId = session && session.user && session.user.id;
-                        if (!revUserId && window.supabase && typeof window.supabase.auth.user === 'function') {
-                            const u = window.supabase.auth.user();
-                            if (u) revUserId = u.id;
+                        let revUserId = null;
+                        if (window.supabase && typeof window.supabase.auth.getUser === 'function') {
+                            const { data } = await window.supabase.auth.getUser();
+                            if (data && data.user) revUserId = data.user.id;
                         }
 
                         if (!revUserId) {
-                            alert("⚠️ ID do usuário não encontrado. Por favor, tente fazer login novamente.");
+                            alert("⚠️ ID do usuário autenticado não encontrado. Por favor, tente fazer login novamente.");
+                            btnLockReverify.innerHTML = originalBtnText;
+                            btnLockReverify.removeAttribute('disabled');
                             return;
                         }
 
