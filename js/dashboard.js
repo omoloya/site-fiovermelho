@@ -350,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const defaultChapters = [
         { 
             id: 1, 
-            title: "O Elo Perdido", 
+            title: "Fim de Turno", 
             pages_count: 4, 
             release_date: "20 de Maio, 2026",
             synopsis: "O chefe dormiu de novo.\nAgora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga.\nCochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.",
@@ -435,9 +435,27 @@ document.addEventListener('DOMContentLoaded', () => {
             const itemLink = document.createElement('a');
             itemLink.className = 'chapter-list-item';
             itemLink.href = `ler.html?cap=${cleanId}`;
+            itemLink.style.flexDirection = 'column';
+            itemLink.style.alignItems = 'flex-start';
+            itemLink.style.gap = '8px';
+
+            let extraTextHTML = '';
+            let displayTitle = chap.title;
+            if (cleanId === '1') {
+                displayTitle = "Fim de Turno";
+                extraTextHTML = `
+                    <div style="color: var(--primary-red); font-size: 0.9rem; line-height: 1.5; margin-top: 8px; font-weight: normal; max-width: 100%; white-space: pre-line;">O chefe dormiu de novo. Agora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga. Cochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.</div>
+                `;
+            }
+
             itemLink.innerHTML = `
-                <span class="chapter-number">Capítulo ${chap.id}</span>
-                <span class="chapter-title">${chap.title}</span>
+                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span class="chapter-number">Capítulo ${chap.id}</span>
+                        <span class="chapter-title">${displayTitle}</span>
+                    </div>
+                </div>
+                ${extraTextHTML}
             `;
 
             gridContainer.appendChild(itemLink);
