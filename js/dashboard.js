@@ -451,6 +451,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 extraTextHTML = `
                     <div style="color: #ffffff; font-size: 0.9rem; line-height: 1.5; margin-top: 8px; font-weight: normal; max-width: 100%; white-space: pre-line;">O que um pirulito de cereja, um cosplay de Sailor Moon, Maximum The Hormone no talo, um pudim, velhos tarados e marmanjos enciumados têm em comum? Absolutamente nada, a menos que você faça parte dessa família e o patriarca resolva estragar a sua madrugada. Para o trio principal, o turno extra começou e a estrada vai ser longa, barulhenta e completamente disfuncional.</div>
                 `;
+            } else if (cleanId === '4') {
+                extraTextHTML = `
+                    <div style="color: #ffffff; font-size: 0.9rem; line-height: 1.5; margin-top: 8px; font-weight: normal; max-width: 100%; white-space: pre-line;">Neste capítulo: Os seios da novata, aparentemente, são domínio público. Fotos de bebês japoneses fofos em fraldas. Informações aleatórias sobre o cérebro de golfinhos. O chefe dormiu antes de todo mundo, de novo... e corpos cansados estão largados pelo chão de um apartamento pequeno demais em cima de um velho Ramen-ya</div>
+                `;
             }
 
             itemLink.innerHTML = `
