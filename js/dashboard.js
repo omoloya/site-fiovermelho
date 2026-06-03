@@ -443,6 +443,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 extraTextHTML = `
                     <div style="color: #ffffff; font-size: 0.9rem; line-height: 1.5; margin-top: 8px; font-weight: normal; max-width: 100%; white-space: pre-line;">O chefe dormiu de novo. Agora cabe ao resto do grupo levá-lo para casa enquanto caminham pela cidade conversando sobre suas maiores preocupações: tacos de beisebol, gangues rivals, anime e o que vão fazer no próximo dia de folga. Cochilos inesperados, amizades inabaláveis e uma normalidade completamente quebrada. São adoráveis, mas definitivamente não deveriam ser.</div>
                 `;
+            } else if (cleanId === '2') {
+                extraTextHTML = `
+                    <div style="color: #ffffff; font-size: 0.9rem; line-height: 1.5; margin-top: 8px; font-weight: normal; max-width: 100%; white-space: pre-line;">Quando o seu pai te liga de madrugada, te chama pelo apelido de criança e pede para você levar um pudim e um estoque de desinfetante, você já sabe que o turno extra vai ser sujo. Sem a ajuda do guarda-costas oficial, o coroa intimou os pirralhos para assumirem o serviço doméstico de emergência. Mas quando o mais velho manda, os mais novos obedecem, por lealdade e, principalmente, amor.</div>
+                `;
             }
 
             itemLink.innerHTML = `
