@@ -526,11 +526,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                         .eq('id', chap.id);
                                         
                                     if (error) {
+                                        console.log(error);
                                         console.error("[Supabase Update Error - RLS Check]:", error);
                                         alert("⚠️ Restrição de RLS/Permissão detectada no Supabase. O erro foi logado no console.");
                                     }
                                 }
                             } catch (err) {
+                                console.log(err);
                                 console.error("[Supabase Connection Error]:", err);
                                 alert("⚠️ Erro de rede ou conexão ao tentar atualizar o banco.");
                             }
