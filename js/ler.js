@@ -100,8 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Valida dinamicamente se o usuário é super admin e remove a proteção se for
     (async () => {
         if (window.isOfflineMode) {
-            const offlineAdmins = ["miles.kensuke@gmail.com", "omoloyaartes@gmail.com"];
-            isSuperAdmin = session && session.user && offlineAdmins.includes(session.user.email);
+            isSuperAdmin = session && session.user && session.user.email.includes("admin");
         } else {
             try {
                 const { data: authData } = await window.supabase.auth.getSession();
@@ -193,8 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Sobregravação automática de verificação para e-mails administradores autorizados!
         let isUserAdmin = false;
         if (window.isOfflineMode) {
-            const offlineAdmins = ["miles.kensuke@gmail.com", "omoloyaartes@gmail.com"];
-            isUserAdmin = session && session.user && offlineAdmins.includes(session.user.email);
+            isUserAdmin = session && session.user && session.user.email.includes("admin");
         } else {
             try {
                 const { data: authData } = await window.supabase.auth.getSession();

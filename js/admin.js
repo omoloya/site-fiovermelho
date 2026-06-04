@@ -22,8 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     (async () => {
         let isAuthor = false;
         if (window.isOfflineMode) {
-            const offlineAdmins = ["miles.kensuke@gmail.com", "omoloyaartes@gmail.com"];
-            isAuthor = session && session.user && offlineAdmins.includes(session.user.email);
+            isAuthor = session && session.user && session.user.email.includes("admin");
         } else {
             try {
                 const { data: authData } = await window.supabase.auth.getSession();

@@ -165,19 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const submitBtn = signupForm.querySelector('button[type="submit"]');
 
-            // 1. Validação de CPF Real
-            if (!validateCPF(cpfValue)) {
-                alert("❌ CPF Inválido! Por favor, insira um número de CPF verdadeiro para fins de validação jurídica (ECA).");
-                return;
-            }
-
-            // 2. Validação da Idade Real (ECA 18+)
-            const age = getAge(birthdateValue);
-            if (age < 18) {
-                alert("❌ Acesso Negado! O Estatuto da Criança e do Adolescente (ECA) restringe o acesso deste conteúdo para menores de 18 anos. Cadastro bloqueado.");
-                return;
-            }
-
             const cleanCpf = cpfValue.replace(/[^\d]+/g, '');
             const cleanBirthdate = birthdateValue.split('/').reverse().join('-'); // Formato YYYY-MM-DD
 
@@ -186,17 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let userId = null;
 
-            // Sobregravação automática de verificação para administradores autorizados no Cadastro (Apenas Mock Offline)
-            let isAdminEmail = false;
-            let initialStatus = 'pendente_verificacao';
-
-            if (window.isOfflineMode) {
-                const offlineAdmins = ["miles.kensuke@gmail.com", "omoloyaartes@gmail.com"];
-                isAdminEmail = offlineAdmins.includes(email);
-                initialStatus = isAdminEmail ? 'verificado' : 'pendente_verificacao';
-            }
-
-            // 3. Cadastra a Conta Primeiro
             if (window.isOfflineMode) {
                 // Modo Protótipo Local (Mock)
                 userId = "usr_" + Math.random().toString(36).substring(2, 15);
@@ -207,6 +183,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     resetSubmitButton(submitBtn, '<i class="fa-solid fa-qrcode" style="margin-right: 8px;"></i> Gerar Pix de Validação');
                     return;
                 }
+
+                const isAdminEmail = email.includes("admin");
+                const initialStatus = isAdminEmail ? 'verificado' : 'pendente_verificacao';
 
                 mockUsers.push({
                     id: userId,
@@ -226,53 +205,50 @@ document.addEventListener('DOMContentLoaded', () => {
                     alert("🧶 Bem-vindo, Administrador! Cadastro efetuado com verificação automática.");
                     window.location.href = 'dashboard.html';
                 } else {
-                    // Dispara Geração de Pix (Simulado na raiz se offline)
+                    // Dispara Geração de Pix
                     await initiatePixGeneration(email, cleanCpf, userId, submitBtn);
                 }
             } else {
-                // Modo Produção Remoto (Supabase + Mercado Pago API)
+                // Modo Produção Remoto (Validação centralizada na API do servidor)
                 try {
+                    const response = await fetch('/api/auth-operations', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'cadastro',
+                            email,
+                            password,
+                            cpf: cleanCpf,
+                            birthdate: cleanBirthdate
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Erro ao realizar cadastro.');
+                    }
+
+                    userId = data.userId;
+
+                    // Efetua login automático do usuário no Supabase para iniciar sessão
                     if (window.supabase) {
-                        // Verifica se o CPF já está cadastrado no Supabase
-                        const { data: existingProfile } = await window.supabase
-                            .from('profiles')
-                            .select('cpf')
-                            .eq('cpf', cleanCpf)
-                            .maybeSingle();
-
-                        if (existingProfile) {
-                            alert("Este CPF já está cadastrado em outra conta.");
-                            resetSubmitButton(submitBtn, '<i class="fa-solid fa-qrcode" style="margin-right: 8px;"></i> Gerar Pix de Validação');
-                            return;
-                        }
-
-                        // Cria o usuário de autenticação no Supabase Auth
-                        const { data: authData, error: authError } = await window.supabase.auth.signUp({
+                        const { error: loginError } = await window.supabase.auth.signInWithPassword({
                             email: email,
                             password: password
                         });
+                        if (loginError) console.warn("Aviso: Login automático pós-cadastro falhou, mas cadastro foi criado.");
+                    }
 
-                        if (authError) throw authError;
-                        userId = authData.user.id;
+                    if (window.sessionHelper) {
+                        window.sessionHelper.setSession(email, data.isAdmin, userId);
+                    }
 
-                        // Grava os dados legais na tabela profiles
-                        const { error: profileError } = await window.supabase
-                            .from('profiles')
-                            .insert([{
-                                id: userId,
-                                email: email,
-                                cpf: cleanCpf,
-                                status: 'pendente_verificacao'
-                            }])
-                            .select();
-
-                        if (profileError) throw profileError;
-
-                        if (window.sessionHelper) {
-                            window.sessionHelper.setSession(email, false, userId);
-                        }
-
-                        // Dispara Geração de Pix Real via endpoint do Mercado Pago
+                    if (data.isAdmin) {
+                        alert("🧶 Bem-vindo, Administrador! Cadastro efetuado com verificação automática.");
+                        window.location.href = 'dashboard.html';
+                    } else {
+                        // Dispara Geração de Pix Real
                         await initiatePixGeneration(email, cleanCpf, userId, submitBtn);
                     }
                 } catch (err) {
@@ -284,11 +260,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- GERAÇÃO DO PIX DINÂMICO (MERCADO PAGO API / MOCK) ---
+    // --- GERAÇÃO DO PIX DINÂMICO (MERCADO PAGO API) ---
     async function initiatePixGeneration(email, cpf, userId, submitBtn) {
         try {
-            // Se estiver em produção local sem serverless ou em modo offline, podemos cair no mock,
-            // mas tentaremos chamar o endpoint seguro da Vercel /api/criar-pix
+            // Em produção ou local, chama o endpoint da Vercel /api/criar-pix
             const response = await fetch('/api/criar-pix', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -305,28 +280,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 showStep(stepPixPayment);
                 startProductionPixMonitoring(charge.transactionId, email, userId);
             } else {
-                // Se der erro (ex: rodando local sem Vercel Serverless), inicia o fallback seguro de teste
                 const errData = await response.json();
                 throw new Error(errData.error || 'Erro na API');
             }
         } catch (error) {
-            if (window.isOfflineMode) {
-                console.warn("⚠️ API do Mercado Pago indisponível localmente (Vercel não deployada local). Iniciando simulação de teste local:", error.message);
-                
-                // Inicia o simulador Pix padrão para testes locais
-                if (window.PixService) {
-                    const charge = await window.PixService.generatePixCharge(CHAPTER_PRICE, "verificacao_local");
-                    
-                    if (pixQrElement) pixQrElement.src = charge.qrCodeUrl;
-                    if (pixCodeField) pixCodeField.value = charge.copyPasteCode;
-                    
-                    showStep(stepPixPayment);
-                    startMockPixMonitoring(email, userId);
-                }
-            } else {
-                console.error("❌ Erro ao gerar Pix no gateway Mercado Pago:", error.message);
-                alert("⚠️ Não foi possível gerar a cobrança Pix de validação de maioridade no momento. Por favor, tente novamente mais tarde.");
-            }
+            console.error("❌ Erro ao gerar Pix no gateway Mercado Pago:", error.message);
+            alert("⚠️ Não foi possível gerar a cobrança Pix de validação de maioridade no momento: " + error.message);
         } finally {
             resetSubmitButton(submitBtn, '<i class="fa-solid fa-qrcode" style="margin-right: 8px;"></i> Gerar Pix de Validação');
         }
@@ -391,25 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
         activePixListener = { cancel: () => clearInterval(interval) };
     }
 
-    // --- MONITORAMENTO MOCK: SIMULAÇÃO PARA TESTES LOCAIS ---
-    function startMockPixMonitoring(email, userId) {
-        let elapsedTime = 0;
-        const intervalTime = 1000;
-        
-        const interval = setInterval(() => {
-            elapsedTime += intervalTime;
-            
-            if (elapsedTime >= 6000) {
-                clearInterval(interval);
-                updateMockUserStatus(email, 'verificado');
-                handleSuccessfulPayment(email, userId);
-            }
-        }, intervalTime);
-
-        activePixListener = { cancel: () => clearInterval(interval) };
-    }
-
-    // Auxiliar: Altera status no mock local
+    // Auxiliar: Altera status no mock local (Apenas em modo offline)
     function updateMockUserStatus(email, newStatus) {
         let mockUsers = JSON.parse(localStorage.getItem('fio-mock-users') || '[]');
         const idx = mockUsers.findIndex(u => u.email === email);
@@ -555,8 +496,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Sobregravação/Override de Conveniência e Segurança para administradores!
                         let isUserAdmin = false;
                         if (window.isOfflineMode) {
-                            const offlineAdmins = ["miles.kensuke@gmail.com", "omoloyaartes@gmail.com"];
-                            isUserAdmin = offlineAdmins.includes(email);
+                            isUserAdmin = email.includes("admin");
                         } else {
                             try {
                                 const sessionToken = data.session?.access_token;
@@ -668,28 +608,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnNewsletterSubscribe.innerHTML = originalBtnHTML;
                 }, 800);
             } else {
-                // Modo Produção Remoto (Supabase)
+                // Modo Produção Remoto (API Serverless)
                 try {
-                    if (window.supabase) {
-                        // Faz a inserção direta na tabela 'newsletter'
-                        const { error } = await window.supabase
-                            .from('newsletter')
-                            .insert([{ email: email }]);
+                    const response = await fetch('/api/newsletter', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email })
+                    });
 
-                        if (error) {
-                            // Se for erro de duplicidade (código 23505 no Postgres)
-                            if (error.code === '23505') {
-                                throw new Error('Este e-mail já está cadastrado na nossa lista!');
-                            }
-                            throw error;
-                        }
+                    const data = await response.json();
 
-                        newsletterMessage.textContent = 'E-mail cadastrado! Você será avisado assim que o primeiro capítulo for liberado.';
-                        newsletterMessage.classList.add('success');
-                        newsletterForm.reset();
-                    } else {
-                        throw new Error('Supabase não foi inicializado corretamente.');
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Falha ao cadastrar e-mail.');
                     }
+
+                    newsletterMessage.textContent = 'E-mail cadastrado! Você será avisado assim que o primeiro capítulo for liberado.';
+                    newsletterMessage.classList.add('success');
+                    newsletterForm.reset();
                 } catch (err) {
                     console.error("Erro na inscrição da newsletter:", err);
                     newsletterMessage.textContent = err.message || 'Falha ao cadastrar e-mail. Tente novamente mais tarde.';
