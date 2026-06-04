@@ -138,6 +138,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    }
+
     // --- 3. Processamento de Arquivos da Fila ---
     function handleSelectedFiles(files) {
         queueContainer.style.display = 'block';
@@ -405,20 +414,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error(err);
                 }
             } else {
-                // --- MODO PRODUÇÃO SUPABASE Storage Upload ---
+                // --- MODO PRODUÇÃO API SERVERLESS ---
                 try {
-                    if (window.supabase) {
-                        const { data, error } = await window.supabase.storage
-                            .from('paginas-quadrinho')
-                            .upload(filePath, item.compressedBlob, {
-                                contentType: 'image/webp',
-                                cacheControl: '3600',
-                                upsert: true
-                            });
+                    const { data: authData } = await window.supabase.auth.getSession();
+                    const sessionToken = authData?.session?.access_token;
+                    if (!sessionToken) throw new Error("Sessão expirada ou não autenticada.");
 
-                        if (error) throw error;
-                        uploadSuccess = true;
+                    const base64Data = await blobToBase64(item.compressedBlob);
+
+                    const res = await fetch('/api/admin-operations', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${sessionToken}`
+                        },
+                        body: JSON.stringify({
+                            action: 'upload-page',
+                            chapterId: chapterId,
+                            pageIndex: pageIndex,
+                            fileData: base64Data
+                        })
+                    });
+
+                    if (!res.ok) {
+                        const errJson = await res.json();
+                        throw new Error(errJson.error || 'Falha ao enviar página via backend');
                     }
+
+                    uploadSuccess = true;
                 } catch (err) {
                     console.error(`Erro ao subir página ${pageIndex}:`, err);
                     item.status = 'error';
@@ -453,17 +476,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 await delay(400);
             } else {
                 try {
-                    if (window.supabase) {
-                        const { error } = await window.supabase
-                            .from('chapters')
-                            .upsert({
-                                id: chapterId,
-                                title: chapterTitleVal,
-                                pages_count: isEditMode ? finalPagesCount : successfulUploadsCount,
-                                release_date: chapterDateVal || getFormattedDate()
-                            });
+                    const { data: authData } = await window.supabase.auth.getSession();
+                    const sessionToken = authData?.session?.access_token;
+                    if (!sessionToken) throw new Error("Sessão expirada ou não autenticada.");
 
-                        if (error) throw error;
+                    const res = await fetch('/api/admin-operations', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${sessionToken}`
+                        },
+                        body: JSON.stringify({
+                            action: 'upsert-chapter',
+                            chapterId: chapterId,
+                            title: chapterTitleVal,
+                            pagesCount: isEditMode ? finalPagesCount : successfulUploadsCount,
+                            releaseDate: chapterDateVal || getFormattedDate()
+                        })
+                    });
+
+                    if (!res.ok) {
+                        const errJson = await res.json();
+                        throw new Error(errJson.error || 'Falha ao salvar capítulo via backend');
                     }
                 } catch (err) {
                     console.error("Erro ao registrar capítulo:", err);
@@ -787,17 +821,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     sessionStorage.setItem(sessionKey, tempBlobUrl);
                 } else {
                     // --- MODO SUPABASE REAL ---
-                    if (window.supabase) {
-                        const filePath = `capitulo-${chapterId}/pagina-${pageIndex}.webp`;
-                        const { error } = await window.supabase.storage
-                            .from('paginas-quadrinho')
-                            .upload(filePath, compressed.blob, {
-                                contentType: 'image/webp',
-                                cacheControl: '3600',
-                                upsert: true
-                            });
+                    const { data: authData } = await window.supabase.auth.getSession();
+                    const sessionToken = authData?.session?.access_token;
+                    if (!sessionToken) throw new Error("Sessão expirada ou não autenticada.");
 
-                        if (error) throw error;
+                    const base64Data = await blobToBase64(compressed.blob);
+
+                    const res = await fetch('/api/admin-operations', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${sessionToken}`
+                        },
+                        body: JSON.stringify({
+                            action: 'replace-page',
+                            chapterId: chapterId,
+                            pageIndex: pageIndex,
+                            fileData: base64Data
+                        })
+                    });
+
+                    if (!res.ok) {
+                        const errJson = await res.json();
+                        throw new Error(errJson.error || 'Falha ao substituir página via backend');
                     }
                 }
 
@@ -891,32 +937,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStorage.setItem('fio-mock-chapters', JSON.stringify(mockChapters));
                 }
             } else {
-                // --- MODO SUPABASE REAL (Deslocamento via move()) ---
-                if (window.supabase) {
-                    const bucket = 'paginas-quadrinho';
-                    
-                    // 1. Apaga a página alvo
-                    const targetPath = `capitulo-${chapterId}/pagina-${pageIndex}.webp`;
-                    const { error: removeError } = await window.supabase.storage
-                        .from(bucket)
-                        .remove([targetPath]);
+                // --- MODO SUPABASE REAL (Deslocamento via API) ---
+                const { data: authData } = await window.supabase.auth.getSession();
+                const sessionToken = authData?.session?.access_token;
+                if (!sessionToken) throw new Error("Sessão expirada ou não autenticada.");
 
-                    if (removeError) throw removeError;
+                const res = await fetch('/api/admin-operations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionToken}`
+                    },
+                    body: JSON.stringify({
+                        action: 'delete-page',
+                        chapterId: chapterId,
+                        pageIndex: pageIndex,
+                        totalPages: totalPages
+                    })
+                });
 
-                    // 2. Desloca sequencialmente as páginas seguintes usando .move()
-                    for (let i = pageIndex + 1; i <= totalPages; i++) {
-                        const fromPath = `capitulo-${chapterId}/pagina-${i}.webp`;
-                        const toPath = `capitulo-${chapterId}/pagina-${i-1}.webp`;
-                        await window.supabase.storage.from(bucket).move(fromPath, toPath);
-                    }
-
-                    // 3. Decrementa pages_count na tabela chapters do banco de dados
-                    const { error: dbError } = await window.supabase
-                        .from('chapters')
-                        .update({ pages_count: totalPages - 1 })
-                        .eq('id', chapterId);
-
-                    if (dbError) throw dbError;
+                if (!res.ok) {
+                    const errJson = await res.json();
+                    throw new Error(errJson.error || 'Falha ao deletar página via backend');
                 }
             }
 
@@ -972,33 +1014,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else {
                 // --- MODO SUPABASE REAL ---
-                if (window.supabase) {
-                    const bucket = 'paginas-quadrinho';
+                const { data: authData } = await window.supabase.auth.getSession();
+                const sessionToken = authData?.session?.access_token;
+                if (!sessionToken) throw new Error("Sessão expirada ou não autenticada.");
 
-                    // 1. Deleta a linha correspondente na tabela chapters do banco
-                    const { error: dbError } = await window.supabase
-                        .from('chapters')
-                        .delete()
-                        .eq('id', chapterId);
+                const res = await fetch('/api/admin-operations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionToken}`
+                    },
+                    body: JSON.stringify({
+                        action: 'delete-chapter',
+                        chapterId: chapterId
+                    })
+                });
 
-                    if (dbError) throw dbError;
-
-                    // 2. Lista todos os arquivos contidos no diretório capitulo-X do Storage
-                    const { data: files, error: listError } = await window.supabase.storage
-                        .from(bucket)
-                        .list(`capitulo-${chapterId}`);
-
-                    if (listError) throw listError;
-
-                    // 3. Deleta todas as imagens correspondentes no storage
-                    if (files && files.length > 0) {
-                        const filesToRemove = files.map(f => `capitulo-${chapterId}/${f.name}`);
-                        const { error: storageError } = await window.supabase.storage
-                            .from(bucket)
-                            .remove(filesToRemove);
-
-                        if (storageError) throw storageError;
-                    }
+                if (!res.ok) {
+                    const errJson = await res.json();
+                    throw new Error(errJson.error || 'Falha ao excluir capítulo via backend');
                 }
             }
 
