@@ -2,14 +2,17 @@
    SUPABASE CENTRAL CONFIGURATION & CLIENT INITIALIZATION
    ========================================================================== */
 
-// As credenciais devem ser carregadas a partir do arquivo js/env.js (ignorado no Git).
-// Se o arquivo js/env.js não foi criado ou carregado, definimos fallbacks vazios.
-if (typeof window.env === 'undefined') window.env = {};
-if (typeof window.env.SUPABASE_URL === 'undefined') window.env.SUPABASE_URL = "";
-if (typeof window.env.SUPABASE_ANON_KEY === 'undefined') window.env.SUPABASE_ANON_KEY = "";
+// Configuração central e fallbacks estritos para produção
+const fallbackUrl = "https://orckzqifklnlnjulqaxi.supabase.co";
+const fallbackAnonKey = "sb_publishable_5YsosEurKym_3CDWTBh_2Q_efWMFY0H";
 
-window.SUPABASE_URL = window.env.SUPABASE_URL;
-window.SUPABASE_ANON_KEY = window.env.SUPABASE_ANON_KEY;
+if (typeof window.env === 'undefined') window.env = {};
+
+const finalUrl = (window.env && window.env.SUPABASE_URL) || fallbackUrl;
+const finalAnonKey = (window.env && window.env.SUPABASE_ANON_KEY) || fallbackAnonKey;
+
+window.SUPABASE_URL = finalUrl;
+window.SUPABASE_ANON_KEY = finalAnonKey;
 
 // Preserva o objeto global da biblioteca carregado pela CDN
 window.supabaseLib = window.supabase;
@@ -25,11 +28,13 @@ try {
     const hasCdn = (typeof window.supabaseLib !== 'undefined' && (typeof window.supabaseLib.createClient === 'function' || typeof window.supabaseLib === 'function')) || typeof supabaseJs !== 'undefined';
     console.log("   - CDN Biblioteca:", hasCdn ? "Carregada (OK)" : "Não detectada (BLOQUEADA ou ERRO)");
 
-    if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.SUPABASE_URL !== "") {
-        const creator = (window.supabaseLib && window.supabaseLib.createClient) || (typeof supabaseJs !== 'undefined' && supabaseJs.createClient) || window.supabaseLib;
+    if (finalUrl && finalAnonKey && finalUrl.trim() !== "" && finalAnonKey.trim() !== "") {
+        const creator = (window.supabaseLib && window.supabaseLib.createClient) || 
+                        (typeof supabaseJs !== 'undefined' && supabaseJs.createClient) || 
+                        window.supabaseLib;
         if (creator) {
             const clientCreator = typeof creator === 'function' ? creator : creator.createClient;
-            window.supabase = clientCreator(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+            window.supabase = clientCreator(finalUrl, finalAnonKey);
             window.isOfflineMode = false;
             console.log("🧶 Supabase: Conectado com sucesso ao banco remoto.");
         } else {
@@ -37,6 +42,12 @@ try {
             window.isOfflineMode = true;
         }
     } else {
+        if (!finalUrl || finalUrl.trim() === "") {
+            console.error("❌ Erro de Inicialização do Supabase: SUPABASE_URL está ausente.");
+        }
+        if (!finalAnonKey || finalAnonKey.trim() === "") {
+            console.error("❌ Erro de Inicialização do Supabase: SUPABASE_ANON_KEY está ausente.");
+        }
         window.isOfflineMode = true;
     }
 } catch (error) {
@@ -46,7 +57,6 @@ try {
 
 if (window.isOfflineMode) {
     console.log("🔌 Fio Vermelho Rodando em Modo Protótipo (Offline / LocalStorage).");
-    console.log("💡 Nota: Para salvar dados reais em produção na Vercel/Netlify, preencha as variáveis 'SUPABASE_URL' e 'SUPABASE_ANON_KEY' em js/supabase-config.js");
 }
 
 // Utilitário para salvar informações de sessão mockadas ou reais
