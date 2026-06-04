@@ -716,15 +716,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             } catch (err) {
-                console.warn("⚠️ API do Mercado Pago indisponível localmente para doações. Iniciando simulação de teste local:", err.message);
-                // Fallback de simulação local caso esteja em ambiente sem serverless
-                if (window.PixService) {
-                    const charge = await window.PixService.generatePixCharge(amount, "apoio_bando");
-                    if (donationQrElement) donationQrElement.src = charge.qrCodeUrl;
-                    if (donationPixCodeField) donationPixCodeField.value = charge.copyPasteCode;
-                    
-                    if (donationModalInputArea) donationModalInputArea.style.display = 'none';
-                    if (donationModalPixArea) donationModalPixArea.style.display = 'block';
+                if (window.isOfflineMode) {
+                    console.warn("⚠️ API do Mercado Pago indisponível localmente para doações. Iniciando simulação de teste local:", err.message);
+                    // Fallback de simulação local caso esteja em ambiente sem serverless
+                    if (window.PixService) {
+                        const charge = await window.PixService.generatePixCharge(amount, "apoio_bando");
+                        if (donationQrElement) donationQrElement.src = charge.qrCodeUrl;
+                        if (donationPixCodeField) donationPixCodeField.value = charge.copyPasteCode;
+                        
+                        if (donationModalInputArea) donationModalInputArea.style.display = 'none';
+                        if (donationModalPixArea) donationModalPixArea.style.display = 'block';
+                    }
+                } else {
+                    console.error("Erro na geração do Pix de apoio:", err);
+                    alert("⚠️ Ocorreu um erro ao gerar a cobrança Pix de apoio. Por favor, tente novamente mais tarde.");
                 }
             } finally {
                 btnGenerateDonationPix.innerHTML = originalBtnText;

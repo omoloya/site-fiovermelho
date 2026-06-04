@@ -310,17 +310,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(errData.error || 'Erro na API');
             }
         } catch (error) {
-            console.warn("⚠️ API do Mercado Pago indisponível localmente (Vercel não deployada local). Iniciando simulação de teste local:", error.message);
-            
-            // Inicia o simulador Pix padrão para testes locais
-            if (window.PixService) {
-                const charge = await window.PixService.generatePixCharge(CHAPTER_PRICE, "verificacao_local");
+            if (window.isOfflineMode) {
+                console.warn("⚠️ API do Mercado Pago indisponível localmente (Vercel não deployada local). Iniciando simulação de teste local:", error.message);
                 
-                if (pixQrElement) pixQrElement.src = charge.qrCodeUrl;
-                if (pixCodeField) pixCodeField.value = charge.copyPasteCode;
-                
-                showStep(stepPixPayment);
-                startMockPixMonitoring(email, userId);
+                // Inicia o simulador Pix padrão para testes locais
+                if (window.PixService) {
+                    const charge = await window.PixService.generatePixCharge(CHAPTER_PRICE, "verificacao_local");
+                    
+                    if (pixQrElement) pixQrElement.src = charge.qrCodeUrl;
+                    if (pixCodeField) pixCodeField.value = charge.copyPasteCode;
+                    
+                    showStep(stepPixPayment);
+                    startMockPixMonitoring(email, userId);
+                }
+            } else {
+                console.error("❌ Erro ao gerar Pix no gateway Mercado Pago:", error.message);
+                alert("⚠️ Não foi possível gerar a cobrança Pix de validação de maioridade no momento. Por favor, tente novamente mais tarde.");
             }
         } finally {
             resetSubmitButton(submitBtn, '<i class="fa-solid fa-qrcode" style="margin-right: 8px;"></i> Gerar Pix de Validação');
