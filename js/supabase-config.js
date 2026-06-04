@@ -4,7 +4,7 @@
 
 // Configuração central e fallbacks estritos para produção
 const fallbackUrl = "https://orckzqifklnlnjulqaxi.supabase.co";
-const fallbackAnonKey = "sb_publishable_5YsosEurKym_3CDWTBh_2Q_efWMFY0H";
+const fallbackAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yY2t6cWlma2xubG5qdWxxYXhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNzY5MDEsImV4cCI6MjA5NTY1MjkwMX0.tUzXsHYBwKCAQe0mMI4TjFvK2jUo5ASG2EwGcIJnb4w";
 
 if (typeof window.env === 'undefined') window.env = {};
 
@@ -28,7 +28,9 @@ try {
     const hasCdn = (typeof window.supabaseLib !== 'undefined' && (typeof window.supabaseLib.createClient === 'function' || typeof window.supabaseLib === 'function')) || typeof supabaseJs !== 'undefined';
     console.log("   - CDN Biblioteca:", hasCdn ? "Carregada (OK)" : "Não detectada (BLOQUEADA ou ERRO)");
 
-    if (finalUrl && finalAnonKey && finalUrl.trim() !== "" && finalAnonKey.trim() !== "") {
+    const isPlaceholder = finalAnonKey === "COLE_AQUI_A_SUA_ANON_KEY_REAL" || finalAnonKey.startsWith("sb_publishable_");
+
+    if (finalUrl && finalAnonKey && finalUrl.trim() !== "" && finalAnonKey.trim() !== "" && !isPlaceholder) {
         const creator = (window.supabaseLib && window.supabaseLib.createClient) || 
                         (typeof supabaseJs !== 'undefined' && supabaseJs.createClient) || 
                         window.supabaseLib;
@@ -45,8 +47,8 @@ try {
         if (!finalUrl || finalUrl.trim() === "") {
             console.error("❌ Erro de Inicialização do Supabase: SUPABASE_URL está ausente.");
         }
-        if (!finalAnonKey || finalAnonKey.trim() === "") {
-            console.error("❌ Erro de Inicialização do Supabase: SUPABASE_ANON_KEY está ausente.");
+        if (!finalAnonKey || finalAnonKey.trim() === "" || isPlaceholder) {
+            console.error("❌ Erro de Inicialização do Supabase: SUPABASE_ANON_KEY está ausente ou inválida (formato incorreto ou placeholder).");
         }
         window.isOfflineMode = true;
     }
