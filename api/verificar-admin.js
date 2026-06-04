@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
     // Configura headers CORS e de segurança
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -52,4 +52,4 @@ export default async function handler(req, res) {
         console.error("[verificar-admin] Erro crítico no Vercel Serverless:", err);
         return res.status(500).json({ error: 'Erro interno ao verificar perfil de admin.', isAdmin: false });
     }
-}
+};
