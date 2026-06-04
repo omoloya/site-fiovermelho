@@ -486,25 +486,21 @@ document.addEventListener('DOMContentLoaded', () => {
             merged.sort((a, b) => a.id - b.id);
             chapters = merged;
         } else {
-            // Modo online: Lê do Supabase 'chapters'
+            // Modo online: Lê da API de dados públicos /api/public-data
             try {
-                if (window.supabase) {
-                    const { data, error } = await window.supabase
-                        .from('chapters')
-                        .select('id, title, pages_count, release_date, synopsis')
-                        .order('id', { ascending: true });
-
-                    if (!error && data && data.length > 0) {
+                const response = await fetch('/api/public-data');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.length > 0) {
                         chapters = data;
                     } else {
-                        // Se estiver vazio no banco, usa os defaultChapters
                         chapters = [...defaultChapters];
                     }
                 } else {
                     chapters = [...defaultChapters];
                 }
             } catch (err) {
-                console.error("Erro ao buscar capítulos do Supabase:", err);
+                console.error("Erro ao buscar capítulos da API:", err);
                 chapters = [...defaultChapters];
             }
         }
@@ -697,10 +693,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } else {
                     // --- MODO REAL MERCADO PAGO ---
-                    const response = await fetch('/api/criar-pix', {
+                    const response = await fetch('/api/auth-operations', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, cpf, amount })
+                        body: JSON.stringify({ action: 'criar-pix', email, cpf, amount })
                     });
 
                     if (response.ok) {

@@ -1,33 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-// 1. Geração do env.js dinâmico de produção
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
-
-const fileContent = [
-    "/* ==========================================================================",
-    "   CONFIGURAÇÕES DE PRODUÇÃO (Geradas de forma robusta no Deploy)",
-    "   ========================================================================== */",
-    "",
-    "window.env = {",
-    "    SUPABASE_URL: " + JSON.stringify(supabaseUrl) + ",",
-    "    SUPABASE_ANON_KEY: " + JSON.stringify(supabaseAnonKey) + "",
-    "};",
-    ""
-].join("\n");
-
-const destPath = path.join(__dirname, '../env.js');
-
-try {
-    fs.writeFileSync(destPath, fileContent, 'utf8');
-    console.log('🧶 [build-env] env.js gerado com sucesso na raiz!');
-} catch (error) {
-    console.error('❌ [build-env] Erro ao gravar o arquivo env.js:', error);
-    process.exit(1);
-}
-
-// 2. Minificação e Ofuscação dos Arquivos JS do Frontend (In-place) via Terser
+// 1. Minificação e Ofuscação dos Arquivos JS do Frontend (In-place) via Terser
 async function runMinification() {
     try {
         const { minify } = require('terser');
@@ -88,5 +62,5 @@ async function minifyDirRecursively(dir, minify) {
     }
 }
 
-// Executa a minificação após a geração do env.js
+// Executa a minificação
 runMinification();
