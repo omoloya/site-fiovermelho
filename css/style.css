@@ -114,6 +114,7 @@ a {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 8px; /* Espaço padrão entre ícones e texto */
     padding: 12px 28px;
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-weight: 600;
@@ -1416,37 +1417,124 @@ a {
    AJUSTE DE RESPONSIVIDADE E CENTRALIZAÇÃO AUTOMÁTICA
    ========================================================================== */
 
-/* 1. Centralização Flex - Apenas nos contêineres ativos para preservar display: none nos inativos */
+/* 1. Centralização Flex e Alinhamento para os Contêineres de Autenticação e Modais */
 .auth-card, .auth-step.active, .modal-card {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-}
-
-/* 2. Espaçamento Uniforme via gap nos contêineres ativos */
-.auth-card, .auth-step.active, .modal-card {
     gap: 16px;
+    width: 100%;
 }
 
-/* 3. Consistência de Largura para os cards de autenticação */
+/* Consistência de Largura para os cards de autenticação */
 .auth-card {
-    width: 100%;
     max-width: 480px;
 }
 
-/* Garante que os formulários dentro do card de autenticação ocupem toda a largura */
-.auth-card form {
+/* 2. Configuração dos Contêineres de Formulário via Flexbox */
+#signup-form,
+#login-form,
+#forgot-password-form,
+.lead-form,
+.newsletter-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
     width: 100%;
 }
 
-/* 4. Respiro - Margens automáticas nas laterais para evitar desalinhamento */
-.auth-card .btn, .auth-card .input-field,
-.modal-card .btn, .modal-card .input-field {
-    margin: 0 auto;
+/* Força os botões e inputs a ocuparem a largura total de forma simétrica */
+.auth-card .input-field,
+.modal-card .input-field,
+.auth-card .btn,
+.modal-card .btn {
+    width: 100%;
+    margin: 0;
 }
 
-/* Mantém o espaçamento inferior padrão de 20px entre os grupos de entrada, com alinhamento central */
-.auth-card .input-group, .modal-card .input-group {
-    margin: 0 auto 20px auto;
+/* Exceto botões de cópia do Pix que devem manter tamanho automático e não distorcer */
+#btn-copy-pix,
+#btn-copy-donation-pix {
+    width: auto !important;
+}
+
+/* 3. Espaçamentos Consistentes (Remoção de Margens Fixas que quebram o layout) */
+.auth-card .input-group,
+.modal-card .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0 !important;
+    width: 100%;
+}
+
+.auth-card .input-label,
+.modal-card .input-label {
+    margin: 0;
+}
+
+/* Ajusta espaçamentos de outros blocos dentro dos passos ativos */
+.auth-step.active > *,
+.modal-card > * {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+/* Exceções necessárias para componentes específicos de passos */
+.pix-amount {
+    margin: 0 !important;
+    text-align: center;
+}
+
+.pix-qr-container {
+    margin: 0 auto !important;
+}
+
+.pix-copypaste-container {
+    margin: 0 !important;
+    width: 100%;
+}
+
+.pix-status-box {
+    margin: 0 !important;
+    width: 100%;
+}
+
+.age-gate-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    margin: 0 !important;
+}
+
+/* 4. Centralização Harmoniosa de Títulos, Textos e Mensagens de Erro/Status */
+.auth-card h1,
+.auth-card h2,
+.auth-card p,
+.auth-subtitle,
+.age-gate-title,
+.age-gate-text,
+.modal-title,
+.modal-text,
+.pix-status-box,
+.newsletter-title,
+.lead-title,
+.lead-text,
+.forgot-modal-results {
+    text-align: center !important;
+}
+
+/* 5. Botões Responsivos em Telas Menores (Mobile) */
+@media (max-width: 768px) {
+    .auth-card .btn,
+    .modal-card .btn,
+    .age-gate-buttons .btn,
+    .lead-form .btn,
+    .newsletter-form .btn {
+        width: 100% !important;
+        padding: 14px 24px !important;
+        font-size: 1rem;
+    }
 }

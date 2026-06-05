@@ -140,19 +140,20 @@
             <form id="lead-capture-form" class="lead-form" autocomplete="off">
                 <input type="email" id="lead-email" class="input-field" placeholder="Digite seu melhor e-mail" required>
                 <button type="submit" class="btn btn-primary" id="btn-subscribe">
-                    <i class="fa-solid fa-paper-plane" style="margin-right: 8px;"></i> Quero Receber Avisos
+                    <i class="fa-solid fa-paper-plane"></i> Quero Receber Avisos
                 </button>
             </form>
             
             <div id="lead-success-message" class="lead-success-msg">
-                <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> Inscrição efetuada! Prepare-se para as novidades.
+                <i class="fa-solid fa-circle-check"></i> Inscrição efetuada! Prepare-se para as novidades.
             </div>
+        </div>
     </section>
 
     <!-- ==================== APOIO / DOAÇÃO (PIX DINÂMICO) ==================== -->
     <section class="donation-section" id="donation-area">
         <div class="donation-card glass-card">
-            <div class="donation-icon" style="font-size: 2.5rem; color: var(--primary-red); margin-bottom: 16px;">
+            <div class="donation-icon" style="font-size: 2.5rem; color: var(--primary-red);">
                 <i class="fa-solid fa-heart-circle-bolt"></i>
             </div>
             <h2 class="donation-title">Apoie o <span>Fio Vermelho</span></h2>
@@ -160,7 +161,7 @@
                 Se o corre valeu a pena, dropa um trocado pros caras aqui. Fortalece o bando, kyoudai!
             </p>
             <button class="btn btn-primary donate-btn" id="btn-open-donation">
-                <i class="fa-solid fa-hand-holding-dollar" style="margin-right: 8px;"></i> Apoiar o Bando
+                <i class="fa-solid fa-hand-holding-dollar"></i> Apoiar o Bando
             </button>
         </div>
     </section>
@@ -184,36 +185,36 @@
     <div id="donation-modal" class="modal-overlay" style="display: none;">
         <div class="modal-card glass-card">
             <button class="modal-close-btn" id="btn-close-donation-modal">&times;</button>
-            <div class="modal-icon" style="font-size: 3rem; color: var(--primary-red); margin-bottom: 16px;">
+            <div class="modal-icon" style="font-size: 3rem; color: var(--primary-red);">
                 <i class="fa-solid fa-circle-dollar-to-slot"></i>
             </div>
-            <h3 class="modal-title" style="font-size: 1.5rem; margin-bottom: 12px;">Fortalecer o Bando</h3>
-            <p class="modal-text" style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 20px;">
+            <h3 class="modal-title" style="font-size: 1.5rem;">Fortalecer o Bando</h3>
+            <p class="modal-text" style="font-size: 0.9rem; color: var(--text-secondary);">
                 Escolha o valor da sua contribuição para manter o corre ativo!
             </p>
             
             <div class="donation-modal-body" id="donation-modal-input-area">
-                <div class="input-group" style="margin-bottom: 16px; display: flex; width: 100%; box-sizing: border-box;">
+                <div class="input-group" style="display: flex; width: 100%; box-sizing: border-box;">
                     <span class="input-prefix" style="color: var(--text-secondary); font-weight: 600; padding: 12px 16px; background: rgba(0,0,0,0.2); border-top-left-radius: var(--radius-sm); border-bottom-left-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.08); border-right: none; display: flex; align-items: center; justify-content: center; height: 46px; box-sizing: border-box;">R$</span>
                     <input type="number" id="donation-amount-input" class="input-field" placeholder="Digite o valor (R$)..." min="1.00" step="1.00" value="5.00" style="padding-left: 12px; border-top-left-radius: 0; border-bottom-left-radius: 0; flex: 1; height: 46px; box-sizing: border-box;">
                 </div>
                 <button class="btn btn-primary" id="btn-generate-donation-pix" style="width: 100%; min-height: 44px;">
-                    <i class="fa-solid fa-qrcode" style="margin-right: 8px;"></i> Gerar PIX de Apoio
+                    <i class="fa-solid fa-qrcode"></i> Gerar PIX de Apoio
                 </button>
             </div>
 
             <!-- Área de Resultados (QR Code e Copia e Cola) -->
             <div class="donation-modal-results" id="donation-modal-pix-area" style="display: none;">
-                <div class="pix-status-box" style="margin-bottom: 20px; background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2); padding: 12px; border-radius: var(--radius-sm); color: var(--success-green); font-weight: 600; font-size: 0.85rem; text-align: center; border: 1px solid rgba(16, 185, 129, 0.25);">
-                    <i class="fa-solid fa-face-smile-wink" style="margin-right: 6px;"></i> "Valeu kyoudai! O bando agradece o fortalecimento. Tamo junto!"
+                <div class="pix-status-box" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2); padding: 12px; border-radius: var(--radius-sm); color: var(--success-green); font-weight: 600; font-size: 0.85rem; text-align: center; border: 1px solid rgba(16, 185, 129, 0.25);">
+                    <i class="fa-solid fa-face-smile-wink"></i> "Valeu kyoudai! O bando agradece o fortalecimento. Tamo junto!"
                 </div>
                 
-                <div class="pix-qr-container" style="max-width: 200px; margin: 0 auto 16px auto; padding: 12px; background: #fff; border-radius: var(--radius-sm); box-sizing: border-box;">
+                <div class="pix-qr-container" style="max-width: 200px; padding: 12px; background: #fff; border-radius: var(--radius-sm); box-sizing: border-box;">
                     <img src="" alt="QR Code Pix" class="pix-qr-img" id="donation-qr-element" style="width: 100%; display: block; height: auto;">
                 </div>
 
-                <p class="input-label" style="text-align: center; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-secondary);">Copia e Cola do Pix</p>
-                <div class="pix-copypaste-container" style="margin-bottom: 20px; display: flex; width: 100%; box-sizing: border-box;">
+                <p class="input-label" style="font-size: 0.8rem; color: var(--text-secondary);">Copia e Cola do Pix</p>
+                <div class="pix-copypaste-container" style="display: flex; width: 100%; box-sizing: border-box;">
                     <input type="text" id="donation-pix-code-field" class="input-field pix-code-input" readonly value="" style="font-size: 0.8rem; flex: 1; border-top-right-radius: 0; border-bottom-right-radius: 0;">
                     <button id="btn-copy-donation-pix" class="btn btn-primary" style="padding: 12px 20px; border-top-left-radius: 0; border-bottom-left-radius: 0;" type="button" title="Copiar código Pix">
                         <i class="fa-regular fa-copy"></i>
