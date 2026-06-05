@@ -168,8 +168,15 @@ a {
 
 /* Input Fields */
 .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
     margin-bottom: 20px;
     text-align: left;
+    width: 100%;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .input-label {
@@ -177,17 +184,18 @@ a {
     font-size: 0.85rem;
     font-weight: 500;
     color: var(--text-secondary);
-    margin-bottom: 8px;
+    margin-bottom: 0;
     letter-spacing: 0.05em;
     text-transform: uppercase;
 }
 
 .input-field {
     width: 100%;
-    padding: 14px 16px;
+    max-width: 400px;
+    padding: 14px 20px; /* confortável para clique e digitação */
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: var(--radius-sm);
+    border-radius: 8px; /* cantos arredondados elegantes */
     color: var(--text-primary);
     font-family: inherit;
     font-size: 0.95rem;
