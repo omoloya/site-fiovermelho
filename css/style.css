@@ -246,7 +246,7 @@ a {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 32px;
+    gap: 24px;
     padding: 48px 24px;
     position: relative;
     overflow: hidden;
@@ -286,7 +286,7 @@ a {
 .auth-card {
     width: 100%;
     max-width: 480px;
-    padding: 48px 40px;
+    padding: 48px 24px;
     text-align: center;
     position: relative;
     z-index: 10;
@@ -1423,13 +1423,25 @@ a {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 16px;
+    gap: 24px !important;
     width: 100%;
 }
 
-/* Consistência de Largura para os cards de autenticação */
-.auth-card {
+/* Devolve o padding ao card de autenticação no celular, impedindo que o reset de 'main' o anule */
+main.auth-card, .auth-card {
+    width: 100%;
     max-width: 480px;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+    padding-top: 48px !important;
+    padding-bottom: 48px !important;
+}
+
+@media (min-width: 480px) {
+    main.auth-card, .auth-card {
+        padding-left: 40px !important;
+        padding-right: 40px !important;
+    }
 }
 
 /* 2. Configuração dos Contêineres de Formulário via Flexbox */
@@ -1440,8 +1452,10 @@ a {
 .newsletter-form {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 24px !important;
     width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
 }
 
 /* Força os botões e inputs a ocuparem a largura total de forma simétrica */
@@ -1450,13 +1464,18 @@ a {
 .auth-card .btn,
 .modal-card .btn {
     width: 100%;
-    margin: 0;
+    max-width: 400px !important;
+    margin: 0 auto;
+    border-radius: 8px !important;
+    padding: 14px 20px !important;
 }
 
 /* Exceto botões de cópia do Pix que devem manter tamanho automático e não distorcer */
 #btn-copy-pix,
 #btn-copy-donation-pix {
     width: auto !important;
+    max-width: none !important;
+    padding: 12px 20px !important;
 }
 
 /* 3. Espaçamentos Consistentes (Remoção de Margens Fixas que quebram o layout) */
@@ -1492,21 +1511,24 @@ a {
 }
 
 .pix-copypaste-container {
-    margin: 0 !important;
+    margin: 0 auto !important;
     width: 100%;
+    max-width: 400px;
 }
 
 .pix-status-box {
-    margin: 0 !important;
+    margin: 0 auto !important;
     width: 100%;
+    max-width: 400px;
 }
 
 .age-gate-buttons {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 12px !important;
     width: 100%;
-    margin: 0 !important;
+    max-width: 400px;
+    margin: 0 auto !important;
 }
 
 /* 4. Centralização Harmoniosa de Títulos, Textos e Mensagens de Erro/Status */
@@ -1526,6 +1548,18 @@ a {
     text-align: center !important;
 }
 
+.auth-card p,
+.modal-card p,
+.age-gate-text {
+    width: 100%;
+    max-width: 400px !important;
+    line-height: 1.6 !important;
+    text-align: center !important;
+    color: #b3b3b3 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
 /* 5. Botões Responsivos em Telas Menores (Mobile) */
 @media (max-width: 768px) {
     .auth-card .btn,
@@ -1534,7 +1568,8 @@ a {
     .lead-form .btn,
     .newsletter-form .btn {
         width: 100% !important;
-        padding: 14px 24px !important;
+        max-width: 400px !important;
+        padding: 14px 20px !important;
         font-size: 1rem;
     }
 }
