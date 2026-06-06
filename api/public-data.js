@@ -4,7 +4,7 @@ module.exports = async (req, res) => {
         return res.status(500).json({ error: 'MERCADO_PAGO_ACCESS_TOKEN não configurado.' });
     }
     try {
-        const response = await fetch('https://api.mercadopago.com/v1/users/me', {
+        const response = await fetch('https://api.mercadopago.com/users/me', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
