@@ -57,6 +57,12 @@ try {
     window.isOfflineMode = true;
 }
 
+// Trava de segurança estrita para produção: impede modo offline fora de ambiente de desenvolvimento local
+if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    window.isOfflineMode = false;
+    console.log("🔒 [Segurança]: Modo offline desativado estritamente em ambiente de produção.");
+}
+
 if (window.isOfflineMode) {
     console.log("🔌 Fio Vermelho Rodando em Modo Protótipo (Offline / LocalStorage).");
 }

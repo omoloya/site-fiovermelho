@@ -3,6 +3,11 @@
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Trava de Segurança Estrita: Forçar Modo Online em Produção ---
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        window.isOfflineMode = false;
+    }
+
     // --- Configurações Globais de Checkout ---
     const CHAPTER_PRICE = 1.50; // Preço oficial do capítulo/validação
 
@@ -520,29 +525,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         if (isUserAdmin) {
                             isVerified = true;
-                            
-                            // Se o profile do admin não existir no banco (ex: criado direto no painel auth), cria agora
-                            if (!profile) {
-                                try {
-                                    await window.supabase
-                                        .from('profiles')
-                                        .insert([{ id: data.user.id, email: email, status: 'verificado' }])
-                                        .select();
-                                } catch (insertErr) {
-                                    console.warn("Falha ao registrar perfil de admin no banco (RLS ou restrição de insert):", insertErr);
-                                }
-                            } else if (profile.status !== 'verificado') {
-                                // Se existir mas estiver pendente, promove automaticamente a verificado
-                                try {
-                                    await window.supabase
-                                        .from('profiles')
-                                        .update({ status: 'verificado' })
-                                        .eq('id', data.user.id)
-                                        .select();
-                                } catch (updateErr) {
-                                    console.warn("Falha ao promover status do admin no banco (RLS restringe atualização de status):", updateErr);
-                                }
-                            }
                         } else {
                             if (!profile) throw new Error("Perfil de usuário não encontrado. Por favor, registre-se primeiro.");
                         }
