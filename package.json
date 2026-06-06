@@ -4,7 +4,7 @@
   "description": "Fio Vermelho official site",
   "main": "api/checar-pix.js",
   "engines": {
-    "node": "20.x"
+    "node": "22.x"
   },
   "scripts": {
     "build": "node scripts/build-env.js"
