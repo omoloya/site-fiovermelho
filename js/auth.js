@@ -183,10 +183,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 userId = "usr_" + Math.random().toString(36).substring(2, 15);
                 let mockUsers = JSON.parse(localStorage.getItem('fio-mock-users') || '[]');
                 
-                if (mockUsers.some(u => u.email === email)) {
-                    alert("Este e-mail já está cadastrado.");
-                    resetSubmitButton(submitBtn, '<i class="fa-solid fa-qrcode" style="margin-right: 8px;"></i> Gerar Pix de Validação');
-                    return;
+                const existingUser = mockUsers.find(u => u.email === email);
+                if (existingUser) {
+                    const rawStatus = existingUser.status ? existingUser.status.toLowerCase().trim() : '';
+                    const isPending = rawStatus !== 'verificado' && rawStatus !== 'pago' && rawStatus !== 'approved';
+                    if (isPending) {
+                        console.log("[auth.js] [Mock] Usuário existente com status pendente. Redirecionando para Pix.");
+                        if (window.sessionHelper) {
+                            window.sessionHelper.setSession(email, false, existingUser.id);
+                        }
+                        await initiatePixGeneration(email, existingUser.cpf, existingUser.id, submitBtn);
+                        return;
+                    } else {
+                        alert("Este e-mail já está cadastrado.");
+                        resetSubmitButton(submitBtn, '<i class="fa-solid fa-qrcode" style="margin-right: 8px;"></i> Gerar Pix de Validação');
+                        return;
+                    }
                 }
 
                 const isAdminEmail = email.includes("admin");
@@ -231,6 +243,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     const data = await response.json();
 
                     if (!response.ok) {
+                        const rawStatus = data.status ? data.status.toLowerCase().trim() : '';
+                        const isPending = rawStatus !== 'verificado' && rawStatus !== 'pago' && rawStatus !== 'approved';
+                        if (data.error === 'Este e-mail já está cadastrado.' && isPending && data.userId && data.cpf) {
+                            console.log("[auth.js] Usuário existente com status pendente. Redirecionando para Pix.");
+                            if (window.supabase) {
+                                await window.supabase.auth.signInWithPassword({
+                                    email: email,
+                                    password: password
+                                }).catch(e => console.warn("Auto-login failed:", e));
+                            }
+                            if (window.sessionHelper) {
+                                window.sessionHelper.setSession(email, false, data.userId);
+                            }
+                            await initiatePixGeneration(email, data.cpf, data.userId, submitBtn);
+                            return;
+                        }
                         throw new Error(data.error || 'Erro ao realizar cadastro.');
                     }
 
@@ -267,6 +295,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- GERAÇÃO DO PIX DINÂMICO (MERCADO PAGO API) ---
     async function initiatePixGeneration(email, cpf, userId, submitBtn) {
+        // Limpeza de placeholders antigos e preparação visual
+        if (pixQrElement) pixQrElement.src = '';
+        if (pixCodeField) pixCodeField.value = 'Gerando código Pix...';
+        if (pixSpinner) pixSpinner.style.display = 'block';
+        if (pixSuccessText) pixSuccessText.style.display = 'none';
+        if (pixStatusText) {
+            pixStatusText.style.display = 'inline';
+            pixStatusText.textContent = "Gerando nova cobrança Pix...";
+        }
+
         try {
             // Em produção ou local, chama o endpoint da Vercel /api/criar-pix
             const response = await fetch('/api/criar-pix', {
@@ -482,22 +520,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         if (profileError) throw profileError;
 
-                        // Se o perfil existe mas o pagamento está pendente, intercepta e reexibe o Pix com Polling
-                        const rawStatus = profile && profile.status ? profile.status.toLowerCase().trim() : '';
-                        const isVerifiedStatus = rawStatus === 'verificado' || rawStatus === 'pago' || rawStatus === 'approved';
-
-                        if (profile && !isVerifiedStatus) {
-                            resetSubmitButton(submitBtn, '<i class="fa-solid fa-arrow-right-to-bracket" style="margin-right: 8px;"></i> Entrar no Painel');
-                            alert("ℹ️ Sua conta já está cadastrada, mas a validação de maioridade via Pix está pendente. \n\nVamos reexibir o Pix de validação para que você conclua seu acesso!");
-                            await initiatePixGeneration(email, profile.cpf, data.user.id, submitBtn);
-                            return;
-                        }
-
-                        let isVerified = false;
-                        if (profile && isVerifiedStatus) {
-                            isVerified = true;
-                        }
-
                         // Sobregravação/Override de Conveniência e Segurança para administradores!
                         let isUserAdmin = false;
                         if (window.isOfflineMode) {
@@ -524,13 +546,27 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
 
                         if (isUserAdmin) {
-                            isVerified = true;
-                        } else {
-                            if (!profile) throw new Error("Perfil de usuário não encontrado. Por favor, registre-se primeiro.");
+                            if (window.sessionHelper) {
+                                window.sessionHelper.setSession(email, true, data.user.id);
+                            }
+                            window.location.href = 'dashboard.html';
+                            return;
                         }
-                        
+
+                        // Se não for administrador, verifica o status do perfil
+                        const rawStatus = profile && profile.status ? profile.status.toLowerCase().trim() : '';
+                        const isVerifiedStatus = rawStatus === 'verificado' || rawStatus === 'pago' || rawStatus === 'approved';
+
+                        if (!profile || !isVerifiedStatus) {
+                            resetSubmitButton(submitBtn, '<i class="fa-solid fa-arrow-right-to-bracket" style="margin-right: 8px;"></i> Entrar no Painel');
+                            alert("ℹ️ Sua conta já está cadastrada, mas a validação de maioridade via Pix está pendente. \n\nVamos reexibir o Pix de validação para que você conclua seu acesso!");
+                            const cpf = profile ? profile.cpf : '';
+                            await initiatePixGeneration(email, cpf, data.user.id, submitBtn);
+                            return;
+                        }
+
                         if (window.sessionHelper) {
-                            window.sessionHelper.setSession(email, isVerified);
+                            window.sessionHelper.setSession(email, true, data.user.id);
                         }
                         window.location.href = 'dashboard.html';
                     }

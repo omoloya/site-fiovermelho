@@ -72,15 +72,27 @@ module.exports = async (req, res) => {
             // 3. Verifica se o CPF ou E-mail já estão cadastrados
             const { data: existingProfile } = await supabaseAdmin
                 .from('profiles')
-                .select('cpf, email')
+                .select('id, status, cpf, email')
                 .or(`cpf.eq.${cleanCpf},email.eq.${email}`)
                 .maybeSingle();
 
             if (existingProfile) {
-                if (existingProfile.cpf === cleanCpf) {
-                    return res.status(400).json({ error: 'Este CPF já está cadastrado em outra conta.' });
+                if (existingProfile.email.toLowerCase() === email.toLowerCase()) {
+                    return res.status(400).json({ 
+                        error: 'Este e-mail já está cadastrado.',
+                        status: existingProfile.status,
+                        userId: existingProfile.id,
+                        cpf: existingProfile.cpf
+                    });
                 }
-                return res.status(400).json({ error: 'Este e-mail já está cadastrado.' });
+                if (existingProfile.cpf === cleanCpf) {
+                    return res.status(400).json({ 
+                        error: 'Este CPF já está cadastrado em outra conta.',
+                        status: existingProfile.status,
+                        userId: existingProfile.id,
+                        cpf: existingProfile.cpf
+                    });
+                }
             }
 
             // Checa se o e-mail cadastrado é admin
