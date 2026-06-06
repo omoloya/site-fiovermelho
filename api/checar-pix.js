@@ -29,6 +29,20 @@ module.exports = async (req, res) => {
         });
     }
 
+    if (token.startsWith('TEST-')) {
+        console.error('[checar-pix] ERRO CRÍTICO: MERCADO_PAGO_ACCESS_TOKEN é uma chave de testes (TEST-). Requer chave de PRODUÇÃO (APP_USR-).');
+        return res.status(500).json({ 
+            error: 'Erro de configuração no servidor: O sistema exige uma chave do Mercado Pago de PRODUÇÃO (APP_USR-).' 
+        });
+    }
+
+    if (!token.startsWith('APP_USR-')) {
+        console.error('[checar-pix] ERRO CRÍTICO: MERCADO_PAGO_ACCESS_TOKEN não é uma chave de produção válida (deve começar com APP_USR-).');
+        return res.status(500).json({ 
+            error: 'Erro de configuração no servidor: O sistema exige uma chave do Mercado Pago de PRODUÇÃO válida.' 
+        });
+    }
+
     try {
         console.log(`[checar-pix] Iniciando consulta de pagamento ID: ${id}`);
         

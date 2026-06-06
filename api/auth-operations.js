@@ -128,6 +128,21 @@ module.exports = async (req, res) => {
         if (!token) {
             return res.status(500).json({ error: 'MERCADO_PAGO_ACCESS_TOKEN não configurado no painel da Vercel.' });
         }
+
+        if (token.startsWith('TEST-')) {
+            console.error('[auth-operations] ERRO CRÍTICO: MERCADO_PAGO_ACCESS_TOKEN é uma chave de testes (TEST-). Requer chave de PRODUÇÃO (APP_USR-).');
+            return res.status(500).json({ 
+                error: 'Erro de configuração no servidor: O sistema exige uma chave do Mercado Pago de PRODUÇÃO (APP_USR-).' 
+            });
+        }
+
+        if (!token.startsWith('APP_USR-')) {
+            console.error('[auth-operations] ERRO CRÍTICO: MERCADO_PAGO_ACCESS_TOKEN não é uma chave de produção válida (deve começar com APP_USR-).');
+            return res.status(500).json({ 
+                error: 'Erro de configuração no servidor: O sistema exige uma chave do Mercado Pago de PRODUÇÃO válida.' 
+            });
+        }
+
         if (!email || !cpf) {
             return res.status(400).json({ error: 'Os campos email e cpf são obrigatórios.' });
         }
