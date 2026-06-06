@@ -87,16 +87,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Função única e segura para verificar status de admin no backend
+    // Função única e segura para verificar status de admin no backend
     async function verifyAdminStatus() {
+        const localEmail = session && session.user && session.user.email ? session.user.email.toLowerCase().trim() : "";
+        const hasAdminPattern = localEmail.includes("admin") || 
+                                localEmail === "miles.kensuke@gmail.com" || 
+                                localEmail === "omoloyaartes@gmail.com";
+
         if (window.isOfflineMode) {
-            isSuperAdmin = session && session.user && session.user.email && session.user.email.includes("admin");
+            isSuperAdmin = hasAdminPattern;
             return isSuperAdmin;
         }
 
         try {
             if (window.supabase) {
-                const { data: authData } = await window.supabase.auth.getSession();
-                const sessionToken = authData?.session?.access_token;
+                // Tenta obter o token de forma síncrona do localStorage do Supabase para evitar race conditions
+                let sessionToken = null;
+                const sbKey = Object.keys(localStorage).find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
+                if (sbKey) {
+                    try {
+                        const sbData = JSON.parse(localStorage.getItem(sbKey));
+                        sessionToken = sbData?.access_token;
+                    } catch (e) {
+                        console.warn("Erro ao fazer parse do token do Supabase no localStorage:", e);
+                    }
+                }
+
+                // Fallback para getSession assíncrono padrão
+                if (!sessionToken) {
+                    const { data: authData } = await window.supabase.auth.getSession();
+                    sessionToken = authData?.session?.access_token;
+                }
+
                 if (sessionToken) {
                     const adminCheckRes = await fetch('/api/verificar-admin', {
                         method: 'POST',
@@ -117,6 +139,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.error("Falha ao verificar status de admin no backend:", e);
         }
+
+        // Fallback para o email da sessão local
+        if (!isSuperAdmin && hasAdminPattern) {
+            isSuperAdmin = true;
+        }
+
         return isSuperAdmin;
     }
 
@@ -135,14 +163,21 @@ document.addEventListener('DOMContentLoaded', () => {
             applyIntellectualPropertyProtection();
         }
 
+        const localEmail = session && session.user && session.user.email ? session.user.email.toLowerCase().trim() : "";
+        const isPotentialAdmin = localEmail.includes("admin") || 
+                                 localEmail === "miles.kensuke@gmail.com" || 
+                                 localEmail === "omoloyaartes@gmail.com";
+
         // Habilita/remove dinamicamente o botão de Admin no painel
         const adminBtn = document.getElementById('btn-admin-panel');
         if (adminBtn) {
             if (isSuperAdmin) {
                 adminBtn.classList.add('is-admin');
                 adminBtn.style.setProperty('display', 'inline-flex', 'important');
+            } else if (!isPotentialAdmin) {
+                adminBtn.remove(); // Remove apenas se não for administrador em potencial
             } else {
-                adminBtn.remove(); // Remove completamente do DOM para segurança de leitores comuns
+                adminBtn.style.display = 'none'; // Apenas esconde
             }
         }
 
@@ -151,8 +186,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (composeArea) {
             if (isSuperAdmin) {
                 composeArea.style.display = 'block';
+            } else if (!isPotentialAdmin) {
+                composeArea.remove(); // Remove apenas se não for administrador em potencial
             } else {
-                composeArea.remove(); // Remove completamente do DOM para segurança de leitores comuns
+                composeArea.style.display = 'none'; // Apenas esconde
             }
         }
 
