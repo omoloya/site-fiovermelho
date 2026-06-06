@@ -129,6 +129,39 @@
         </div>
     </section>
 
+    <!-- ==================== COMPOSTOR DE NEWSLETTER (APENAS ADMINS) ==================== -->
+    <section class="newsletter-compose-section" id="newsletter-compose-area" style="display: none; margin-bottom: 40px; padding: 0 24px;">
+        <div class="newsletter-compose-card glass-card" style="max-width: 800px; margin: 0 auto; padding: 32px; box-sizing: border-box;">
+            <h2 class="section-title" style="margin-bottom: 24px; text-align: center;">Compor Nova <span>Newsletter</span></h2>
+            <p class="section-text" style="color: var(--text-secondary); margin-bottom: 24px; text-align: center; font-size: 0.95rem; line-height: 1.6;">
+                Mande um mimo exclusivo para os leitores inscritos na newsletter com uma arte e um texto dedicado.
+            </p>
+            
+            <form id="newsletter-compose-form" class="compose-form" autocomplete="off" style="display: flex; flex-direction: column; gap: 16px;">
+                <div class="input-group" style="display: flex; flex-direction: column; gap: 8px;">
+                    <label for="compose-message" class="input-label" style="font-weight: 600; color: var(--text-secondary);">Mensagem Personalizada</label>
+                    <textarea id="compose-message" class="input-field" rows="6" placeholder="Escreva a mensagem dedicada para os leitores..." style="width: 100%; box-sizing: border-box; resize: vertical; padding: 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); color: var(--text-primary);" required></textarea>
+                </div>
+                
+                <div class="input-group" style="display: flex; flex-direction: column; gap: 8px;">
+                    <label for="compose-art-url" class="input-label" style="font-weight: 600; color: var(--text-secondary);">URL da Arte Exclusiva</label>
+                    <input type="url" id="compose-art-url" class="input-field" placeholder="https://exemplo.com/arte.jpg" style="width: 100%; box-sizing: border-box; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); color: var(--text-primary); padding: 12px;" required>
+                </div>
+                
+                <div class="input-group" style="display: flex; flex-direction: column; gap: 8px;">
+                    <label for="compose-chapter-select" class="input-label" style="font-weight: 600; color: var(--text-secondary);">Selecionar Capítulo Relacionado</label>
+                    <select id="compose-chapter-select" class="input-field" style="width: 100%; box-sizing: border-box; padding: 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-sm); color: var(--text-primary);" required>
+                        <!-- Preenchido dinamicamente pelo JS -->
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="btn-send-newsletter" style="width: 100%; padding: 14px; margin-top: 12px;">
+                    <i class="fa-solid fa-rocket" style="margin-right: 8px;"></i> Enviar para todos os inscritos
+                </button>
+            </form>
+        </div>
+    </section>
+
     <!-- ==================== CAPTURA DE LEADS (NEWSLETTER) ==================== -->
     <section class="lead-section">
         <div class="lead-card glass-card">
@@ -220,6 +253,26 @@
                         <i class="fa-regular fa-copy"></i>
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL DE CONFIRMAÇÃO DE ENVIO ==================== -->
+    <div id="newsletter-confirm-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-card glass-card" style="max-width: 480px; padding: 32px; box-sizing: border-box; text-align: center;">
+            <button class="modal-close-btn" id="btn-close-confirm-modal">&times;</button>
+            <div class="modal-icon" style="font-size: 3rem; color: var(--primary-red); margin-bottom: 16px;">
+                <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+            <h3 class="modal-title" style="font-size: 1.5rem; margin-bottom: 12px;">Confirmar Envio?</h3>
+            <p class="modal-text" style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px;">
+                Atenção, kyoudai! Esta ação disparará a newsletter contendo a mensagem e a arte exclusiva para <strong>todos</strong> os inscritos na nossa lista. Deseja prosseguir?
+            </p>
+            <div style="display: flex; gap: 12px; width: 100%;">
+                <button class="btn btn-secondary" id="btn-cancel-send" style="flex: 1; padding: 12px;">Cancelar</button>
+                <button class="btn btn-primary" id="btn-confirm-send" style="flex: 1; padding: 12px;">
+                    <i class="fa-solid fa-paper-plane" style="margin-right: 8px;"></i> Sim, Enviar!
+                </button>
             </div>
         </div>
     </div>
