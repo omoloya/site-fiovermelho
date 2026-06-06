@@ -525,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Configura o botão "Começar a Ler"
     function setupStartReadingButton(chapters) {
-        if (btnStartReading) {
+        if (btnStartReading && btnStartReading.parentNode) {
             // Remove listeners antigos substituindo o botão por ele mesmo
             const newBtn = btnStartReading.cloneNode(true);
             btnStartReading.parentNode.replaceChild(newBtn, btnStartReading);
@@ -534,6 +534,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 let nextToRead = chapters[0] ? chapters[0].id : "1";
                 window.location.href = `ler.html?cap=${nextToRead}`;
             });
+        } else {
+            console.warn("[dashboard.js] Botão 'btn-start-reading' ou seu elemento pai não foi encontrado no DOM.");
         }
     }
 

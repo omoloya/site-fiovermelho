@@ -591,40 +591,46 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentIndex = sortedKeys.indexOf(currentChapterId);
         
         // Botão Anterior
-        if (currentIndex <= 0) {
-            btnPrev.classList.add('btn-disabled');
-            btnPrev.disabled = true;
-        } else {
-            btnPrev.classList.remove('btn-disabled');
-            btnPrev.disabled = false;
-            // Cria clone para limpar listeners antigos
-            const newBtnPrev = btnPrev.cloneNode(true);
-            btnPrev.parentNode.replaceChild(newBtnPrev, btnPrev);
-            newBtnPrev.addEventListener('click', () => {
-                const prevId = sortedKeys[currentIndex - 1];
-                window.location.href = `ler.html?cap=${prevId}`;
-            });
+        if (btnPrev) {
+            if (currentIndex <= 0) {
+                btnPrev.classList.add('btn-disabled');
+                btnPrev.disabled = true;
+            } else {
+                btnPrev.classList.remove('btn-disabled');
+                btnPrev.disabled = false;
+                // Cria clone para limpar listeners antigos
+                if (btnPrev.parentNode) {
+                    const newBtnPrev = btnPrev.cloneNode(true);
+                    btnPrev.parentNode.replaceChild(newBtnPrev, btnPrev);
+                    newBtnPrev.addEventListener('click', () => {
+                        const prevId = sortedKeys[currentIndex - 1];
+                        window.location.href = `ler.html?cap=${prevId}`;
+                    });
+                }
+            }
         }
 
         // Botão Próximo
-        const newBtnNext = btnNext.cloneNode(true);
-        btnNext.parentNode.replaceChild(newBtnNext, btnNext);
+        if (btnNext && btnNext.parentNode) {
+            const newBtnNext = btnNext.cloneNode(true);
+            btnNext.parentNode.replaceChild(newBtnNext, btnNext);
 
-        if (currentIndex === sortedKeys.length - 1) {
-            newBtnNext.textContent = "Finalizar Leitura";
-            newBtnNext.addEventListener('click', () => {
-                window.location.href = 'dashboard.html#chapters-list';
-            });
-        } else {
-            newBtnNext.innerHTML = 'Próximo Capítulo <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i>';
-            newBtnNext.addEventListener('click', () => {
-                const nextId = sortedKeys[currentIndex + 1];
-                window.location.href = `ler.html?cap=${nextId}`;
-            });
+            if (currentIndex === sortedKeys.length - 1) {
+                newBtnNext.textContent = "Finalizar Leitura";
+                newBtnNext.addEventListener('click', () => {
+                    window.location.href = 'dashboard.html#chapters-list';
+                });
+            } else {
+                newBtnNext.innerHTML = 'Próximo Capítulo <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i>';
+                newBtnNext.addEventListener('click', () => {
+                    const nextId = sortedKeys[currentIndex + 1];
+                    window.location.href = `ler.html?cap=${nextId}`;
+                });
+            }
         }
 
         // Sincronizar Seletor de Capítulos
-        if (chapterSelectEl) {
+        if (chapterSelectEl && chapterSelectEl.parentNode) {
             // Remove listeners antigos substituindo por ele mesmo
             const newSelect = chapterSelectEl.cloneNode(true);
             chapterSelectEl.parentNode.replaceChild(newSelect, chapterSelectEl);

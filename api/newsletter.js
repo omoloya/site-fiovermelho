@@ -27,7 +27,11 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+        const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+            auth: {
+                persistSession: false
+            }
+        });
         
         const { error } = await supabaseAdmin
             .from('newsletter')

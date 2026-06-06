@@ -63,7 +63,11 @@ module.exports = async (req, res) => {
         }
 
         try {
-            const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+            const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+                auth: {
+                    persistSession: false
+                }
+            });
 
             // 3. Verifica se o CPF ou E-mail já estão cadastrados
             const { data: existingProfile } = await supabaseAdmin

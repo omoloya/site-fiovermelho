@@ -32,7 +32,11 @@ module.exports = async (req, res) => {
 
     try {
         // Inicializa o cliente com privilégios de Service Role para contornar RLS e manipular arquivos no Storage
-        const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+        const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+            auth: {
+                persistSession: false
+            }
+        });
         
         // 1. Valida a identidade do usuário a partir do token de sessão JWT
         const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
