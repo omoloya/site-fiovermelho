@@ -40,8 +40,8 @@ module.exports = async (req, res) => {
     } catch (err) {
         console.error('[public-data] Erro ao buscar capítulos:', err);
         return res.status(500).json({ 
-            error: 'Falha ao buscar dados públicos.',
-            details: err.message || String(err)
+            error: err.message || String(err),
+            details: err.stack || String(err)
         });
     }
 };

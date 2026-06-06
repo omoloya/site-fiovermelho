@@ -59,8 +59,8 @@ module.exports = async (req, res) => {
     } catch (err) {
         console.error("[verificar-admin] Erro crítico no Vercel Serverless:", err);
         return res.status(500).json({ 
-            error: 'Erro interno ao verificar perfil de admin.', 
-            details: err.message || String(err),
+            error: err.message || String(err),
+            details: err.stack || String(err),
             isAdmin: false 
         });
     }

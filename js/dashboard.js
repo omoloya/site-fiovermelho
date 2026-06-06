@@ -108,6 +108,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (adminCheckRes.ok) {
                         const adminCheckJson = await adminCheckRes.json();
                         isSuperAdmin = !!adminCheckJson.isAdmin;
+                    } else {
+                        const errJson = await adminCheckRes.json().catch(() => ({}));
+                        console.error("[verifyAdminStatus] Erro ao verificar admin no backend:", adminCheckRes.status, errJson.error || errJson);
                     }
                 }
             }
@@ -465,6 +468,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         chapters = [...defaultChapters];
                     }
                 } else {
+                    const errJson = await response.json().catch(() => ({}));
+                    console.error("[public-data] Erro ao buscar capítulos da API:", response.status, errJson.error || errJson);
                     chapters = [...defaultChapters];
                 }
             } catch (err) {

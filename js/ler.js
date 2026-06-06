@@ -116,6 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (adminCheckRes.ok) {
                         const adminCheckJson = await adminCheckRes.json();
                         isSuperAdmin = adminCheckJson.isAdmin;
+                    } else {
+                        const errJson = await adminCheckRes.json().catch(() => ({}));
+                        console.error("[verifyAdminStatus] Erro ao verificar admin no leitor:", adminCheckRes.status, errJson.error || errJson);
                     }
                 }
             } catch (e) {
@@ -208,6 +211,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (adminCheckRes.ok) {
                         const adminCheckJson = await adminCheckRes.json();
                         isUserAdmin = adminCheckJson.isAdmin;
+                    } else {
+                        const errJson = await adminCheckRes.json().catch(() => ({}));
+                        console.error("[verifyAdminStatus Check] Erro ao verificar admin no leitor status check:", adminCheckRes.status, errJson.error || errJson);
                     }
                 }
             } catch (e) {
