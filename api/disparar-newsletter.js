@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const { Resend } = require('resend');
 
 module.exports = async (req, res) => {
     // Configura headers CORS e de segurança
@@ -160,17 +161,38 @@ module.exports = async (req, res) => {
         console.log(emailHtml);
         console.log("============================================================================================================");
 
-        // 6. Simula o processamento do envio com delay realista
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // 6. Envio real via Resend (restringido temporariamente para o administrador ativo por segurança)
+        const resendApiKey = process.env.RESEND_API_KEY;
+        if (!resendApiKey) {
+            return res.status(500).json({ error: 'A variável RESEND_API_KEY não está configurada no painel da Vercel.' });
+        }
+        const resend = new Resend(resendApiKey);
+        const targetEmail = userEmail; // miles.kensuke@gmail.com
 
-        console.log(`[disparar-newsletter] Envio simulado com sucesso para ${emails.length} destinatários.`);
+        console.log(`[disparar-newsletter] Envio real via Resend iniciado para ${targetEmail}`);
+
+        const { data, error: resendError } = await resend.emails.send({
+            from: "Portal Fio Vermelho <onboarding@resend.dev>",
+            to: [targetEmail],
+            subject: "🧶 Mimo Exclusivo - Fio Vermelho",
+            html: emailHtml
+        });
+
+        if (resendError) {
+            console.error("[disparar-newsletter] Erro retornado pelo Resend:", resendError);
+            throw new Error(`Resend Error: ${resendError.message || JSON.stringify(resendError)}`);
+        }
+
+        console.log(`[disparar-newsletter] Envio real concluído com sucesso para ${targetEmail}. Resend ID: ${data?.id}`);
 
         return res.status(200).json({
             success: true,
-            message: `Newsletter enviada com sucesso para ${emails.length} leitores cadastrados!`,
-            recipientsCount: emails.length,
-            isMock: isMock,
-            htmlPreview: emailHtml
+            message: `Newsletter enviada com sucesso para o administrador logado ${targetEmail}! (Disparo em massa enviaria para ${emails.length} inscritos)`,
+            recipientsCount: 1,
+            totalSubscribers: emails.length,
+            isMock: false,
+            htmlPreview: emailHtml,
+            resendId: data?.id
         });
     } catch (err) {
         console.error("[disparar-newsletter] Erro crítico:", err);
