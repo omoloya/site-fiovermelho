@@ -166,15 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Habilita/remove dinamicamente a seção de composição de newsletter
-        const composeArea = document.getElementById('newsletter-compose-area');
-        if (composeArea) {
-            if (isSuperAdmin) {
-                composeArea.style.display = 'block';
-            } else {
-                composeArea.remove(); // Remove do DOM somente se categoricamente não for admin
-            }
-        }
+
 
         // --- 1.1 Verificação de Maioridade / Status do Perfil (ECA) ---
         try {
@@ -510,9 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderGrid(chapters);
         setupStartReadingButton(chapters);
-        if (isSuperAdmin) {
-            setupComposeChapterSelect(chapters);
-        }
+
     }
 
     function renderGrid(chapters) {
@@ -761,107 +751,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 7. COMPOSTOR DE NEWSLETTER (APENAS PARA ADMINS) ---
-    function setupComposeChapterSelect(chaptersList) {
-        const selectEl = document.getElementById('compose-chapter-select');
-        if (!selectEl) return;
-        selectEl.innerHTML = '';
-        
-        // Opção padrão vazia
-        const defOpt = document.createElement('option');
-        defOpt.value = '';
-        defOpt.textContent = 'Selecionar capítulo relacionado...';
-        selectEl.appendChild(defOpt);
-        
-        chaptersList.forEach(chap => {
-            const opt = document.createElement('option');
-            opt.value = `https://fiovermelho.art/ler.html?cap=${chap.id}`;
-            opt.textContent = `Capítulo ${chap.id}: ${chap.title}`;
-            selectEl.appendChild(opt);
-        });
-    }
 
-    const composeForm = document.getElementById('newsletter-compose-form');
-    const confirmModal = document.getElementById('newsletter-confirm-modal');
-    const btnCloseConfirm = document.getElementById('btn-close-confirm-modal');
-    const btnCancelSend = document.getElementById('btn-cancel-send');
-    const btnConfirmSend = document.getElementById('btn-confirm-send');
-    
-    let pendingNewsletterData = null;
-    
-    if (composeForm && confirmModal) {
-        composeForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const message = document.getElementById('compose-message').value.trim();
-            const artUrl = document.getElementById('compose-art-url').value.trim();
-            const chapterUrl = document.getElementById('compose-chapter-select').value.trim();
-            
-            pendingNewsletterData = { message, artUrl, chapterUrl };
-            
-            // Exibe o modal de confirmação
-            confirmModal.style.display = 'flex';
-        });
-    }
-    
-    function closeConfirmModal() {
-        if (confirmModal) confirmModal.style.display = 'none';
-        pendingNewsletterData = null;
-    }
-    
-    if (btnCloseConfirm) btnCloseConfirm.addEventListener('click', closeConfirmModal);
-    if (btnCancelSend) btnCancelSend.addEventListener('click', closeConfirmModal);
-    if (confirmModal) {
-        confirmModal.addEventListener('click', (e) => {
-            if (e.target === confirmModal) {
-                closeConfirmModal();
-            }
-        });
-    }
-    
-    if (btnConfirmSend) {
-        btnConfirmSend.addEventListener('click', async () => {
-            if (!pendingNewsletterData) return;
-            
-            // Desabilita botões e mostra carregamento
-            btnConfirmSend.disabled = true;
-            btnConfirmSend.innerHTML = '<div class="pix-status-spinner" style="width:14px; height:14px; margin-right:8px; border-top-color:#fff; display:inline-block; vertical-align:middle;"></div> Disparando...';
-            btnCancelSend.disabled = true;
-            
-            try {
-                // Recupera token do Supabase
-                let sessionToken = null;
-                if (window.supabase) {
-                    const { data: authData } = await window.supabase.auth.getSession();
-                    sessionToken = authData?.session?.access_token;
-                }
-                
-                const response = await fetch('/api/disparar-newsletter', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': sessionToken ? `Bearer ${sessionToken}` : ''
-                    },
-                    body: JSON.stringify(pendingNewsletterData)
-                });
-                
-                const resData = await response.json();
-                
-                if (response.ok) {
-                    alert("🚀 Newsletter disparada com sucesso para todos os inscritos!");
-                    composeForm.reset();
-                } else {
-                    throw new Error(resData.error || 'Erro ao disparar newsletter.');
-                }
-            } catch (err) {
-                console.error("Erro ao disparar newsletter:", err);
-                alert("❌ Falha ao disparar newsletter: " + err.message);
-            } finally {
-                btnConfirmSend.disabled = false;
-                btnConfirmSend.innerHTML = '<i class="fa-solid fa-paper-plane" style="margin-right: 8px;"></i> Sim, Enviar!';
-                btnCancelSend.disabled = false;
-                closeConfirmModal();
-            }
-        });
-    }
 });

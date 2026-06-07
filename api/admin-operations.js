@@ -85,6 +85,32 @@ module.exports = async (req, res) => {
                 return res.status(200).json({ success: true, message: 'Página enviada com sucesso.', data });
             }
 
+            case 'upload-newsletter-art': {
+                if (!fileData) {
+                    return res.status(400).json({ error: 'Parâmetros ausentes para upload-newsletter-art.' });
+                }
+                const base64Data = fileData.replace(/^data:image\/\w+;base64,/, "");
+                const buffer = Buffer.from(base64Data, 'base64');
+                const filePath = `newsletter/art-${Date.now()}.webp`;
+
+                const { data, error } = await supabaseAdmin.storage
+                    .from(bucket)
+                    .upload(filePath, buffer, {
+                        contentType: 'image/webp',
+                        cacheControl: '3600',
+                        upsert: true
+                    });
+
+                if (error) throw error;
+
+                const { data: publicUrlData } = supabaseAdmin.storage
+                    .from(bucket)
+                    .getPublicUrl(filePath);
+
+                const publicUrl = publicUrlData?.publicUrl || '';
+                return res.status(200).json({ success: true, message: 'Arte da newsletter enviada com sucesso.', publicUrl });
+            }
+
             case 'replace-page': {
                 if (!chapterId || !pageIndex || !fileData) {
                     return res.status(400).json({ error: 'Parâmetros ausentes para replace-page.' });

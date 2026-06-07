@@ -398,7 +398,7 @@
     <main class="admin-grid">
         
         <!-- COLUNA ESQUERDA: CADASTRO DO CAPÍTULO -->
-        <section class="admin-card glass-card">
+        <section class="admin-card glass-card" id="admin-chapter-data-card">
             <h2 class="admin-card-title">
                 <i class="fa-solid fa-folder-plus"></i> Dados do Capítulo
             </h2>
@@ -443,7 +443,7 @@
         </section>
 
         <!-- COLUNA DIREITA: FILE UPLOAD E PROCESSAMENTO -->
-        <section class="admin-card glass-card">
+        <section class="admin-card glass-card" id="admin-upload-card">
             <h2 class="admin-card-title">
                 <i class="fa-solid fa-images"></i> Upload & Otimização de Páginas
             </h2>
@@ -498,6 +498,44 @@
                 </div>
             </div>
 
+        </section>
+
+        <!-- COLUNA DIREITA: PAINEL DE NEWSLETTER (CONTÊINER 3) -->
+        <section class="admin-card glass-card" id="admin-newsletter-card" style="margin-top: 24px;">
+            <h2 class="admin-card-title">
+                <i class="fa-solid fa-paper-plane"></i> Compor Newsletter (Mimo Exclusivo)
+            </h2>
+            
+            <form id="admin-newsletter-form">
+                <!-- Upload de Arte -->
+                <div class="input-group">
+                    <label class="input-label" for="newsletter-art-file">Imagem da Arte Exclusiva</label>
+                    <input type="file" id="newsletter-art-file" class="input-field" accept="image/png, image/jpeg, image/jpg, image/webp" required>
+                    <div id="newsletter-art-preview-container" style="display: none; margin-top: 12px; text-align: center;">
+                        <img id="newsletter-art-preview" style="max-width: 100%; max-height: 200px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);" />
+                        <p id="newsletter-art-info" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;"></p>
+                    </div>
+                </div>
+
+                <!-- Seleção de Capítulo Relacionado -->
+                <div class="input-group">
+                    <label class="input-label" for="newsletter-chapter-select">Capítulo Relacionado</label>
+                    <select id="newsletter-chapter-select" class="input-field" required>
+                        <!-- Populado dinamicamente -->
+                    </select>
+                </div>
+
+                <!-- Mensagem Personalizada -->
+                <div class="input-group">
+                    <label class="input-label" for="newsletter-message">Mensagem Personalizada</label>
+                    <textarea id="newsletter-message" class="input-field" rows="6" placeholder="Escreva o texto dedicado para os leitores..." required style="resize: vertical;"></textarea>
+                </div>
+
+                <!-- Botão de Disparo -->
+                <button type="submit" id="btn-send-newsletter" class="btn btn-primary" style="width: 100%; margin-top: 16px;">
+                    <i class="fa-solid fa-rocket" style="margin-right: 8px;"></i> Disparar Newsletter para Inscritos
+                </button>
+            </form>
         </section>
 
         <!-- COLUNA DIREITA: GERENCIADOR DE PÁGINAS (APARECE APENAS EM MODO EDIÇÃO) -->

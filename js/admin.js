@@ -569,6 +569,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         chaptersListCache = chapters;
         renderChaptersListUI(chapters);
+        populateNewsletterChapters(chapters);
     }
 
     function renderChaptersListUI(chapters) {
@@ -631,12 +632,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnCancelEdit) btnCancelEdit.style.display = 'block';
 
         // Ajusta títulos
-        const leftCardTitle = document.querySelector('.admin-grid section:first-child .admin-card-title');
+        const leftCardTitle = document.querySelector('#admin-chapter-data-card .admin-card-title');
         if (leftCardTitle) {
             leftCardTitle.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Editar Capítulo ${chap.id.toString().padStart(2, '0')}`;
         }
 
-        const rightCardTitle = document.querySelector('.admin-grid section:nth-child(2) .admin-card-title');
+        const rightCardTitle = document.querySelector('#admin-upload-card .admin-card-title');
         if (rightCardTitle) {
             rightCardTitle.innerHTML = `<i class="fa-solid fa-plus"></i> Adicionar Páginas ao Capítulo ${chap.id.toString().padStart(2, '0')}`;
         }
@@ -673,12 +674,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnCancelEdit) btnCancelEdit.style.display = 'none';
 
         // Restaura títulos padrões
-        const leftCardTitle = document.querySelector('.admin-grid section:first-child .admin-card-title');
+        const leftCardTitle = document.querySelector('#admin-chapter-data-card .admin-card-title');
         if (leftCardTitle) {
             leftCardTitle.innerHTML = `<i class="fa-solid fa-folder-plus"></i> Dados do Capítulo`;
         }
 
-        const rightCardTitle = document.querySelector('.admin-grid section:nth-child(2) .admin-card-title');
+        const rightCardTitle = document.querySelector('#admin-upload-card .admin-card-title');
         if (rightCardTitle) {
             rightCardTitle.innerHTML = `<i class="fa-solid fa-images"></i> Upload & Otimização de Páginas`;
         }
@@ -1049,6 +1050,209 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("Erro ao excluir capítulo: " + err.message);
             loadChaptersList();
         }
+    }
+
+    // ==========================================
+    // CONTÊINER 3: MÓDULO DE NEWSLETTER
+    // ==========================================
+    let newsletterCompressedBlob = null;
+
+    const newsletterForm = document.getElementById('admin-newsletter-form');
+    const newsletterArtFile = document.getElementById('newsletter-art-file');
+    const newsletterArtPreviewContainer = document.getElementById('newsletter-art-preview-container');
+    const newsletterArtPreview = document.getElementById('newsletter-art-preview');
+    const newsletterArtInfo = document.getElementById('newsletter-art-info');
+    const newsletterChapterSelect = document.getElementById('newsletter-chapter-select');
+    const newsletterMessage = document.getElementById('newsletter-message');
+    const btnSendNewsletter = document.getElementById('btn-send-newsletter');
+
+    // Comprime a imagem da arte para WebP client-side via Canvas
+    if (newsletterArtFile) {
+        newsletterArtFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (newsletterArtInfo) {
+                newsletterArtInfo.textContent = "Comprimindo imagem para WebP...";
+            }
+            if (newsletterArtPreviewContainer) {
+                newsletterArtPreviewContainer.style.display = 'block';
+            }
+
+            const tempUrl = URL.createObjectURL(file);
+            const img = new Image();
+            img.src = tempUrl;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const maxWidth = 1200; // Resolução ideal para newsletter
+
+                if (width > maxWidth) {
+                    height = Math.round((maxWidth * height) / width);
+                    width = maxWidth;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    URL.revokeObjectURL(tempUrl);
+                    if (blob) {
+                        newsletterCompressedBlob = blob;
+                        const previewUrl = URL.createObjectURL(blob);
+                        if (newsletterArtPreview) {
+                            newsletterArtPreview.src = previewUrl;
+                        }
+                        
+                        const origSize = formatBytes(file.size);
+                        const compSize = formatBytes(blob.size);
+                        const reduction = Math.round(((file.size - blob.size) / file.size) * 100);
+                        
+                        if (newsletterArtInfo) {
+                            newsletterArtInfo.textContent = `Original: ${origSize} | WebP: ${compSize} | Redução: ${reduction}%`;
+                        }
+                        console.log(`[Newsletter WebP Canvas] Compressão concluída. Original: ${origSize} | Comprimido: ${compSize} | Redução: ${reduction}%`);
+                    } else {
+                        alert("Falha ao processar imagem.");
+                        if (newsletterArtInfo) newsletterArtInfo.textContent = "Erro na compressão.";
+                    }
+                }, 'image/webp', 0.85);
+            };
+            img.onerror = () => {
+                URL.revokeObjectURL(tempUrl);
+                alert("Falha ao carregar imagem no Canvas.");
+                if (newsletterArtInfo) newsletterArtInfo.textContent = "Erro ao carregar imagem.";
+            };
+        });
+    }
+
+    // Popula o select do capítulo relacionado na newsletter
+    function populateNewsletterChapters(chapters) {
+        if (!newsletterChapterSelect) return;
+        newsletterChapterSelect.innerHTML = '<option value="" disabled selected>Selecione um capítulo relacionado...</option>';
+        chapters.forEach(chap => {
+            const opt = document.createElement('option');
+            opt.value = `${window.location.origin}/ler.html?cap=${chap.id}`;
+            opt.textContent = `Capítulo ${chap.id.toString().padStart(2, '0')} - ${chap.title}`;
+            newsletterChapterSelect.appendChild(opt);
+        });
+    }
+
+    // Dispara a newsletter
+    if (newsletterForm) {
+        newsletterForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!newsletterCompressedBlob) {
+                alert("Por favor, selecione e comprima uma imagem de arte primeiro!");
+                return;
+            }
+
+            const chapterUrl = newsletterChapterSelect.value;
+            const message = newsletterMessage.value.trim();
+
+            if (!chapterUrl || !message) {
+                alert("Por favor, preencha todos os campos obrigatórios!");
+                return;
+            }
+
+            const confirmMsg = "Atenção, kyoudai! Esta ação disparará a newsletter contendo a mensagem e a arte exclusiva para TODOS os inscritos. Deseja prosseguir?";
+            if (!confirm(confirmMsg)) return;
+
+            // Ativar estado de carregamento
+            if (btnSendNewsletter) {
+                btnSendNewsletter.disabled = true;
+                btnSendNewsletter.innerHTML = '<div class="pix-status-spinner" style="width:14px; height:14px; margin-right:8px; border-top-color:#fff; display:inline-block; vertical-align:middle;"></div> Disparando...';
+            }
+
+            let artUrl = '';
+
+            try {
+                if (window.isOfflineMode) {
+                    // Simulação Offline
+                    await delay(1000);
+                    artUrl = URL.createObjectURL(newsletterCompressedBlob);
+                    console.log("[Newsletter Offline] Upload simulado. URL temporária:", artUrl);
+                } else {
+                    // Upload real via api/admin-operations
+                    const { data: authData } = await window.supabase.auth.getSession();
+                    const sessionToken = authData?.session?.access_token;
+                    if (!sessionToken) throw new Error("Sessão expirada ou não autenticada.");
+
+                    const base64Data = await blobToBase64(newsletterCompressedBlob);
+
+                    const uploadRes = await fetch('/api/admin-operations', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${sessionToken}`
+                        },
+                        body: JSON.stringify({
+                            action: 'upload-newsletter-art',
+                            fileData: base64Data
+                        })
+                    });
+
+                    if (!uploadRes.ok) {
+                        const errJson = await uploadRes.json();
+                        throw new Error(errJson.error || 'Erro ao fazer upload da arte');
+                    }
+
+                    const uploadData = await uploadRes.json();
+                    artUrl = uploadData.publicUrl;
+                }
+
+                // Disparar via api/disparar-newsletter
+                let sessionToken = '';
+                if (!window.isOfflineMode && window.supabase) {
+                    const { data: authData } = await window.supabase.auth.getSession();
+                    sessionToken = authData?.session?.access_token;
+                }
+
+                const dispatchRes = await fetch('/api/disparar-newsletter', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': sessionToken ? `Bearer ${sessionToken}` : ''
+                    },
+                    body: JSON.stringify({
+                        message,
+                        artUrl,
+                        chapterUrl
+                    })
+                });
+
+                const dispatchData = await dispatchRes.json();
+
+                if (!dispatchRes.ok) {
+                    throw new Error(dispatchData.error || 'Erro ao disparar e-mails.');
+                }
+
+                alert(`🚀 Newsletter disparada com sucesso para ${dispatchData.recipientsCount || 0} leitores cadastrados!`);
+                
+                // Reseta form e preview
+                newsletterForm.reset();
+                newsletterCompressedBlob = null;
+                if (newsletterArtPreviewContainer) {
+                    newsletterArtPreviewContainer.style.display = 'none';
+                }
+                if (newsletterArtPreview) {
+                    newsletterArtPreview.src = '';
+                }
+            } catch (err) {
+                console.error("Erro completo ao disparar newsletter:", err);
+                alert("❌ Falha no disparo da newsletter: " + err.message);
+            } finally {
+                if (btnSendNewsletter) {
+                    btnSendNewsletter.disabled = false;
+                    btnSendNewsletter.innerHTML = '<i class="fa-solid fa-rocket" style="margin-right: 8px;"></i> Disparar Newsletter para Inscritos';
+                }
+            }
+        });
     }
 
     // --- Inicialização Automática de Carga Inicial ---
