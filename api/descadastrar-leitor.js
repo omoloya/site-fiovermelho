@@ -1,25 +1,20 @@
 const { createClient } = require('@supabase/supabase-js');
 
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function isValidID(val) {
+    if (!val) return false;
+    return val === 'mock-admin-uuid' || uuidRegex.test(val);
+}
+
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
-
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Método não permitido. Utilize POST.' });
-    }
-
-    const { email } = req.body;
-
-    if (!email) {
-        return res.status(400).json({ error: 'O campo e-mail é obrigatório.' });
-    }
-
-    const cleanEmail = email.trim().toLowerCase();
 
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -28,39 +23,107 @@ module.exports = async (req, res) => {
         return res.status(500).json({ error: 'Configurações de ambiente do Supabase ausentes no servidor.' });
     }
 
-    try {
-        const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-            auth: {
-                persistSession: false
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+        auth: {
+            persistSession: false
+        }
+    });
+
+    // 1. GET: Validação do ID e busca do e-mail associado
+    if (req.method === 'GET') {
+        const id = req.query.id;
+        if (!id || !isValidID(id)) {
+            return res.status(400).json({ error: 'ID inválido ou ausente.' });
+        }
+
+        try {
+            // Caso de teste para o administrador
+            if (id === 'mock-admin-uuid') {
+                return res.status(200).json({ success: true, email: 'miles.kensuke@gmail.com (Ambiente de Teste)', exists: true });
             }
-        });
 
-        // 1. Delete from 'newsletter' table
-        const { error: newsError } = await supabaseAdmin
-            .from('newsletter')
-            .delete()
-            .eq('email', cleanEmail);
+            // Busca na tabela 'newsletter'
+            const { data: newsData, error: newsError } = await supabaseAdmin
+                .from('newsletter')
+                .select('email')
+                .eq('id', id)
+                .maybeSingle();
 
-        if (newsError) {
-            console.error('[descadastrar-leitor] Erro ao deletar da tabela newsletter:', newsError);
-            throw newsError;
+            if (newsError) {
+                console.error('[descadastrar-leitor] Erro ao buscar ID na tabela newsletter:', newsError);
+                throw newsError;
+            }
+
+            if (newsData && newsData.email) {
+                return res.status(200).json({ success: true, email: newsData.email, exists: true });
+            }
+
+            // Busca na tabela 'leads'
+            const { data: leadsData, error: leadsError } = await supabaseAdmin
+                .from('leads')
+                .select('email')
+                .eq('id', id)
+                .maybeSingle();
+
+            if (leadsError) {
+                console.error('[descadastrar-leitor] Erro ao buscar ID na tabela leads:', leadsError);
+                throw leadsError;
+            }
+
+            if (leadsData && leadsData.email) {
+                return res.status(200).json({ success: true, email: leadsData.email, exists: true });
+            }
+
+            return res.status(404).json({ error: 'Assinatura não encontrada ou já cancelada.' });
+        } catch (err) {
+            console.error('[descadastrar-leitor] Erro na verificação do ID:', err);
+            return res.status(500).json({ error: 'Erro interno ao validar o ID de cadastro.' });
         }
-
-        // 2. Delete from 'leads' table
-        const { error: leadsError } = await supabaseAdmin
-            .from('leads')
-            .delete()
-            .eq('email', cleanEmail);
-
-        if (leadsError) {
-            console.error('[descadastrar-leitor] Erro ao deletar da tabela leads:', leadsError);
-            throw leadsError;
-        }
-
-        res.setHeader('Content-Type', 'application/json');
-        return res.status(200).json({ success: true, message: 'Descadastro realizado com sucesso das duas tabelas!' });
-    } catch (err) {
-        console.error('[descadastrar-leitor] Erro:', err);
-        return res.status(500).json({ error: 'Erro interno ao realizar descadastro. Tente novamente mais tarde.' });
     }
+
+    // 2. POST: Exclusão lógica/física usando o ID do Supabase
+    if (req.method === 'POST') {
+        const { id } = req.body;
+
+        if (!id || !isValidID(id)) {
+            return res.status(400).json({ error: 'ID inválido ou ausente.' });
+        }
+
+        try {
+            // Caso de teste para o administrador
+            if (id === 'mock-admin-uuid') {
+                return res.status(200).json({ success: true, message: 'Descadastro de teste concluído com sucesso!' });
+            }
+
+            // Remove da tabela newsletter
+            const { error: newsError } = await supabaseAdmin
+                .from('newsletter')
+                .delete()
+                .eq('id', id);
+
+            if (newsError) {
+                console.error('[descadastrar-leitor] Erro ao deletar da tabela newsletter:', newsError);
+                throw newsError;
+            }
+
+            // Remove da tabela leads
+            const { error: leadsError } = await supabaseAdmin
+                .from('leads')
+                .delete()
+                .eq('id', id);
+
+            if (leadsError) {
+                console.error('[descadastrar-leitor] Erro ao deletar da tabela leads:', leadsError);
+                throw leadsError;
+            }
+
+            res.setHeader('Content-Type', 'application/json');
+            return res.status(200).json({ success: true, message: 'Descadastro realizado com sucesso!' });
+        } catch (err) {
+            console.error('[descadastrar-leitor] Erro ao deletar registro por ID:', err);
+            return res.status(500).json({ error: 'Erro interno ao realizar descadastro. Tente novamente mais tarde.' });
+        }
+    }
+
+    return res.status(405).json({ error: 'Método não permitido.' });
 };

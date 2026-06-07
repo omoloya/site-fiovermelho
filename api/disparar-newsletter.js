@@ -60,6 +60,7 @@ module.exports = async (req, res) => {
         }
 
         // 3. Busca todos os e-mails registrados no banco de dados
+        let subscribers = [];
         let emails = [];
         let isMock = false;
 
@@ -67,22 +68,30 @@ module.exports = async (req, res) => {
             // Busca destinatários da tabela newsletter
             const { data: newsData, error: newsErr } = await supabase
                 .from('newsletter')
-                .select('email');
+                .select('id, email');
             
             if (!newsErr && newsData) {
                 newsData.forEach(item => {
-                    if (item.email) emails.push(item.email.trim().toLowerCase());
+                    if (item.email) {
+                        const cleanEmail = item.email.trim().toLowerCase();
+                        emails.push(cleanEmail);
+                        subscribers.push({ id: item.id, email: cleanEmail });
+                    }
                 });
             }
 
             // Busca destinatários da tabela leads
             const { data: leadsData, error: leadsErr } = await supabase
                 .from('leads')
-                .select('email');
+                .select('id, email');
             
             if (!leadsErr && leadsData) {
                 leadsData.forEach(item => {
-                    if (item.email) emails.push(item.email.trim().toLowerCase());
+                    if (item.email) {
+                        const cleanEmail = item.email.trim().toLowerCase();
+                        emails.push(cleanEmail);
+                        subscribers.push({ id: item.id, email: cleanEmail });
+                    }
                 });
             }
 
@@ -96,6 +105,11 @@ module.exports = async (req, res) => {
                 "omoloyaartes@gmail.com",
                 "leitor.teste@fiovermelho.com"
             ];
+            subscribers = [
+                { id: 'mock-admin-uuid', email: "miles.kensuke@gmail.com" },
+                { id: 'mock-uuid-2', email: "omoloyaartes@gmail.com" },
+                { id: 'mock-uuid-3', email: "leitor.teste@fiovermelho.com" }
+            ];
         }
 
         if (emails.length === 0) {
@@ -105,12 +119,21 @@ module.exports = async (req, res) => {
                 "omoloyaartes@gmail.com",
                 "leitor.teste@fiovermelho.com"
             ];
+            subscribers = [
+                { id: 'mock-admin-uuid', email: "miles.kensuke@gmail.com" },
+                { id: 'mock-uuid-2', email: "omoloyaartes@gmail.com" },
+                { id: 'mock-uuid-3', email: "leitor.teste@fiovermelho.com" }
+            ];
         }
 
         // 3.5 Define origem e destinatário para o rodapé
         const protocol = req.headers['x-forwarded-proto'] || 'https';
         const origin = `${protocol}://${req.headers.host}`;
         const targetEmail = userEmail; // miles.kensuke@gmail.com
+
+        // Busca o ID do e-mail destino (para o disparo de teste/individual)
+        const match = subscribers.find(s => s.email === targetEmail.toLowerCase());
+        const targetId = match ? match.id : 'mock-admin-uuid';
 
         // 4. Monta o template HTML em modo escuro
         const formattedMessage = message.replace(/\n/g, '<br>');
@@ -154,7 +177,7 @@ module.exports = async (req, res) => {
         <hr style="border: 0; border-top: 1px solid #222222; margin: 40px 0 20px 0;">
         <p style="color: #666666; font-size: 11px; line-height: 1.5; margin: 0;">
             Você recebeu este mimo exclusivo porque está cadastrado na newsletter oficial do quadrinho Fio Vermelho.<br>
-            Se deseja não receber mais estes e-mails, você pode <a href="${origin}/descadastrar.html?email=${encodeURIComponent(targetEmail)}" style="color: #ff2a3b; text-decoration: underline;">se descadastrar a qualquer momento</a>.<br>
+            Se deseja não receber mais estes e-mails, você pode <a href="${origin}/descadastrar.html?id=${targetId}" style="color: #ff2a3b; text-decoration: underline;">se descadastrar a qualquer momento</a>.<br>
             &copy; 2026 Fio Vermelho. Todos os direitos reservados.
         </p>
     </div>
