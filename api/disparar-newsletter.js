@@ -172,7 +172,7 @@ module.exports = async (req, res) => {
         console.log(`[disparar-newsletter] Envio real via Resend iniciado para ${targetEmail}`);
 
         const { data, error: resendError } = await resend.emails.send({
-            from: "Portal Fio Vermelho <onboarding@resend.dev>",
+            from: "Portal Fio Vermelho <newsletter@send.fiovermelho.art>",
             to: [targetEmail],
             subject: "🧶 Mimo Exclusivo - Fio Vermelho",
             html: emailHtml
