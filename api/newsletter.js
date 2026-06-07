@@ -1,5 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 
+// Sincronizado com a geração automática do ID UUID pelo banco
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
