@@ -1229,7 +1229,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const dispatchData = await dispatchRes.json();
 
                 if (!dispatchRes.ok) {
-                    throw new Error(dispatchData.error || 'Erro ao disparar e-mails.');
+                    const errMsg = dispatchData.details 
+                        ? `${dispatchData.error}\nDetalhes: ${dispatchData.details}` 
+                        : (dispatchData.error || 'Erro ao disparar e-mails.');
+                    throw new Error(errMsg);
                 }
 
                 alert(`🚀 Newsletter disparada com sucesso para ${dispatchData.recipientsCount || 0} leitores cadastrados!`);
