@@ -87,15 +87,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Função única e segura para verificar status de admin no backend
-    // Função única e segura para verificar status de admin no backend
     async function verifyAdminStatus() {
-        const localEmail = session && session.user && session.user.email ? session.user.email.toLowerCase().trim() : "";
-        const hasAdminPattern = localEmail.includes("admin") || 
-                                localEmail === "miles.kensuke@gmail.com" || 
-                                localEmail === "omoloyaartes@gmail.com";
-
         if (window.isOfflineMode) {
-            isSuperAdmin = hasAdminPattern;
+            const localEmail = session && session.user && session.user.email ? session.user.email.toLowerCase().trim() : "";
+            isSuperAdmin = localEmail.includes("admin") || 
+                           localEmail === "miles.kensuke@gmail.com" || 
+                           localEmail === "omoloyaartes@gmail.com";
             return isSuperAdmin;
         }
 
@@ -140,11 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Falha ao verificar status de admin no backend:", e);
         }
 
-        // Fallback para o email da sessão local
-        if (!isSuperAdmin && hasAdminPattern) {
-            isSuperAdmin = true;
-        }
-
         return isSuperAdmin;
     }
 
@@ -163,21 +155,14 @@ document.addEventListener('DOMContentLoaded', () => {
             applyIntellectualPropertyProtection();
         }
 
-        const localEmail = session && session.user && session.user.email ? session.user.email.toLowerCase().trim() : "";
-        const isPotentialAdmin = localEmail.includes("admin") || 
-                                 localEmail === "miles.kensuke@gmail.com" || 
-                                 localEmail === "omoloyaartes@gmail.com";
-
         // Habilita/remove dinamicamente o botão de Admin no painel
         const adminBtn = document.getElementById('btn-admin-panel');
         if (adminBtn) {
             if (isSuperAdmin) {
                 adminBtn.classList.add('is-admin');
                 adminBtn.style.setProperty('display', 'inline-flex', 'important');
-            } else if (!isPotentialAdmin) {
-                adminBtn.remove(); // Remove apenas se não for administrador em potencial
             } else {
-                adminBtn.style.display = 'none'; // Apenas esconde
+                adminBtn.remove(); // Remove do DOM somente se categoricamente não for admin
             }
         }
 
@@ -186,10 +171,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (composeArea) {
             if (isSuperAdmin) {
                 composeArea.style.display = 'block';
-            } else if (!isPotentialAdmin) {
-                composeArea.remove(); // Remove apenas se não for administrador em potencial
             } else {
-                composeArea.style.display = 'none'; // Apenas esconde
+                composeArea.remove(); // Remove do DOM somente se categoricamente não for admin
             }
         }
 
