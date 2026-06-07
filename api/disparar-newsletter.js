@@ -184,7 +184,7 @@ module.exports = async (req, res) => {
         let resendData = null;
         try {
             const result = await resend.emails.send({
-                from: "Portal Fio Vermelho <newsletter@send.fiovermelho.art>",
+                from: "Portal Fio Vermelho <newsletter@fiovermelho.art>",
                 to: targetEmail,
                 subject: "🧶 Mimo Exclusivo - Fio Vermelho",
                 html: emailHtml,
