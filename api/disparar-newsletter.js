@@ -107,8 +107,8 @@ module.exports = async (req, res) => {
             ];
             subscribers = [
                 { id: 'mock-admin-uuid', email: "miles.kensuke@gmail.com" },
-                { id: 'mock-uuid-2', email: "omoloyaartes@gmail.com" },
-                { id: 'mock-uuid-3', email: "leitor.teste@fiovermelho.com" }
+                { id: '11111111-2222-3333-4444-555555555555', email: "omoloyaartes@gmail.com" },
+                { id: '66666666-7777-8888-9999-000000000000', email: "leitor.teste@fiovermelho.com" }
             ];
         }
 
@@ -121,8 +121,8 @@ module.exports = async (req, res) => {
             ];
             subscribers = [
                 { id: 'mock-admin-uuid', email: "miles.kensuke@gmail.com" },
-                { id: 'mock-uuid-2', email: "omoloyaartes@gmail.com" },
-                { id: 'mock-uuid-3', email: "leitor.teste@fiovermelho.com" }
+                { id: '11111111-2222-3333-4444-555555555555', email: "omoloyaartes@gmail.com" },
+                { id: '66666666-7777-8888-9999-000000000000', email: "leitor.teste@fiovermelho.com" }
             ];
         }
 
