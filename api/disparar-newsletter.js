@@ -107,6 +107,11 @@ module.exports = async (req, res) => {
             ];
         }
 
+        // 3.5 Define origem e destinatário para o rodapé
+        const protocol = req.headers['x-forwarded-proto'] || 'https';
+        const origin = `${protocol}://${req.headers.host}`;
+        const targetEmail = userEmail; // miles.kensuke@gmail.com
+
         // 4. Monta o template HTML em modo escuro
         const formattedMessage = message.replace(/\n/g, '<br>');
         const emailHtml = `
@@ -149,7 +154,8 @@ module.exports = async (req, res) => {
         <hr style="border: 0; border-top: 1px solid #222222; margin: 40px 0 20px 0;">
         <p style="color: #666666; font-size: 11px; line-height: 1.5; margin: 0;">
             Você recebeu este mimo exclusivo porque está cadastrado na newsletter oficial do quadrinho Fio Vermelho.<br>
-            &copy; 2026 Fio Vermelho. Ilustrado por Miles. Todos os direitos reservados.
+            Se deseja não receber mais estes e-mails, você pode <a href="${origin}/descadastrar.html?email=${encodeURIComponent(targetEmail)}" style="color: #ff2a3b; text-decoration: underline;">se descadastrar a qualquer momento</a>.<br>
+            &copy; 2026 Fio Vermelho. Todos os direitos reservados.
         </p>
     </div>
 </body>
@@ -178,7 +184,6 @@ module.exports = async (req, res) => {
             });
         }
 
-        const targetEmail = userEmail; // miles.kensuke@gmail.com
         console.log(`[disparar-newsletter] Envio real via Resend iniciado para ${targetEmail}`);
 
         let resendData = null;

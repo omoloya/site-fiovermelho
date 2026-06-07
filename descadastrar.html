@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fio Vermelho | Descadastro da Newsletter</title>
+    
+    <!-- Meta Tags para SEO -->
+    <meta name="description" content="Cancele sua assinatura da newsletter oficial do quadrinho Fio Vermelho.">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Linha Decorativa do Fio Vermelho do Destino -->
+    <div class="auth-thread-line"></div>
+
+    <div class="auth-container">
+        <main class="auth-card glass-card">
+            <header>
+                <h1 class="auth-logo">Fio <span>Vermelho</span></h1>
+                <p class="auth-subtitle">Descadastro da Newsletter</p>
+            </header>
+
+            <!-- Passo 1: Confirmação -->
+            <section id="step-confirm" class="auth-step active" aria-labelledby="confirm-title">
+                <div class="age-gate-icon">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                </div>
+                <h2 id="confirm-title" class="age-gate-title">Cancelar Assinatura?</h2>
+                <p class="age-gate-text">
+                    Você está prestes a remover o e-mail:
+                    <strong id="unsubscribe-email" style="color: var(--primary-red); display: block; margin: 12px 0; font-size: 1.1rem; word-break: break-all;">carregando...</strong>
+                    da nossa lista de envios. Você deixará de receber novidades, avisos de capítulos e mimos exclusivos.
+                </p>
+                
+                <div class="age-gate-buttons">
+                    <button id="btn-unsubscribe" class="btn btn-primary" type="button">
+                        <i class="fa-solid fa-user-minus"></i> Confirmar Descadastro
+                    </button>
+                    <a href="index.html" class="btn btn-secondary">
+                        Voltar ao Portal
+                    </a>
+                </div>
+            </section>
+
+            <!-- Passo 2: Sucesso -->
+            <section id="step-success" class="auth-step" aria-labelledby="success-title">
+                <div class="age-gate-icon" style="color: var(--success-green); animation: none;">
+                    <i class="fa-solid fa-circle-check" style="text-shadow: 0 0 10px var(--success-green-glow);"></i>
+                </div>
+                <h2 id="success-title" class="age-gate-title">Assinatura Cancelada</h2>
+                <p class="age-gate-text" style="line-height: 1.6;">
+                    Seu e-mail foi removido da nossa lista com sucesso.<br>
+                    Sentiremos sua falta, kyoudai. Se mudar de ideia, poderá se cadastrar novamente a qualquer momento no nosso portal.
+                </p>
+                <div class="age-gate-buttons">
+                    <a href="index.html" class="btn btn-secondary">
+                        <i class="fa-solid fa-house"></i> Voltar ao Portal
+                    </a>
+                </div>
+            </section>
+
+            <!-- Passo 3: Erro -->
+            <section id="step-error" class="auth-step" aria-labelledby="error-title">
+                <div class="age-gate-icon">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <h2 id="error-title" class="age-gate-title">Ops, algo deu errado</h2>
+                <p id="error-message" class="age-gate-text">
+                    Não conseguimos processar a sua solicitação. Certifique-se de que o link utilizado é válido.
+                </p>
+                <div class="age-gate-buttons">
+                    <a href="index.html" class="btn btn-secondary">
+                        Voltar ao Portal
+                    </a>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Script de Descadastro -->
+    <script src="js/descadastrar.js"></script>
+</body>
+</html>
