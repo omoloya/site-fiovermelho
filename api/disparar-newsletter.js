@@ -72,7 +72,11 @@ module.exports = async (req, res) => {
                 .from('newsletter')
                 .select('id, email');
             
-            if (!newsErr && newsData) {
+            if (newsErr) {
+                throw newsErr;
+            }
+            
+            if (newsData) {
                 newsData.forEach(item => {
                     if (item.email) {
                         const cleanEmail = item.email.trim().toLowerCase();
@@ -85,7 +89,7 @@ module.exports = async (req, res) => {
             // Remove e-mails duplicados
             emails = [...new Set(emails)];
         } catch (dbErr) {
-            console.warn("[disparar-newsletter] Falha ao ler do Supabase. Usando fallback de teste:", dbErr.message);
+            console.warn("[disparar-newsletter] Falha ao ler do Supabase. Usando fallback de teste:", dbErr.message || String(dbErr));
             isMock = true;
             emails = [
                 "miles.kensuke@gmail.com",
@@ -111,20 +115,14 @@ module.exports = async (req, res) => {
                 { id: '11111111-2222-3333-4444-555555555555', email: "omoloyaartes@gmail.com" },
                 { id: '66666666-7777-8888-9999-000000000000', email: "leitor.teste@fiovermelho.com" }
             ];
-        }
-
-        // 3.5 Define origem e destinatário para o rodapé
+        }        // 3.5 Define origem e destinatário para o rodapé
         const protocol = req.headers['x-forwarded-proto'] || 'https';
         const origin = `${protocol}://${req.headers.host}`;
-        const targetEmail = userEmail; // miles.kensuke@gmail.com
 
-        // Busca o ID do e-mail destino (para o disparo de teste/individual)
-        const match = subscribers.find(s => s.email === targetEmail.toLowerCase());
-        const targetId = match ? match.id : 'mock-admin-uuid';
-
-        // 4. Monta o template HTML em modo escuro
+        // 4. Função geradora do template HTML individualizado em modo escuro
         const formattedMessage = message.replace(/\n/g, '<br>');
-        const emailHtml = `
+        const getEmailHtml = (targetId) => {
+            return `
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -170,14 +168,10 @@ module.exports = async (req, res) => {
     </div>
 </body>
 </html>
-        `.trim();
+            `.trim();
+        };
 
-        // 5. Exibe/Loga o HTML gerado no console do servidor para inspeção/validação
-        console.log("======================================== HTML GERADO PARA NEWSLETTER ========================================");
-        console.log(emailHtml);
-        console.log("============================================================================================================");
-
-        // 6. Envio real via Resend (restringido temporariamente para o administrador ativo por segurança)
+        // 5. Inicialização do Cliente Resend
         const resendApiKey = process.env.RESEND_API_KEY;
         if (!resendApiKey) {
             return res.status(500).json({ error: 'A variável RESEND_API_KEY não está configurada no painel da Vercel.' });
@@ -194,47 +188,53 @@ module.exports = async (req, res) => {
             });
         }
 
-        console.log(`[disparar-newsletter] Envio real via Resend iniciado para ${targetEmail}`);
+        console.log(`[disparar-newsletter] Iniciando disparo real para ${subscribers.length} inscritos.`);
 
-        let resendData = null;
-        try {
-            const result = await resend.emails.send({
-                from: "Portal Fio Vermelho <newsletter@fiovermelho.art>",
-                to: targetEmail,
-                subject: "🧶 Mimo Exclusivo - Fio Vermelho",
-                html: emailHtml,
-                text: message
-            });
-
-            if (result.error) {
-                console.error("[disparar-newsletter] Resend retornou erro na resposta:", result.error);
-                return res.status(400).json({
-                    error: 'O Resend recusou o disparo do e-mail de teste.',
-                    details: result.error.message || JSON.stringify(result.error),
-                    rawError: result.error
+        // 6. Envio em lote individualizado usando Promise.all
+        const sendPromises = subscribers.map(async (sub) => {
+            try {
+                const individualHtml = getEmailHtml(sub.id);
+                const result = await resend.emails.send({
+                    from: "Portal Fio Vermelho <newsletter@fiovermelho.art>",
+                    to: sub.email,
+                    subject: "🧶 Mimo Exclusivo - Fio Vermelho",
+                    html: individualHtml,
+                    text: message
                 });
-            }
 
-            resendData = result.data;
-        } catch (sendErr) {
-            console.error("[disparar-newsletter] Exceção disparada durante resend.emails.send:", sendErr);
-            return res.status(500).json({
-                error: 'Erro de execução ou conexão ao chamar o serviço Resend.',
-                details: sendErr.message || String(sendErr),
-                rawError: sendErr
+                if (result.error) {
+                    console.error(`[disparar-newsletter] Erro no Resend ao enviar para ${sub.email}:`, result.error);
+                    return { success: false, email: sub.email, error: result.error };
+                }
+
+                return { success: true, email: sub.email, id: result.data?.id };
+            } catch (err) {
+                console.error(`[disparar-newsletter] Exceção durante envio para ${sub.email}:`, err);
+                return { success: false, email: sub.email, error: err.message || String(err) };
+            }
+        });
+
+        const results = await Promise.all(sendPromises);
+        const successes = results.filter(r => r.success);
+        const failures = results.filter(r => !r.success);
+
+        console.log(`[disparar-newsletter] Disparo concluído. Sucessos: ${successes.length} | Falhas: ${failures.length}`);
+
+        if (successes.length === 0 && failures.length > 0) {
+            return res.status(400).json({
+                error: 'Todos os disparos de e-mail falharam no Resend.',
+                details: failures.map(f => `${f.email}: ${JSON.stringify(f.error)}`).join('; ')
             });
         }
 
-        console.log(`[disparar-newsletter] Envio real concluído com sucesso para ${targetEmail}. Resend ID: ${resendData?.id}`);
-
         return res.status(200).json({
             success: true,
-            message: `Newsletter enviada com sucesso para o administrador logado ${targetEmail}! (Disparo em massa enviaria para ${emails.length} inscritos)`,
-            recipientsCount: 1,
-            totalSubscribers: emails.length,
-            isMock: false,
-            htmlPreview: emailHtml,
-            resendId: resendData?.id
+            message: `Newsletter enviada com sucesso para ${successes.length} inscrito(s)!${failures.length > 0 ? ` (Falha em ${failures.length} envios)` : ''}`,
+            recipientsCount: successes.length,
+            failuresCount: failures.length,
+            totalSubscribers: subscribers.length,
+            isMock,
+            failures: failures.length > 0 ? failures : undefined
         });
     } catch (err) {
         console.error("[disparar-newsletter] Erro crítico:", err);

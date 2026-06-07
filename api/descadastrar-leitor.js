@@ -43,7 +43,7 @@ module.exports = async (req, res) => {
                 return res.status(200).json({ success: true, email: 'miles.kensuke@gmail.com (Ambiente de Teste)', exists: true });
             }
 
-            // Busca na tabela 'newsletter'
+            // Busca estritamente na tabela 'newsletter'
             const { data: newsData, error: newsError } = await supabaseAdmin
                 .from('newsletter')
                 .select('email')
@@ -59,22 +59,6 @@ module.exports = async (req, res) => {
                 return res.status(200).json({ success: true, email: newsData.email, exists: true });
             }
 
-            // Busca na tabela 'leads'
-            const { data: leadsData, error: leadsError } = await supabaseAdmin
-                .from('leads')
-                .select('email')
-                .eq('id', id)
-                .maybeSingle();
-
-            if (leadsError) {
-                console.error('[descadastrar-leitor] Erro ao buscar ID na tabela leads:', leadsError);
-                throw leadsError;
-            }
-
-            if (leadsData && leadsData.email) {
-                return res.status(200).json({ success: true, email: leadsData.email, exists: true });
-            }
-
             return res.status(404).json({ error: 'Assinatura não encontrada ou já cancelada.' });
         } catch (err) {
             console.error('[descadastrar-leitor] Erro na verificação do ID:', err);
@@ -82,7 +66,7 @@ module.exports = async (req, res) => {
         }
     }
 
-    // 2. POST: Exclusão lógica/física usando o ID do Supabase
+    // 2. POST: Exclusão física usando o ID do Supabase
     if (req.method === 'POST') {
         const { id } = req.body;
 
@@ -96,76 +80,24 @@ module.exports = async (req, res) => {
                 return res.status(200).json({ success: true, message: 'Descadastro de teste concluído com sucesso!' });
             }
 
-            let emailToDelete = null;
-
-            // Busca na tabela 'newsletter' pelo ID para achar o e-mail correspondente
-            const { data: newsData, error: newsSearchError } = await supabaseAdmin
-                .from('newsletter')
-                .select('email')
-                .eq('id', id)
-                .maybeSingle();
-
-            if (newsSearchError) {
-                console.error('[descadastrar-leitor] Erro ao buscar ID na newsletter:', newsSearchError);
-                throw newsSearchError;
-            }
-
-            if (newsData && newsData.email) {
-                emailToDelete = newsData.email;
-            } else {
-                // Se não achar na newsletter, busca na tabela 'leads' pelo ID para achar o e-mail correspondente
-                const { data: leadsData, error: leadsSearchError } = await supabaseAdmin
-                    .from('leads')
-                    .select('email')
-                    .eq('id', id)
-                    .maybeSingle();
-
-                if (leadsSearchError) {
-                    console.error('[descadastrar-leitor] Erro ao buscar ID em leads:', leadsSearchError);
-                    throw leadsSearchError;
-                }
-
-                if (leadsData && leadsData.email) {
-                    emailToDelete = leadsData.email;
-                }
-            }
-
-            if (!emailToDelete) {
-                return res.status(404).json({ error: 'Inscrição não encontrada ou já cancelada.' });
-            }
-
-            const cleanEmail = emailToDelete.trim().toLowerCase();
-
-            // Ação 1: Deleta da newsletter pelo ID correspondente
-            const { error: newsDeleteError } = await supabaseAdmin
+            // Ação: Deleta da newsletter pelo ID correspondente
+            const { data, error: newsDeleteError } = await supabaseAdmin
                 .from('newsletter')
                 .delete()
-                .eq('id', id);
+                .eq('id', id)
+                .select();
 
             if (newsDeleteError) {
                 console.error('[descadastrar-leitor] Erro ao deletar da newsletter por ID:', newsDeleteError);
                 throw newsDeleteError;
             }
 
-            // Ação 2: Deleta da tabela 'leads' pelo e-mail resolvido (vínculo de e-mail)
-            const { error: leadsDeleteError } = await supabaseAdmin
-                .from('leads')
-                .delete()
-                .eq('email', cleanEmail);
-
-            if (leadsDeleteError) {
-                console.error('[descadastrar-leitor] Erro ao deletar de leads por e-mail:', leadsDeleteError);
-                throw leadsDeleteError;
+            if (!data || data.length === 0) {
+                return res.status(404).json({ error: 'Inscrição não encontrada ou já cancelada.' });
             }
 
-            // Limpeza complementar opcional: Garante remoção total do e-mail da tabela de newsletter também
-            await supabaseAdmin
-                .from('newsletter')
-                .delete()
-                .eq('email', cleanEmail);
-
             res.setHeader('Content-Type', 'application/json');
-            return res.status(200).json({ success: true, message: 'Descadastro realizado com sucesso das duas tabelas!' });
+            return res.status(200).json({ success: true, message: 'Descadastro realizado com sucesso!' });
         } catch (err) {
             console.error('[descadastrar-leitor] Erro ao realizar descadastro:', err);
             return res.status(500).json({ error: 'Erro interno ao realizar descadastro. Tente novamente mais tarde.' });
