@@ -187,14 +187,16 @@ module.exports = async (req, res) => {
                 from: "Portal Fio Vermelho <newsletter@send.fiovermelho.art>",
                 to: targetEmail,
                 subject: "🧶 Mimo Exclusivo - Fio Vermelho",
-                html: emailHtml
+                html: emailHtml,
+                text: message
             });
 
             if (result.error) {
                 console.error("[disparar-newsletter] Resend retornou erro na resposta:", result.error);
                 return res.status(400).json({
                     error: 'O Resend recusou o disparo do e-mail de teste.',
-                    details: result.error.message || JSON.stringify(result.error)
+                    details: result.error.message || JSON.stringify(result.error),
+                    rawError: result.error
                 });
             }
 
@@ -203,7 +205,8 @@ module.exports = async (req, res) => {
             console.error("[disparar-newsletter] Exceção disparada durante resend.emails.send:", sendErr);
             return res.status(500).json({
                 error: 'Erro de execução ou conexão ao chamar o serviço Resend.',
-                details: sendErr.message || String(sendErr)
+                details: sendErr.message || String(sendErr),
+                rawError: sendErr
             });
         }
 
