@@ -166,24 +166,48 @@ module.exports = async (req, res) => {
         if (!resendApiKey) {
             return res.status(500).json({ error: 'A variável RESEND_API_KEY não está configurada no painel da Vercel.' });
         }
-        const resend = new Resend(resendApiKey);
-        const targetEmail = userEmail; // miles.kensuke@gmail.com
 
-        console.log(`[disparar-newsletter] Envio real via Resend iniciado para ${targetEmail}`);
-
-        const { data, error: resendError } = await resend.emails.send({
-            from: "Portal Fio Vermelho <newsletter@send.fiovermelho.art>",
-            to: [targetEmail],
-            subject: "🧶 Mimo Exclusivo - Fio Vermelho",
-            html: emailHtml
-        });
-
-        if (resendError) {
-            console.error("[disparar-newsletter] Erro retornado pelo Resend:", resendError);
-            throw new Error(`Resend Error: ${resendError.message || JSON.stringify(resendError)}`);
+        let resend;
+        try {
+            resend = new Resend(resendApiKey);
+        } catch (initErr) {
+            console.error("[disparar-newsletter] Falha ao inicializar o cliente Resend:", initErr);
+            return res.status(500).json({
+                error: 'Falha ao inicializar o cliente Resend no servidor.',
+                details: initErr.message || String(initErr)
+            });
         }
 
-        console.log(`[disparar-newsletter] Envio real concluído com sucesso para ${targetEmail}. Resend ID: ${data?.id}`);
+        const targetEmail = userEmail; // miles.kensuke@gmail.com
+        console.log(`[disparar-newsletter] Envio real via Resend iniciado para ${targetEmail}`);
+
+        let resendData = null;
+        try {
+            const result = await resend.emails.send({
+                from: "Portal Fio Vermelho <newsletter@send.fiovermelho.art>",
+                to: targetEmail,
+                subject: "🧶 Mimo Exclusivo - Fio Vermelho",
+                html: emailHtml
+            });
+
+            if (result.error) {
+                console.error("[disparar-newsletter] Resend retornou erro na resposta:", result.error);
+                return res.status(400).json({
+                    error: 'O Resend recusou o disparo do e-mail de teste.',
+                    details: result.error.message || JSON.stringify(result.error)
+                });
+            }
+
+            resendData = result.data;
+        } catch (sendErr) {
+            console.error("[disparar-newsletter] Exceção disparada durante resend.emails.send:", sendErr);
+            return res.status(500).json({
+                error: 'Erro de execução ou conexão ao chamar o serviço Resend.',
+                details: sendErr.message || String(sendErr)
+            });
+        }
+
+        console.log(`[disparar-newsletter] Envio real concluído com sucesso para ${targetEmail}. Resend ID: ${resendData?.id}`);
 
         return res.status(200).json({
             success: true,
@@ -192,7 +216,7 @@ module.exports = async (req, res) => {
             totalSubscribers: emails.length,
             isMock: false,
             htmlPreview: emailHtml,
-            resendId: data?.id
+            resendId: resendData?.id
         });
     } catch (err) {
         console.error("[disparar-newsletter] Erro crítico:", err);
