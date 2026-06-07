@@ -96,32 +96,78 @@ module.exports = async (req, res) => {
                 return res.status(200).json({ success: true, message: 'Descadastro de teste concluído com sucesso!' });
             }
 
-            // Remove da tabela newsletter
-            const { error: newsError } = await supabaseAdmin
+            let emailToDelete = null;
+
+            // Busca na tabela 'newsletter' pelo ID para achar o e-mail correspondente
+            const { data: newsData, error: newsSearchError } = await supabaseAdmin
+                .from('newsletter')
+                .select('email')
+                .eq('id', id)
+                .maybeSingle();
+
+            if (newsSearchError) {
+                console.error('[descadastrar-leitor] Erro ao buscar ID na newsletter:', newsSearchError);
+                throw newsSearchError;
+            }
+
+            if (newsData && newsData.email) {
+                emailToDelete = newsData.email;
+            } else {
+                // Se não achar na newsletter, busca na tabela 'leads' pelo ID para achar o e-mail correspondente
+                const { data: leadsData, error: leadsSearchError } = await supabaseAdmin
+                    .from('leads')
+                    .select('email')
+                    .eq('id', id)
+                    .maybeSingle();
+
+                if (leadsSearchError) {
+                    console.error('[descadastrar-leitor] Erro ao buscar ID em leads:', leadsSearchError);
+                    throw leadsSearchError;
+                }
+
+                if (leadsData && leadsData.email) {
+                    emailToDelete = leadsData.email;
+                }
+            }
+
+            if (!emailToDelete) {
+                return res.status(404).json({ error: 'Inscrição não encontrada ou já cancelada.' });
+            }
+
+            const cleanEmail = emailToDelete.trim().toLowerCase();
+
+            // Ação 1: Deleta da newsletter pelo ID correspondente
+            const { error: newsDeleteError } = await supabaseAdmin
                 .from('newsletter')
                 .delete()
                 .eq('id', id);
 
-            if (newsError) {
-                console.error('[descadastrar-leitor] Erro ao deletar da tabela newsletter:', newsError);
-                throw newsError;
+            if (newsDeleteError) {
+                console.error('[descadastrar-leitor] Erro ao deletar da newsletter por ID:', newsDeleteError);
+                throw newsDeleteError;
             }
 
-            // Remove da tabela leads
-            const { error: leadsError } = await supabaseAdmin
+            // Ação 2: Deleta da tabela 'leads' pelo e-mail resolvido (vínculo de e-mail)
+            const { error: leadsDeleteError } = await supabaseAdmin
                 .from('leads')
                 .delete()
-                .eq('id', id);
+                .eq('email', cleanEmail);
 
-            if (leadsError) {
-                console.error('[descadastrar-leitor] Erro ao deletar da tabela leads:', leadsError);
-                throw leadsError;
+            if (leadsDeleteError) {
+                console.error('[descadastrar-leitor] Erro ao deletar de leads por e-mail:', leadsDeleteError);
+                throw leadsDeleteError;
             }
 
+            // Limpeza complementar opcional: Garante remoção total do e-mail da tabela de newsletter também
+            await supabaseAdmin
+                .from('newsletter')
+                .delete()
+                .eq('email', cleanEmail);
+
             res.setHeader('Content-Type', 'application/json');
-            return res.status(200).json({ success: true, message: 'Descadastro realizado com sucesso!' });
+            return res.status(200).json({ success: true, message: 'Descadastro realizado com sucesso das duas tabelas!' });
         } catch (err) {
-            console.error('[descadastrar-leitor] Erro ao deletar registro por ID:', err);
+            console.error('[descadastrar-leitor] Erro ao realizar descadastro:', err);
             return res.status(500).json({ error: 'Erro interno ao realizar descadastro. Tente novamente mais tarde.' });
         }
     }

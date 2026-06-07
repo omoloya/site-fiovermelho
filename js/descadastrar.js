@@ -1,3 +1,4 @@
+// Sincronizado com a busca de e-mail por UUID e remoção segura
 document.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
