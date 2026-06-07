@@ -82,21 +82,6 @@ module.exports = async (req, res) => {
                 });
             }
 
-            // Busca destinatários da tabela leads
-            const { data: leadsData, error: leadsErr } = await supabase
-                .from('leads')
-                .select('id, email');
-            
-            if (!leadsErr && leadsData) {
-                leadsData.forEach(item => {
-                    if (item.email) {
-                        const cleanEmail = item.email.trim().toLowerCase();
-                        emails.push(cleanEmail);
-                        subscribers.push({ id: item.id, email: cleanEmail });
-                    }
-                });
-            }
-
             // Remove e-mails duplicados
             emails = [...new Set(emails)];
         } catch (dbErr) {
