@@ -595,8 +595,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     if (window.supabase) {
                         const { data, error } = await window.supabase
-                            .from('leads')
-                            .insert([{ email: leadEmail, created_at: new Date() }]);
+                            .from('newsletter')
+                            .insert([{ email: leadEmail }]);
 
                         if (error) throw error;
                         showLeadSuccess();
