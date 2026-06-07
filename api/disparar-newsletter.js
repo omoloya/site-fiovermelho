@@ -1,6 +1,8 @@
 const { createClient } = require('@supabase/supabase-js');
 const { Resend } = require('resend');
 
+// Sincronizado com a migração de tipo ID para UUID no banco de dados
+
 module.exports = async (req, res) => {
     // Configura headers CORS e de segurança
     res.setHeader('Access-Control-Allow-Origin', '*');

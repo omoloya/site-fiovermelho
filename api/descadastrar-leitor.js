@@ -1,5 +1,6 @@
 const { createClient } = require('@supabase/supabase-js');
 
+// Sincronizado com a migração de tipo ID para UUID no banco de dados
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function isValidID(val) {
