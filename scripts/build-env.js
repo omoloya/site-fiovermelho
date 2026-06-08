@@ -86,6 +86,29 @@ async function minifyDirRecursively(dir, minify) {
     }
 }
 
-// Executa a injeção e a minificação
+// 2. Limpeza de todos os comentários HTML (<!-- -->) dos arquivos da raiz
+function cleanHtmlComments() {
+    console.log('🧹 [build-env] Iniciando limpeza de comentários nos arquivos HTML...');
+    const rootDir = path.join(__dirname, '..');
+    const items = fs.readdirSync(rootDir);
+    
+    for (const item of items) {
+        if (item.endsWith('.html')) {
+            const filePath = path.join(rootDir, item);
+            let content = fs.readFileSync(filePath, 'utf8');
+            
+            // Remove todos os comentários HTML <!-- ... -->
+            const cleanedContent = content.replace(/<!--[\s\S]*?-->/g, '');
+            
+            if (content !== cleanedContent) {
+                fs.writeFileSync(filePath, cleanedContent, 'utf8');
+                console.log(`   - Comentários HTML removidos de: ${item}`);
+            }
+        }
+    }
+}
+
+// Executa a injeção, minificação e limpeza de HTML
 injectEnvVariables();
 runMinification();
+cleanHtmlComments();

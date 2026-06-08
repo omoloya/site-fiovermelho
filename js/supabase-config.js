@@ -1,8 +1,8 @@
-﻿
 
 
-const fallbackUrl = "https://orckzqifklnlnjulqaxi.supabase.co";
-const fallbackAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yY2t6cWlma2xubG5qdWxxYXhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNzY5MDEsImV4cCI6MjA5NTY1MjkwMX0.tUzXsHYBwKCAQe0mMI4TjFvK2jUo5ASG2EwGcIJnb4w";
+
+const fallbackUrl = "";
+const fallbackAnonKey = "";
 
 if (typeof window.env === 'undefined') window.env = {};
 

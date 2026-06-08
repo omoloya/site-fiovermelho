@@ -1,4 +1,4 @@
-﻿
+
 
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -88,9 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function verifyAdminStatus() {
         if (window.isOfflineMode) {
             const localEmail = session && session.user && session.user.email ? session.user.email.toLowerCase().trim() : "";
-            isSuperAdmin = localEmail.includes("admin") || 
-                           localEmail === "miles.kensuke@gmail.com" || 
-                           localEmail === "omoloyaartes@gmail.com";
+            isSuperAdmin = localEmail.includes("admin");
             return isSuperAdmin;
         }
 
@@ -452,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
             title: "O Laço Carmim", 
             pages_count: 4, 
             release_date: "29 de Maio, 2026",
-            synopsis: "blablablablabla mmahjaaanabak",
+            synopsis: "O que um pirulito de cereja, um cosplay de Sailor Moon, Maximum The Hormone no talo, um pudim, velhos tarados e marmanjos enciumados têm em comum? Absolutamente nada, a menos que você faça parte dessa família e o patriarca resolva estragar a sua madrugada. Para o trio principal, o turno extra começou e a estrada vai ser longa, barulhenta e completamente disfuncional.",
             price: 1.50,
             cover: "assets/capitulo_2.webp"
         }

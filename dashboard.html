@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -17,7 +17,6 @@
         // Verificação imediata síncrona com localStorage local para evitar carregamento visual antes do JS completo
         (function() {
             const session = localStorage.getItem('sb-fiovermelho-session') || sessionStorage.getItem('sb-fiovermelho-session');
-            // Nota: sb-fiovermelho-session é a chave mock/Supabase que salvaremos ao logar.
             if (!session) {
                 // Redireciona imediatamente
                 window.location.replace('index.html');
