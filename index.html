@@ -1,23 +1,23 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fio Vermelho | Acesso Restrito</title>
     
-    <!-- Meta Tags para SEO & Redes Sociais -->
+    
     <meta name="description" content="Leia o quadrinho digital Fio Vermelho. Acesso restrito para maiores de 18 anos. Verificação rápida e segura.">
     <meta property="og:title" content="Fio Vermelho | Acesso Restrito">
     <meta property="og:description" content="Entre na história do Fio Vermelho do destino. Verificação de maioridade necessária.">
     <meta property="og:type" content="website">
     
-    <!-- Google Fonts & FontAwesome para ícones -->
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-    <!-- Linha Decorativa do Fio Vermelho do Destino -->
+    
     <div class="auth-thread-line"></div>
 
     <div class="auth-container">
@@ -29,7 +29,7 @@
                 <p class="auth-subtitle">Quadrinho Digital • Acesso Exclusivo</p>
             </header>
 
-            <!-- ==================== PASSO 1: AVISO 18+ ==================== -->
+            
             <section id="step-age-gate" class="auth-step active" aria-labelledby="age-gate-title">
                 <div class="age-gate-icon">
                     <i class="fa-solid fa-circle-exclamation"></i>
@@ -51,7 +51,7 @@
                 </div>
             </section>
 
-            <!-- ==================== PASSO 2: CADASTRO ==================== -->
+            
             <section id="step-signup" class="auth-step" aria-labelledby="signup-title">
                 <h2 id="signup-title" class="age-gate-title">Criar Sua Conta</h2>
                 <p class="age-gate-text">
@@ -91,7 +91,7 @@
                 </form>
             </section>
 
-            <!-- ==================== PASSO 3: PAGAMENTO PIX REAL ==================== -->
+            
             <section id="step-pix-payment" class="auth-step" aria-labelledby="pix-title">
                 <h2 id="pix-title" class="age-gate-title">Validação de Maioridade</h2>
                 <p class="age-gate-text">
@@ -100,7 +100,7 @@
                 
                 <div class="pix-amount">R$ <span>1,50</span></div>
 
-                <!-- QR Code Container com linha de escaneamento animada -->
+                
                 <div class="pix-qr-container" id="pix-qr-box">
                     <img src="" alt="QR Code Pix" class="pix-qr-img" id="pix-qr-element">
                 </div>
@@ -113,7 +113,7 @@
                     </button>
                 </div>
 
-                <!-- Caixa de Status da Transação -->
+                
                 <div class="pix-status-box" id="pix-status-container">
                     <div class="pix-status-spinner" id="pix-spinner"></div>
                     <span id="pix-status-text">Aguardando confirmação do pagamento...</span>
@@ -129,7 +129,7 @@
                 </div>
             </section>
 
-            <!-- ==================== PASSO 4: LOGIN ==================== -->
+            
             <section id="step-login" class="auth-step" aria-labelledby="login-title">
                 <h2 id="login-title" class="age-gate-title">Acessar Conta</h2>
                 <p class="age-gate-text">
@@ -166,7 +166,7 @@
 
         </main>
 
-        <!-- Seção da Newsletter (Noir & Minimalista) -->
+        
         <section class="newsletter-section glass-card" aria-labelledby="newsletter-title">
             <h3 id="newsletter-title" class="newsletter-title">Oe, kyoudai. Marca teu vulgo ai para não perder conteudo! ^_~</h3>
             <form id="newsletter-form" class="newsletter-form" autocomplete="off">
@@ -182,7 +182,7 @@
 
     </div>
 
-    <!-- ==================== MODAL RECUPERAÇÃO DE SENHA ==================== -->
+    
     <div id="forgot-password-modal" class="modal-overlay" style="display: none;">
         <div class="modal-card glass-card">
             <button class="modal-close-btn" id="btn-close-forgot-modal">&times;</button>
@@ -205,10 +205,10 @@
                 </div>
             </form>
 
-            <!-- Área de Sucesso / Erro -->
+            
             <div class="forgot-modal-results" id="forgot-modal-message-area" style="display: none;">
                 <div id="forgot-status-box" class="pix-status-box" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2); padding: 12px; border-radius: var(--radius-sm); color: var(--success-green); font-weight: 600; font-size: 0.85rem; border: 1px solid rgba(16, 185, 129, 0.25); line-height: 1.5;">
-                    <!-- Mensagem dinâmica -->
+                    
                 </div>
                 <button class="btn btn-secondary" id="btn-close-forgot-success" style="min-height: 44px;">
                     Voltar para o Login
@@ -217,10 +217,10 @@
         </div>
     </div>
     
-    <!-- Supabase JS CDN -->
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- Scripts da Aplicação -->
+    
     <script src="js/supabase-config.js"></script>
     <script src="js/auth.js"></script>
 </body>

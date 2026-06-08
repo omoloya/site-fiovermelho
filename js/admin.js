@@ -1,14 +1,12 @@
-/* ==========================================================================
-   ADMIN.HTML PORTAL LOGIC - WEBP COMPRESSOR & ADVANCED CHAPTERS/PAGES MANAGER
-   ========================================================================== */
+﻿
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Esconde o body por padrão até validar as permissões de admin de forma segura
+    
     document.body.style.display = 'none';
 
-    // --- 1. Proteção de Rota & Sessão com Whitelist de Email ---
+    
     if (!window.sessionHelper) {
-        console.error("Erro: sessionHelper não foi inicializado.");
+        
         window.location.replace('index.html');
         return;
     }
@@ -41,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             } catch (e) {
-                console.error("Falha ao verificar status de admin no painel:", e);
+                
             }
         }
 
@@ -49,11 +47,11 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("Acesso Negado! Este painel é de uso exclusivo dos administradores e autores de Fio Vermelho.");
             window.location.replace('dashboard.html');
         } else {
-            document.body.style.display = ''; // Restaura o display original
+            document.body.style.display = ''; 
         }
     })();
 
-    // --- DOM Elements ---
+    
     const chapterForm = document.getElementById('admin-chapter-form');
     const chapterIdInput = document.getElementById('chapter-id');
     const chapterTitleInput = document.getElementById('chapter-title');
@@ -75,18 +73,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressPercentage = document.getElementById('progress-percentage');
     const successBanner = document.getElementById('success-banner');
 
-    // Novos Elementos do Gerenciador de Capítulos e Páginas
+    
     const adminChaptersList = document.getElementById('admin-chapters-list');
     const pageManagerCard = document.getElementById('page-manager-card');
     const pageManagerTitle = document.getElementById('page-manager-title');
     const pageManagerGrid = document.getElementById('page-manager-grid');
     const replacePageFileInput = document.getElementById('replace-page-file-input');
 
-    // Variáveis de Estado Geral
+    
     let fileQueue = [];
     let isUploading = false;
     
-    // Variáveis de Estado de Edição
+    
     let isEditMode = false;
     let editingChapterId = null;
     let replacingPageIndex = null;
@@ -98,12 +96,12 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 3, title: "O Laço Carmim", pages_count: 4, release_date: "29 de Maio, 2026" }
     ];
 
-    // Inicializa a data atual como valor padrão no input
+    
     if (chapterDateInput) {
         chapterDateInput.value = getFormattedDate();
     }
 
-    // --- 2. Interações de Drag & Drop ---
+    
     if (dropZone && fileInput) {
         dropZone.addEventListener('click', () => {
             if (!isUploading) fileInput.click();
@@ -146,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 3. Processamento de Arquivos da Fila ---
+    
     function handleSelectedFiles(files) {
         queueContainer.style.display = 'block';
         successBanner.style.display = 'none';
@@ -182,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fileQueue.push(queueItem);
             renderQueueItem(queueItem);
             
-            // Vincular evento para remover da fila antes de publicar
+            
             const addedItemEl = document.getElementById(`queue-item-${fileId}`);
             if (addedItemEl) {
                 const btnRemove = addedItemEl.querySelector('.btn-remove-queue-item');
@@ -199,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateQueueHeader();
     }
 
-    // --- 4. Algoritmo Client-Side de Compressão WebP via HTML5 Canvas ---
+    
     async function compressImageToWebP(item) {
         try {
             const img = new Image();
@@ -244,14 +242,14 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
         } catch (err) {
-            console.error("Erro ao comprimir imagem:", err);
+            
             item.status = 'error';
             updateQueueItemUI(item);
             checkQueueReadyStatus();
         }
     }
 
-    // --- 5. Renderização & Atualização Visual da Fila ---
+    
     function renderQueueItem(item) {
         const itemHtml = `
             <div class="queue-item" id="queue-item-${item.id}">
@@ -281,23 +279,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = fileQueue.find(q => q.id === fileId);
         if (!item) return;
 
-        // Revoga a URL do objeto temporário para liberar memória
+        
         if (item.tempUrl) {
             URL.revokeObjectURL(item.tempUrl);
         }
 
-        // Remove do DOM
+        
         const el = document.getElementById(`queue-item-${fileId}`);
         if (el) el.remove();
 
-        // Remove do array de fila
+        
         fileQueue = fileQueue.filter(q => q.id !== fileId);
 
-        // Atualiza a contagem no cabeçalho e recalcula status de prontidão para upload
+        
         updateQueueHeader();
         checkQueueReadyStatus();
 
-        // Oculta a caixa se a fila estiver vazia
+        
         if (fileQueue.length === 0) {
             queueContainer.style.display = 'none';
         }
@@ -348,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 6. Evento de Envio e Publicação/Edição do Capítulo ---
+    
     btnStartUpload.addEventListener('click', async () => {
         if (isUploading) return;
 
@@ -371,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
         successBanner.style.display = 'none';
         updateProgressBar(0, "Iniciando processamento e envio...");
 
-        // Se estiver em modo de edição, começamos a numeração após as páginas já existentes do capítulo
+        
         let startPageIndex = 0;
         if (isEditMode) {
             const currentEditingChapter = chaptersListCache.find(c => c.id === chapterId);
@@ -402,7 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let uploadSuccess = false;
 
             if (window.isOfflineMode) {
-                // --- MODO PROTÓTIPO LOCAL ---
+                
                 await delay(500);
                 try {
                     const sessionKey = `fio-temp-page-${chapterId}-${pageIndex}`;
@@ -410,10 +408,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     sessionStorage.setItem(sessionKey, tempBlobUrl);
                     uploadSuccess = true;
                 } catch (err) {
-                    console.error(err);
+                    
                 }
             } else {
-                // --- MODO PRODUÇÃO API SERVERLESS ---
+                
                 try {
                     const { data: authData } = await window.supabase.auth.getSession();
                     const sessionToken = authData?.session?.access_token;
@@ -442,7 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     uploadSuccess = true;
                 } catch (err) {
-                    console.error(`Erro ao subir página ${pageIndex}:`, err);
+                    
                     item.status = 'error';
                     updateQueueItemUI(item);
                 }
@@ -499,7 +497,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         throw new Error(errJson.error || 'Falha ao salvar capítulo via backend');
                     }
                 } catch (err) {
-                    console.error("Erro ao registrar capítulo:", err);
+                    
                     alert("⚠️ Falha ao registrar capítulo no banco: " + err.message);
                 }
             }
@@ -514,7 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.location.href = `ler.html?cap=${chapterId}`;
             };
 
-            // Recarrega listagem e reseta painel
+            
             await loadChaptersList();
             exitEditMode();
         } else {
@@ -527,13 +525,13 @@ document.addEventListener('DOMContentLoaded', () => {
         checkQueueReadyStatus();
     });
 
-    // --- 7. GERENCIAMENTO DE CAPÍTULOS EXISTENTES (Edição e Exclusão) ---
+    
 
     async function loadChaptersList() {
         let chapters = [];
 
         if (window.isOfflineMode) {
-            // Mock Offline
+            
             const mockChapters = JSON.parse(localStorage.getItem('fio-mock-chapters') || '[]');
             const merged = [...defaultChapters];
             mockChapters.forEach(mc => {
@@ -547,7 +545,7 @@ document.addEventListener('DOMContentLoaded', () => {
             merged.sort((a, b) => a.id - b.id);
             chapters = merged;
         } else {
-            // Produção Supabase
+            
             try {
                 if (window.supabase) {
                     const { data, error } = await window.supabase
@@ -562,7 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             } catch (err) {
-                console.error("Erro ao buscar lista de capítulos:", err);
+                
                 chapters = [...defaultChapters];
             }
         }
@@ -599,12 +597,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
 
-            // Clique no botão Editar
+            
             item.querySelector('.btn-edit-chap').addEventListener('click', () => {
                 enterEditMode(chap.id);
             });
 
-            // Clique no botão Excluir
+            
             item.querySelector('.btn-delete-chap').addEventListener('click', () => {
                 confirmDeleteChapter(chap.id);
             });
@@ -613,7 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Ativa o Modo de Edição de Capítulo
+    
     function enterEditMode(chapterId) {
         const chap = chaptersListCache.find(c => c.id === chapterId);
         if (!chap) return;
@@ -622,16 +620,16 @@ document.addEventListener('DOMContentLoaded', () => {
         editingChapterId = chapterId;
         successBanner.style.display = 'none';
 
-        // Preenche campos do formulário
+        
         chapterIdInput.value = chap.id;
-        chapterIdInput.setAttribute('disabled', 'true'); // Desabilita ID
+        chapterIdInput.setAttribute('disabled', 'true'); 
         chapterTitleInput.value = chap.title;
         chapterDateInput.value = chap.release_date;
 
-        // Exibe botão de Cancelar Edição
+        
         if (btnCancelEdit) btnCancelEdit.style.display = 'block';
 
-        // Ajusta títulos
+        
         const leftCardTitle = document.querySelector('#admin-chapter-data-card .admin-card-title');
         if (leftCardTitle) {
             leftCardTitle.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Editar Capítulo ${chap.id.toString().padStart(2, '0')}`;
@@ -649,31 +647,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
         btnStartUpload.innerHTML = '<i class="fa-solid fa-floppy-disk" style="margin-right: 8px;"></i> Salvar Alterações';
 
-        // Exibe e renderiza o Gerenciador de Páginas Existentes
+        
         if (pageManagerCard && pageManagerTitle) {
             pageManagerCard.style.display = 'block';
             pageManagerTitle.innerHTML = `<i class="fa-solid fa-photo-film"></i> Gerenciador de Páginas: Capítulo ${chap.id.toString().padStart(2, '0')}`;
             renderPageManagerGrid(chap.id, chap.pages_count);
         }
 
-        // Rola até o formulário de edição para feedback visual
+        
         chapterForm.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // Desativa o Modo de Edição
+    
     function exitEditMode() {
         isEditMode = false;
         editingChapterId = null;
 
-        // Reseta formulário
+        
         chapterForm.reset();
         chapterIdInput.removeAttribute('disabled');
         if (chapterDateInput) chapterDateInput.value = getFormattedDate();
 
-        // Oculta botão Cancelar
+        
         if (btnCancelEdit) btnCancelEdit.style.display = 'none';
 
-        // Restaura títulos padrões
+        
         const leftCardTitle = document.querySelector('#admin-chapter-data-card .admin-card-title');
         if (leftCardTitle) {
             leftCardTitle.innerHTML = `<i class="fa-solid fa-folder-plus"></i> Dados do Capítulo`;
@@ -691,12 +689,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         btnStartUpload.innerHTML = '<i class="fa-solid fa-upload" style="margin-right: 8px;"></i> Publicar Capítulo';
 
-        // Oculta Gerenciador de Páginas
+        
         if (pageManagerCard) {
             pageManagerCard.style.display = 'none';
         }
 
-        // Reseta a Fila de Uploads
+        
         fileQueue = [];
         fileQueueEl.innerHTML = '';
         queueContainer.style.display = 'none';
@@ -709,9 +707,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 8. GERENCIADOR DE PÁGINAS INDIVIDUAIS (Substituição e Exclusão) ---
+    
 
-    // Renderiza a grade de páginas atuais do capítulo selecionado para edição
+    
     function renderPageManagerGrid(chapterId, pagesCount) {
         if (!pageManagerGrid) return;
         pageManagerGrid.innerHTML = '';
@@ -722,8 +720,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         for (let i = 1; i <= pagesCount; i++) {
-            // Define a url da thumbnail da página do Storage do Supabase (remoto) ou de blobs temporários (local)
-            let thumbUrl = `assets/cap${chapterId}_pag${i}.jpg`; // Fallback físico original
+            
+            let thumbUrl = `assets/cap${chapterId}_pag${i}.jpg`; 
             let isUsingSupabase = false;
             
             if (!window.isOfflineMode && window.supabase) {
@@ -742,7 +740,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         isUsingSupabase = true;
                     }
                 } catch (urlErr) {
-                    console.error("Erro ao obter URL publica do storage:", urlErr);
+                    
                 }
             } else {
                 const sessionKey = `fio-temp-page-${chapterId}-${i}`;
@@ -768,14 +766,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
 
-            // Clique no botão Substituir
+            
             pageItem.querySelector('.btn-page-replace').addEventListener('click', (e) => {
                 const index = parseInt(e.currentTarget.getAttribute('data-index'));
                 replacingPageIndex = index;
                 if (replacePageFileInput) replacePageFileInput.click();
             });
 
-            // Clique no botão Apagar
+            
             pageItem.querySelector('.btn-page-delete').addEventListener('click', (e) => {
                 const index = parseInt(e.currentTarget.getAttribute('data-index'));
                 confirmDeletePage(chapterId, index, pagesCount);
@@ -785,7 +783,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Substituição de página específica com compressão Canvas
+    
     if (replacePageFileInput) {
         replacePageFileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
@@ -794,7 +792,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const chapterId = editingChapterId;
             const pageIndex = replacingPageIndex;
 
-            // Visual feedback - Mostra spinner no card de miniatura
+            
             const itemWrapper = document.getElementById(`page-item-wrapper-${pageIndex}`);
             const actionsContainer = document.getElementById(`page-actions-${pageIndex}`);
             const labelContainer = document.getElementById(`page-label-${pageIndex}`);
@@ -805,7 +803,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                // 1. Comprime a nova imagem via Canvas para WebP
+                
                 const tempUrl = URL.createObjectURL(file);
                 const compressed = await compressSingleFileWebP(file, tempUrl);
 
@@ -814,13 +812,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (window.isOfflineMode) {
-                    // --- MODO OFFLINE (SessionStorage Blob URL) ---
+                    
                     await delay(600);
                     const sessionKey = `fio-temp-page-${chapterId}-${pageIndex}`;
                     const tempBlobUrl = URL.createObjectURL(compressed.blob);
                     sessionStorage.setItem(sessionKey, tempBlobUrl);
                 } else {
-                    // --- MODO SUPABASE REAL ---
+                    
                     const { data: authData } = await window.supabase.auth.getSession();
                     const sessionToken = authData?.session?.access_token;
                     if (!sessionToken) throw new Error("Sessão expirada ou não autenticada.");
@@ -847,16 +845,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
-                // Limpa input
+                
                 replacePageFileInput.value = '';
                 replacingPageIndex = null;
 
-                // Re-renderiza e atualiza o gerenciador
+                
                 renderPageManagerGrid(chapterId, chaptersListCache.find(c => c.id === chapterId).pages_count);
                 alert(`Página ${pageIndex} substituída com sucesso!`);
 
             } catch (err) {
-                console.error("Erro ao substituir página:", err);
+                
                 alert("Erro ao substituir página: " + err.message);
                 if (actionsContainer) actionsContainer.style.display = 'flex';
                 if (labelContainer) labelContainer.textContent = `Página ${pageIndex}`;
@@ -864,7 +862,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Auxiliar: Compressão isolada de arquivo único
+    
     function compressSingleFileWebP(file, tempUrl) {
         return new Promise((resolve, reject) => {
             const img = new Image();
@@ -898,13 +896,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Algoritmo de Deleção e Deslocamento Sequencial de Páginas
+    
     async function confirmDeletePage(chapterId, pageIndex, totalPages) {
         const confirmMsg = `Tem certeza que deseja apagar a Página ${pageIndex}? \n\nO sistema irá reordenar todas as páginas seguintes automaticamente para manter a sequência do leitor íntegra (Evitando quebras visuais!).`;
         
         if (!confirm(confirmMsg)) return;
 
-        // Visual feedback
+        
         if (pageManagerGrid) {
             pageManagerGrid.innerHTML = `
                 <div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 40px 0;">
@@ -916,11 +914,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             if (window.isOfflineMode) {
-                // --- MODO OFFLINE (Mock Shift no SessionStorage) ---
+                
                 await delay(600);
                 sessionStorage.removeItem(`fio-temp-page-${chapterId}-${pageIndex}`);
                 
-                // Desloca as seguintes
+                
                 for (let i = pageIndex + 1; i <= totalPages; i++) {
                     const tempVal = sessionStorage.getItem(`fio-temp-page-${chapterId}-${i}`);
                     if (tempVal) {
@@ -929,7 +927,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
-                // Decrementa pages_count no localStorage
+                
                 let mockChapters = JSON.parse(localStorage.getItem('fio-mock-chapters') || '[]');
                 const chapIdx = mockChapters.findIndex(c => c.id === chapterId);
                 if (chapIdx !== -1) {
@@ -937,7 +935,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStorage.setItem('fio-mock-chapters', JSON.stringify(mockChapters));
                 }
             } else {
-                // --- MODO SUPABASE REAL (Deslocamento via API) ---
+                
                 const { data: authData } = await window.supabase.auth.getSession();
                 const sessionToken = authData?.session?.access_token;
                 if (!sessionToken) throw new Error("Sessão expirada ou não autenticada.");
@@ -962,14 +960,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Recarrega listagens e re-renderiza UI
+            
             await loadChaptersList();
             
-            // Re-renderiza o page manager com a nova contagem reduzida
+            
             const updatedPagesCount = totalPages - 1;
             renderPageManagerGrid(chapterId, updatedPagesCount);
 
-            // Ajusta o formulário de edição se ainda estiver ativo
+            
             const currentEditingChapter = chaptersListCache.find(c => c.id === chapterId);
             if (currentEditingChapter) {
                 enterEditMode(chapterId);
@@ -978,14 +976,14 @@ document.addEventListener('DOMContentLoaded', () => {
             alert(`Página ${pageIndex} excluída e sequência reordenada com sucesso!`);
 
         } catch (err) {
-            console.error("Erro na exclusão/deslocamento de página:", err);
+            
             alert("Erro na exclusão de página: " + err.message);
             loadChaptersList();
             exitEditMode();
         }
     }
 
-    // Exclusão completa de Capítulo (DB + Purga de Storage)
+    
     async function confirmDeleteChapter(chapterId) {
         const confirmMsg = `⚠️ ALERTA CRÍTICO: \n\nTem certeza absoluta que deseja excluir o CAPÍTULO ${chapterId.toString().padStart(2, '0')} inteiro? \n\nIsso apagará permanentemente o registro no banco de dados e TODAS as imagens das páginas no storage! Esta ação é irreversível.`;
 
@@ -1002,18 +1000,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             if (window.isOfflineMode) {
-                // --- MODO OFFLINE ---
+                
                 await delay(800);
                 let mockChapters = JSON.parse(localStorage.getItem('fio-mock-chapters') || '[]');
                 mockChapters = mockChapters.filter(c => c.id !== chapterId);
                 localStorage.setItem('fio-mock-chapters', JSON.stringify(mockChapters));
 
-                // Limpa blobs das sessões temporárias
+                
                 for (let i = 1; i <= 30; i++) {
                     sessionStorage.removeItem(`fio-temp-page-${chapterId}-${i}`);
                 }
             } else {
-                // --- MODO SUPABASE REAL ---
+                
                 const { data: authData } = await window.supabase.auth.getSession();
                 const sessionToken = authData?.session?.access_token;
                 if (!sessionToken) throw new Error("Sessão expirada ou não autenticada.");
@@ -1038,7 +1036,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             alert(`Capítulo ${chapterId} e todas as suas imagens foram excluídos com sucesso!`);
             
-            // Reseta a interface se estivesse editando o capítulo excluído
+            
             if (isEditMode && editingChapterId === chapterId) {
                 exitEditMode();
             }
@@ -1046,15 +1044,15 @@ document.addEventListener('DOMContentLoaded', () => {
             await loadChaptersList();
 
         } catch (err) {
-            console.error("Erro ao excluir capítulo:", err);
+            
             alert("Erro ao excluir capítulo: " + err.message);
             loadChaptersList();
         }
     }
 
-    // ==========================================
-    // CONTÊINER 3: MÓDULO DE NEWSLETTER
-    // ==========================================
+    
+    
+    
     let newsletterCompressedBlob = null;
 
     const newsletterForm = document.getElementById('admin-newsletter-form');
@@ -1066,7 +1064,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const newsletterMessage = document.getElementById('newsletter-message');
     const btnSendNewsletter = document.getElementById('btn-send-newsletter');
 
-    // Comprime a imagem da arte para WebP client-side via Canvas
+    
     if (newsletterArtFile) {
         newsletterArtFile.addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -1086,7 +1084,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
-                const maxWidth = 1200; // Resolução ideal para newsletter
+                const maxWidth = 1200; 
 
                 if (width > maxWidth) {
                     height = Math.round((maxWidth * height) / width);
@@ -1115,7 +1113,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (newsletterArtInfo) {
                             newsletterArtInfo.textContent = `Original: ${origSize} | WebP: ${compSize} | Redução: ${reduction}%`;
                         }
-                        console.log(`[Newsletter WebP Canvas] Compressão concluída. Original: ${origSize} | Comprimido: ${compSize} | Redução: ${reduction}%`);
                     } else {
                         alert("Falha ao processar imagem.");
                         if (newsletterArtInfo) newsletterArtInfo.textContent = "Erro na compressão.";
@@ -1130,7 +1127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Popula o select do capítulo relacionado na newsletter
+    
     function populateNewsletterChapters(chapters) {
         if (!newsletterChapterSelect) return;
         newsletterChapterSelect.innerHTML = '<option value="" disabled selected>Selecione um capítulo relacionado...</option>';
@@ -1142,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Dispara a newsletter
+    
     if (newsletterForm) {
         newsletterForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1163,7 +1160,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const confirmMsg = "Atenção, kyoudai! Esta ação disparará a newsletter contendo a mensagem e a arte exclusiva para TODOS os inscritos. Deseja prosseguir?";
             if (!confirm(confirmMsg)) return;
 
-            // Ativar estado de carregamento
+            
             if (btnSendNewsletter) {
                 btnSendNewsletter.disabled = true;
                 btnSendNewsletter.innerHTML = '<div class="pix-status-spinner" style="width:14px; height:14px; margin-right:8px; border-top-color:#fff; display:inline-block; vertical-align:middle;"></div> Disparando...';
@@ -1173,12 +1170,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 if (window.isOfflineMode) {
-                    // Simulação Offline
+                    
                     await delay(1000);
                     artUrl = URL.createObjectURL(newsletterCompressedBlob);
-                    console.log("[Newsletter Offline] Upload simulado. URL temporária:", artUrl);
                 } else {
-                    // Upload real via api/admin-operations
+                    
                     const { data: authData } = await window.supabase.auth.getSession();
                     const sessionToken = authData?.session?.access_token;
                     if (!sessionToken) throw new Error("Sessão expirada ou não autenticada.");
@@ -1206,7 +1202,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     artUrl = uploadData.publicUrl;
                 }
 
-                // Disparar via api/disparar-newsletter
+                
                 let sessionToken = '';
                 if (!window.isOfflineMode && window.supabase) {
                     const { data: authData } = await window.supabase.auth.getSession();
@@ -1237,7 +1233,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 alert(`🚀 Newsletter disparada com sucesso para ${dispatchData.recipientsCount || 0} leitores cadastrados!`);
                 
-                // Reseta form e preview
+                
                 newsletterForm.reset();
                 newsletterCompressedBlob = null;
                 if (newsletterArtPreviewContainer) {
@@ -1247,7 +1243,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     newsletterArtPreview.src = '';
                 }
             } catch (err) {
-                console.error("Erro completo ao disparar newsletter:", err);
+                
                 alert("❌ Falha no disparo da newsletter: " + err.message);
             } finally {
                 if (btnSendNewsletter) {
@@ -1258,10 +1254,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Inicialização Automática de Carga Inicial ---
+    
     loadChaptersList();
 
-    // --- Auxiliares Globais ---
+    
     function updateProgressBar(percentage, text) {
         if (progressBarFill && progressText && progressPercentage) {
             progressBarFill.style.width = `${percentage}%`;

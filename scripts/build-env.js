@@ -1,6 +1,27 @@
 const fs = require('fs');
 const path = require('path');
 
+// 0. Injeção de variáveis de ambiente no supabase-config.js
+function injectEnvVariables() {
+    const supabaseUrl = process.env.SUPABASE_URL || '';
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '';
+
+    if (supabaseUrl || supabaseAnonKey) {
+        const configPath = path.join(__dirname, '../js/supabase-config.js');
+        if (fs.existsSync(configPath)) {
+            let content = fs.readFileSync(configPath, 'utf8');
+            if (supabaseUrl) {
+                content = content.replace(/const fallbackUrl = ".*?";/, `const fallbackUrl = "${supabaseUrl}";`);
+            }
+            if (supabaseAnonKey) {
+                content = content.replace(/const fallbackAnonKey = ".*?";/, `const fallbackAnonKey = "${supabaseAnonKey}";`);
+            }
+            fs.writeFileSync(configPath, content, 'utf8');
+            console.log('🧶 [build-env] Variáveis injetadas com sucesso em supabase-config.js!');
+        }
+    }
+}
+
 // 1. Minificação e Ofuscação dos Arquivos JS do Frontend (In-place) via Terser
 async function runMinification() {
     try {
@@ -42,10 +63,13 @@ async function minifyDirRecursively(dir, minify) {
             try {
                 const result = await minify(originalCode, {
                     compress: {
-                        drop_console: false, // mantém console logs importantes para diagnóstico
+                        drop_console: true, // Remove todos os logs do console em produção
                         dead_code: true
                     },
                     mangle: true,
+                    format: {
+                        comments: false // Remove todos os comentários do arquivo minificado
+                    },
                     sourceMap: false // Garante que NENHUM arquivo .map ou source map seja gerado
                 });
                 
@@ -62,5 +86,6 @@ async function minifyDirRecursively(dir, minify) {
     }
 }
 
-// Executa a minificação
+// Executa a injeção e a minificação
+injectEnvVariables();
 runMinification();

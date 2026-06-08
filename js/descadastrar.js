@@ -1,4 +1,4 @@
-// Sincronizado com a busca de e-mail por UUID e remoção segura
+﻿
 document.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnUnsubscribe = document.getElementById('btn-unsubscribe');
     const errorMessage = document.getElementById('error-message');
 
-    // Helper to switch active step view
+    
     function showStep(stepElement) {
         document.querySelectorAll('.auth-step').forEach(el => {
             el.classList.remove('active');
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
         stepElement.classList.add('active');
     }
 
-    // Basic UUID validation
+    
     function isValidID(val) {
         if (!val) return false;
         if (val === 'mock-admin-uuid') return true;
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Check if the UUID exists on the server and fetch the associated email
+    
     async function verificarCadastro() {
         try {
             const response = await fetch(`/api/descadastrar-leitor?id=${encodeURIComponent(id.trim())}`);
@@ -46,18 +46,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 showStep(stepError);
             }
         } catch (err) {
-            console.error('Erro ao verificar cadastro por ID:', err);
+            
             errorMessage.textContent = 'Erro de comunicação com o servidor ao carregar seus dados. Tente novamente mais tarde.';
             showStep(stepError);
         }
     }
 
-    // Initiate lookup
+    
     verificarCadastro();
 
-    // Event listener for confirmation
+    
     btnUnsubscribe.addEventListener('click', async () => {
-        // Toggle loading state
+        
         btnUnsubscribe.disabled = true;
         btnUnsubscribe.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processando...';
 
@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showStep(stepError);
             }
         } catch (err) {
-            console.error('Erro ao realizar descadastro:', err);
+            
             errorMessage.textContent = 'Erro de comunicação com o servidor. Verifique sua conexão e tente novamente.';
             showStep(stepError);
         } finally {

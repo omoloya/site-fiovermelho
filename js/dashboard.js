@@ -1,11 +1,9 @@
-/* ==========================================================================
-   DASHBOARD.HTML INTERACTIVE LOGIC & SESSION CHECK
-   ========================================================================== */
+﻿
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- 1. Proteção de Rota & Verificação de Sessão ---
+    
     if (!window.sessionHelper) {
-        console.error("Erro: sessionHelper não foi inicializado.");
+        
         window.location.replace('index.html');
         return;
     }
@@ -16,53 +14,53 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // --- 1.2 Proteção de Propriedade Intelectual (ECA & Direitos Autorais) ---
+    
     let isSuperAdmin = false;
 
     function applyIntellectualPropertyProtection() {
-        // Bloquear Clique Direito (contextmenu) nas imagens e página
+        
         document.addEventListener('contextmenu', (e) => {
             if (isSuperAdmin) return;
             e.preventDefault();
             return false;
         });
 
-        // Bloquear Atalhos de Cópia e Ferramentas do Desenvolvedor (F12, Ctrl+S, Ctrl+C, Ctrl+Shift+I, Cmd+Option+I)
+        
         document.addEventListener('keydown', (e) => {
             if (isSuperAdmin) return;
-            // F12
+            
             if (e.key === 'F12' || e.keyCode === 123) {
                 e.preventDefault();
                 return false;
             }
-            // Ctrl+S / Cmd+S
+            
             if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                 e.preventDefault();
                 return false;
             }
-            // Ctrl+C / Cmd+C
+            
             if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
                 e.preventDefault();
                 return false;
             }
-            // Ctrl+Shift+I / Cmd+Option+I
+            
             if ((e.ctrlKey && e.shiftKey && e.key === 'I') || (e.metaKey && e.altKey && e.key === 'i')) {
                 e.preventDefault();
                 return false;
             }
-            // Ctrl+Shift+J / Cmd+Option+J
+            
             if ((e.ctrlKey && e.shiftKey && e.key === 'J') || (e.metaKey && e.altKey && e.key === 'j')) {
                 e.preventDefault();
                 return false;
             }
-            // Ctrl+U / Cmd+U (View Source)
+            
             if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
                 e.preventDefault();
                 return false;
             }
         });
 
-        // Bloquear Arrastar (Drag and Drop)
+        
         document.addEventListener('dragstart', (e) => {
             if (isSuperAdmin) return;
             if (e.target.tagName === 'IMG') {
@@ -71,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Aplicar draggable="false" e classe protected-image periodicamente nas imagens
+        
         const protectInterval = setInterval(() => {
             if (isSuperAdmin) {
                 clearInterval(protectInterval);
@@ -86,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500);
     }
 
-    // Função única e segura para verificar status de admin no backend
+    
     async function verifyAdminStatus() {
         if (window.isOfflineMode) {
             const localEmail = session && session.user && session.user.email ? session.user.email.toLowerCase().trim() : "";
@@ -98,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             if (window.supabase) {
-                // Tenta obter o token de forma síncrona do localStorage do Supabase para evitar race conditions
+                
                 let sessionToken = null;
                 const sbKey = Object.keys(localStorage).find(key => key.startsWith('sb-') && key.endsWith('-auth-token'));
                 if (sbKey) {
@@ -106,11 +104,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         const sbData = JSON.parse(localStorage.getItem(sbKey));
                         sessionToken = sbData?.access_token;
                     } catch (e) {
-                        console.warn("Erro ao fazer parse do token do Supabase no localStorage:", e);
+                        
                     }
                 }
 
-                // Fallback para getSession assíncrono padrão
+                
                 if (!sessionToken) {
                     const { data: authData } = await window.supabase.auth.getSession();
                     sessionToken = authData?.session?.access_token;
@@ -129,51 +127,51 @@ document.addEventListener('DOMContentLoaded', () => {
                         isSuperAdmin = !!adminCheckJson.isAdmin;
                     } else {
                         const errJson = await adminCheckRes.json().catch(() => ({}));
-                        console.error("[verifyAdminStatus] Erro ao verificar admin no backend:", adminCheckRes.status, errJson.error || errJson);
+                        
                     }
                 }
             }
         } catch (e) {
-            console.error("Falha ao verificar status de admin no backend:", e);
+            
         }
 
         return isSuperAdmin;
     }
 
-    // Executa a inicialização de segurança após resolver se é admin
+    
     (async () => {
         await verifyAdminStatus();
 
         if (isSuperAdmin) {
-            // Se for admin, garante que nenhuma trava ou classe protected permaneça ativa
+            
             document.querySelectorAll('img').forEach(img => {
                 img.classList.remove('protected-image');
                 img.removeAttribute('draggable');
             });
         } else {
-            // Ativa proteção apenas para leitores comuns
+            
             applyIntellectualPropertyProtection();
         }
 
-        // Habilita/remove dinamicamente o botão de Admin no painel
+        
         const adminBtn = document.getElementById('btn-admin-panel');
         if (adminBtn) {
             if (isSuperAdmin) {
                 adminBtn.classList.add('is-admin');
                 adminBtn.style.setProperty('display', 'inline-flex', 'important');
             } else {
-                adminBtn.remove(); // Remove do DOM somente se categoricamente não for admin
+                adminBtn.remove(); 
             }
         }
 
 
 
-        // --- 1.1 Verificação de Maioridade / Status do Perfil (ECA) ---
+        
         try {
             await checkProfileStatus();
         } catch (criticalErr) {
-            console.error("Erro crítico ao checar status de maioridade:", criticalErr);
-            // Garantia de destravamento de emergência caso o usuário já esteja marcado como verificado na sessão local
+            
+            
             if (session && session.is_verified) {
                 const lockOverlay = document.getElementById('dashboard-lock-overlay');
                 if (lockOverlay) {
@@ -186,12 +184,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     })();
 
-    // --- 1.1 Verificação de Maioridade / Status do Perfil (ECA) ---
+    
     try {
         checkProfileStatus();
     } catch (criticalErr) {
-        console.error("Erro crítico ao checar status de maioridade:", criticalErr);
-        // Garantia de destravamento de emergência caso o usuário já esteja marcado como verificado na sessão local
+        
+        
         if (session && session.is_verified) {
             const lockOverlay = document.getElementById('dashboard-lock-overlay');
             if (lockOverlay) {
@@ -211,25 +209,25 @@ document.addEventListener('DOMContentLoaded', () => {
         let status = 'pendente_verificacao';
         let userId = null;
 
-        // Recuperação estrita do ID autenticado diretamente do Supabase Client
+        
         if (!window.isOfflineMode && window.supabase) {
             try {
                 if (typeof window.supabase.auth.getUser === 'function') {
                     const { data } = await window.supabase.auth.getUser();
                     if (data && data.user) {
                         userId = data.user.id;
-                        // Sincroniza a sessão local defensivamente se necessário
+                        
                         if (window.sessionHelper && session) {
                             window.sessionHelper.setSession(session.user.email, session.is_verified, userId);
                         }
                     }
                 }
             } catch (e) {
-                console.error("[dashboard.js] Falha ao recuperar usuário autenticado:", e);
+                
             }
         }
 
-        // Fallback para sessão local se offline ou se a chamada falhou
+        
         if (!userId) {
             userId = session && session.user && session.user.id;
         }
@@ -242,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 if (window.supabase) {
                     if (!userId) {
-                        console.error("[dashboard.js] ID do usuário está undefined na sessão. Bloqueando por segurança.");
+                        
                         status = 'pendente_verificacao';
                     } else {
                         const { data: profile, error } = await window.supabase
@@ -260,24 +258,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             } catch (err) {
-                console.error("Erro ao verificar status no Supabase:", err);
+                
             }
         }
 
-        // Sobregravação automática de verificação para e-mails administradores autorizados (resolvido na carga inicial)
+        
         if (isSuperAdmin) {
             status = 'pago';
         }
 
-        // Se o status for pendente_verificacao, bloqueia com o modal e inicia checagem ativa
+        
         if (status !== 'pago') {
             if (lockOverlay) {
                 lockOverlay.style.display = 'flex';
                 lockOverlay.classList.add('active');
-                document.body.style.overflow = 'hidden'; // Impede rolagem
+                document.body.style.overflow = 'hidden'; 
             }
 
-            // Polling periódico seguro a cada 4 segundos no dashboard
+            
             const statusPollInterval = setInterval(async () => {
                 if (window.isOfflineMode) return;
                 try {
@@ -288,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (!pollUserId) {
-                        console.error("[dashboard.js] Polling: ID do usuário autenticado está undefined.");
+                        
                         return;
                     }
 
@@ -300,18 +298,18 @@ document.addEventListener('DOMContentLoaded', () => {
                             .maybeSingle();
 
                         const data = profile;
-                        // Depuração explícita a cada 4 segundos no polling do dashboard
-                        console.log("Rodando Polling...", data);
+                        
+                        
                         if (!error && data && (data.status === 'pago' || data.status === 'approved' || data.status === 'verificado' || data.status === true)) {
-                            // 1. Parar o bombardeio de requisições imediatamente!
+                            
                             clearInterval(statusPollInterval);
                             
-                            // 2. Atualizar a sessão
+                            
                             if (window.sessionHelper) {
                                 window.sessionHelper.setSession(session.user.email, true, pollUserId);
                             }
                             
-                            // 3. Esconder/remover o modal completamente da tela
+                            
                             if (lockOverlay) {
                                 lockOverlay.style.display = 'none';
                                 lockOverlay.classList.remove('active');
@@ -320,12 +318,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             
                             alert("🎉 Pagamento confirmado! Seu acesso de maioridade foi verificado com sucesso.");
                             
-                            // 4. Liberar a renderização do painel principal para o leitor
+                            
                             loadChaptersAndRenderGrid();
                         }
                     }
                 } catch (pollErr) {
-                    console.error("Erro no polling de status:", pollErr);
+                    
                 }
             }, 4000);
 
@@ -385,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         alert("⚠️ Ainda não detectamos a aprovação do Pix. \n\nSe você acabou de pagar, o processamento bancário pode levar de 10 a 60 segundos. Por favor, aguarde um momento e tente novamente!");
                     } catch (err) {
-                        console.error("Erro na verificação manual:", err);
+                        
                         alert("Erro ao conectar com o banco. Tente novamente.");
                     } finally {
                         btnLockReverify.innerHTML = originalBtnText;
@@ -399,12 +397,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 lockOverlay.classList.remove('active');
                 document.body.style.overflow = '';
             }
-            // Só carrega os capítulos se os dados do perfil indicarem verificação com sucesso
+            
             loadChaptersAndRenderGrid();
         }
     }
 
-    // --- DOM Elements ---
+    
     const userEmailSpan = document.getElementById('user-display-email');
     const btnLogout = document.getElementById('btn-logout');
     const btnStartReading = document.getElementById('btn-start-reading');
@@ -414,13 +412,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const leadSuccessMsg = document.getElementById('lead-success-message');
     const btnSubscribe = document.getElementById('btn-subscribe');
 
-    // Exibe o email do usuário ativo
+    
     if (userEmailSpan && session.user && session.user.email) {
         userEmailSpan.style.display = 'inline';
         userEmailSpan.innerHTML = `<i class="fa-regular fa-user" style="margin-right: 6px;"></i> ${session.user.email}`;
     }
 
-    // --- 2. Ação de Logout ---
+    
     if (btnLogout) {
         btnLogout.addEventListener('click', () => {
             window.sessionHelper.clearSession();
@@ -428,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // O botão de Admin no painel é habilitado/removido dinamicamente no bloco de inicialização inicial
+    
 
     const defaultChapters = [
         { 
@@ -464,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let chapters = [];
 
         if (window.isOfflineMode) {
-            // Modo offline: Lê do localStorage 'fio-mock-chapters' e mescla com defaultChapters
+            
             const mockChapters = JSON.parse(localStorage.getItem('fio-mock-chapters') || '[]');
             const merged = [...defaultChapters];
             
@@ -479,7 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
             merged.sort((a, b) => a.id - b.id);
             chapters = merged;
         } else {
-            // Modo online: Lê da API de dados públicos /api/public-data
+            
             try {
                 const response = await fetch('/api/public-data');
                 if (response.ok) {
@@ -491,11 +489,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } else {
                     const errJson = await response.json().catch(() => ({}));
-                    console.error("[public-data] Erro ao buscar capítulos da API:", response.status, errJson.error || errJson);
+                    
                     chapters = [...defaultChapters];
                 }
             } catch (err) {
-                console.error("Erro ao buscar capítulos da API:", err);
+                
                 chapters = [...defaultChapters];
             }
         }
@@ -513,7 +511,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chapters.forEach(chap => {
             const cleanId = String(chap.id).trim();
             
-            // Cria um link âncora direto para ler.html
+            
             const itemLink = document.createElement('a');
             itemLink.className = 'chapter-list-item';
             itemLink.href = `ler.html?cap=${cleanId}`;
@@ -551,10 +549,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Configura o botão "Começar a Ler"
+    
     function setupStartReadingButton(chapters) {
         if (btnStartReading && btnStartReading.parentNode) {
-            // Remove listeners antigos substituindo o botão por ele mesmo
+            
             const newBtn = btnStartReading.cloneNode(true);
             btnStartReading.parentNode.replaceChild(newBtn, btnStartReading);
             
@@ -563,14 +561,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.location.href = `ler.html?cap=${nextToRead}`;
             });
         } else {
-            console.warn("[dashboard.js] Botão 'btn-start-reading' ou seu elemento pai não foi encontrado no DOM.");
+            
         }
     }
 
-    // A carga dos capítulos agora é disparada apenas se o perfil estiver verificado em checkProfileStatus()
-    // loadChaptersAndRenderGrid();
+    
+    
 
-    // --- 5. Captura de Leads (Newsletter) ---
+    
     if (leadForm) {
         leadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -581,7 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btnSubscribe.innerHTML = '<div class="pix-status-spinner" style="margin-right: 8px;"></div> Salvando...';
 
             if (window.isOfflineMode) {
-                // --- MODO OFFLINE (LocalStorage) ---
+                
                 setTimeout(() => {
                     let mockLeads = JSON.parse(localStorage.getItem('fio-mock-leads') || '[]');
                     if (!mockLeads.includes(leadEmail)) {
@@ -591,7 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showLeadSuccess();
                 }, 1000);
             } else {
-                // --- MODO SUPABASE REAL ---
+                
                 try {
                     if (window.supabase) {
                         const { data, error } = await window.supabase
@@ -604,8 +602,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         throw new Error("Cliente Supabase não inicializado.");
                     }
                 } catch (err) {
-                    console.error("Erro ao salvar lead no Supabase:", err.message);
-                    // Fallback silencioso local
+                    
+                    
                     let mockLeads = JSON.parse(localStorage.getItem('fio-mock-leads') || '[]');
                     if (!mockLeads.includes(leadEmail)) {
                         mockLeads.push(leadEmail);
@@ -626,7 +624,7 @@ document.addEventListener('DOMContentLoaded', () => {
         leadSuccessMsg.style.display = 'block';
     }
 
-    // --- 6. Sistema de Apoio / Doação Opcional via PIX Dinâmico ---
+    
     const btnOpenDonation = document.getElementById('btn-open-donation');
     const donationModal = document.getElementById('donation-modal');
     const btnCloseDonationModal = document.getElementById('btn-close-donation-modal');
@@ -640,7 +638,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnOpenDonation && donationModal) {
         btnOpenDonation.addEventListener('click', () => {
-            // Reseta o estado do modal antes de abrir
+            
             if (donationAmountInput) donationAmountInput.value = "5.00";
             if (donationModalInputArea) donationModalInputArea.style.display = 'block';
             if (donationModalPixArea) donationModalPixArea.style.display = 'none';
@@ -654,7 +652,7 @@ document.addEventListener('DOMContentLoaded', () => {
             donationModal.style.display = 'none';
         });
         
-        // Fechar clicando fora do card do modal
+        
         donationModal.addEventListener('click', (e) => {
             if (e.target === donationModal) {
                 donationModal.style.display = 'none';
@@ -675,12 +673,12 @@ document.addEventListener('DOMContentLoaded', () => {
             btnGenerateDonationPix.setAttribute('disabled', 'true');
 
             const email = session?.user?.email || "apoiador@fiovermelho.com";
-            // O CPF é fictício/simulado para a transação de apoio se não coletado
+            
             const cpf = "000.000.000-00"; 
 
             try {
                 if (window.isOfflineMode) {
-                    // --- MODO SIMULADO / OFFLINE ---
+                    
                     if (window.PixService) {
                         const charge = await window.PixService.generatePixCharge(amount, "apoio_bando");
                         if (donationQrElement) donationQrElement.src = charge.qrCodeUrl;
@@ -690,7 +688,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (donationModalPixArea) donationModalPixArea.style.display = 'block';
                     }
                 } else {
-                    // --- MODO REAL MERCADO PAGO ---
+                    
                     const response = await fetch('/api/auth-operations', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -711,8 +709,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (err) {
                 if (window.isOfflineMode) {
-                    console.warn("⚠️ API do Mercado Pago indisponível localmente para doações. Iniciando simulação de teste local:", err.message);
-                    // Fallback de simulação local caso esteja em ambiente sem serverless
+                    
+                    
                     if (window.PixService) {
                         const charge = await window.PixService.generatePixCharge(amount, "apoio_bando");
                         if (donationQrElement) donationQrElement.src = charge.qrCodeUrl;
@@ -722,7 +720,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (donationModalPixArea) donationModalPixArea.style.display = 'block';
                     }
                 } else {
-                    console.error("Erro na geração do Pix de apoio:", err);
+                    
                     alert("⚠️ Ocorreu um erro ao gerar a cobrança Pix de apoio. Por favor, tente novamente mais tarde.");
                 }
             } finally {
@@ -745,7 +743,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }, 2000);
                 })
                 .catch(err => {
-                    console.error("Erro ao copiar código Pix: ", err);
+                    
                     alert("Não foi possível copiar automaticamente. Selecione o código e copie manualmente!");
                 });
         });

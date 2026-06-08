@@ -1,18 +1,18 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fio Vermelho | Admin Portal</title>
     
-    <!-- Meta Tags para SEO -->
+    
     <meta name="description" content="Portal administrativo para publicação de capítulos do quadrinho Fio Vermelho. Otimização em tempo real de páginas PNG/JPG para WebP.">
     
-    <!-- Google Fonts & FontAwesome -->
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     
-    <!-- Proteção Rápida de Rota (Prevenir piscada de conteúdo privado) -->
+    
     <script>
         (function() {
             const session = localStorage.getItem('sb-fiovermelho-session') || sessionStorage.getItem('sb-fiovermelho-session');
@@ -384,10 +384,10 @@
 </head>
 <body>
 
-    <!-- Linha Decorativa do Fio Vermelho do Destino -->
+    
     <div class="auth-thread-line"></div>
 
-    <!-- ==================== HEADER & NAVEGAÇÃO ==================== -->
+    
     <header class="nav-container" style="position: relative; z-index: 100;">
         <a href="dashboard.html" class="nav-logo">Fio <span>Vermelho</span></a>
         
@@ -399,10 +399,10 @@
         </div>
     </header>
 
-    <!-- ==================== CONTEÚDO PRINCIPAL ==================== -->
+    
     <main class="admin-grid">
         
-        <!-- COLUNA ESQUERDA: CADASTRO DO CAPÍTULO -->
+        
         <section class="admin-card glass-card" id="admin-chapter-data-card">
             <h2 class="admin-card-title">
                 <i class="fa-solid fa-folder-plus"></i> Dados do Capítulo
@@ -424,7 +424,7 @@
                     <input type="text" id="chapter-date" class="input-field" placeholder="Ex: 30 de Maio, 2026">
                 </div>
                 
-                <!-- Botão de Cancelar Edição (Oculto por Padrão) -->
+                
                 <button type="button" id="btn-cancel-edit" class="btn btn-secondary" style="width: 100%; margin-top: 16px; display: none;">
                     <i class="fa-solid fa-xmark" style="margin-right: 8px;"></i> Cancelar Edição
                 </button>
@@ -436,30 +436,30 @@
             </form>
         </section>
 
-        <!-- COLUNA ESQUERDA: LISTA DE CAPÍTULOS PUBLICADOS -->
+        
         <section class="admin-card glass-card" id="admin-chapters-list-card" style="margin-top: 24px;">
             <h2 class="admin-card-title">
                 <i class="fa-solid fa-list-ul"></i> Capítulos Publicados
             </h2>
             <div id="admin-chapters-list" style="display: flex; flex-direction: column; gap: 16px;">
-                <!-- Carregado Dinamicamente pelo js/admin.js -->
+                
                 <div class="pix-status-spinner" style="margin: 20px auto; border-top-color: var(--primary-red);"></div>
             </div>
         </section>
 
-        <!-- COLUNA DIREITA: FILE UPLOAD E PROCESSAMENTO -->
+        
         <section class="admin-card glass-card" id="admin-upload-card">
             <h2 class="admin-card-title">
                 <i class="fa-solid fa-images"></i> Upload & Otimização de Páginas
             </h2>
             
-            <!-- Banner de Sucesso -->
+            
             <div id="success-banner" class="success-banner">
                 <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i>
                 Capítulo publicado com sucesso! Páginas otimizadas enviadas.
             </div>
 
-            <!-- Caixa de Progresso Geral -->
+            
             <div id="progress-box" class="progress-box">
                 <div class="progress-header">
                     <span id="progress-text">Otimizando e Enviando imagens...</span>
@@ -470,7 +470,7 @@
                 </div>
             </div>
 
-            <!-- Zona de Drop -->
+            
             <div id="drop-zone" class="drop-zone">
                 <input type="file" id="upload-file-input" style="display: none;" multiple accept="image/png, image/jpeg, image/jpg, image/webp">
                 <div class="drop-zone-icon">
@@ -480,7 +480,7 @@
                 <p class="drop-zone-subtext">Suporta PNG, JPG e WebP. Otimização WebP automática ativada.</p>
             </div>
 
-            <!-- Botões de Ação -->
+            
             <div class="admin-actions" style="display: flex; gap: 12px; flex-wrap: wrap;">
                 <button id="btn-start-upload" class="btn btn-primary btn-disabled" style="flex: 1; min-width: 200px;" disabled>
                     <i class="fa-solid fa-upload" style="margin-right: 8px;"></i> Publicar Capítulo
@@ -491,7 +491,7 @@
                 </button>
             </div>
 
-            <!-- Fila de Arquivos -->
+            
             <div id="queue-container" class="queue-container" style="display: none;">
                 <div class="queue-title">
                     <span>Páginas na Fila</span>
@@ -499,20 +499,20 @@
                 </div>
                 
                 <div id="file-queue" class="queue-list">
-                    <!-- Gerado dinamicamente -->
+                    
                 </div>
             </div>
 
         </section>
 
-        <!-- COLUNA DIREITA: PAINEL DE NEWSLETTER (CONTÊINER 3) -->
+        
         <section class="admin-card glass-card" id="admin-newsletter-card" style="margin-top: 24px;">
             <h2 class="admin-card-title">
                 <i class="fa-solid fa-paper-plane"></i> Compor Newsletter (Mimo Exclusivo)
             </h2>
             
             <form id="admin-newsletter-form">
-                <!-- Upload de Arte -->
+                
                 <div class="input-group">
                     <label class="input-label" for="newsletter-art-file">Imagem da Arte Exclusiva</label>
                     <input type="file" id="newsletter-art-file" class="input-field" accept="image/png, image/jpeg, image/jpg, image/webp" required>
@@ -522,44 +522,44 @@
                     </div>
                 </div>
 
-                <!-- Seleção de Capítulo Relacionado -->
+                
                 <div class="input-group">
                     <label class="input-label" for="newsletter-chapter-select">Capítulo Relacionado</label>
                     <select id="newsletter-chapter-select" class="input-field" required>
-                        <!-- Populado dinamicamente -->
+                        
                     </select>
                 </div>
 
-                <!-- Mensagem Personalizada -->
+                
                 <div class="input-group">
                     <label class="input-label" for="newsletter-message">Mensagem Personalizada</label>
                     <textarea id="newsletter-message" class="input-field" rows="6" placeholder="Escreva o texto dedicado para os leitores..." required style="resize: vertical;"></textarea>
                 </div>
 
-                <!-- Botão de Disparo -->
+                
                 <button type="submit" id="btn-send-newsletter" class="btn btn-primary" style="width: 100%; margin-top: 16px;">
                     <i class="fa-solid fa-rocket" style="margin-right: 8px;"></i> Disparar Newsletter para Inscritos
                 </button>
             </form>
         </section>
 
-        <!-- COLUNA DIREITA: GERENCIADOR DE PÁGINAS (APARECE APENAS EM MODO EDIÇÃO) -->
+        
         <section class="admin-card glass-card" id="page-manager-card" style="display: none; margin-top: 24px;">
             <h2 class="admin-card-title" id="page-manager-title">
                 <i class="fa-solid fa-photo-film"></i> Gerenciador de Páginas: Capítulo 01
             </h2>
             
             <div id="page-manager-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 20px; margin-bottom: 24px;">
-                <!-- Miniaturas geradas dinamicamente com botões Apagar e Substituir -->
+                
             </div>
             
-            <!-- Elemento Input file oculto específico para o botão de Substituir -->
+            
             <input type="file" id="replace-page-file-input" style="display: none;" accept="image/png, image/jpeg, image/jpg, image/webp">
         </section>
 
     </main>
 
-    <!-- ==================== RODAPÉ PRINCIPAL ==================== -->
+    
     <footer class="site-footer" style="margin-top: 80px;">
         <div class="footer-content">
             <div class="nav-logo" style="font-size: 1.2rem;">Fio <span>Vermelho</span></div>
@@ -569,10 +569,10 @@
         </div>
     </footer>
 
-    <!-- Supabase JS CDN -->
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- Scripts da Rota -->
+    
     <script src="js/supabase-config.js"></script>
     <script src="js/admin.js"></script>
 </body>

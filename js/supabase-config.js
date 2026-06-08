@@ -1,8 +1,6 @@
-/* ==========================================================================
-   SUPABASE CENTRAL CONFIGURATION & CLIENT INITIALIZATION
-   ========================================================================== */
+﻿
 
-// Configuração central e fallbacks estritos para produção
+
 const fallbackUrl = "https://orckzqifklnlnjulqaxi.supabase.co";
 const fallbackAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yY2t6cWlma2xubG5qdWxxYXhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNzY5MDEsImV4cCI6MjA5NTY1MjkwMX0.tUzXsHYBwKCAQe0mMI4TjFvK2jUo5ASG2EwGcIJnb4w";
 
@@ -14,19 +12,19 @@ const finalAnonKey = (window.env && window.env.SUPABASE_ANON_KEY) || fallbackAno
 window.SUPABASE_URL = finalUrl;
 window.SUPABASE_ANON_KEY = finalAnonKey;
 
-// Preserva o objeto global da biblioteca carregado pela CDN
+
 window.supabaseLib = window.supabase;
 window.supabase = null;
 window.isOfflineMode = false;
 
-// Inicialização segura do cliente Supabase
+
 try {
-    console.log("🔍 [Supabase Diagnóstico]:");
-    console.log("   - URL:", window.SUPABASE_URL ? "Preenchida (OK)" : "Vazia (MOCK)");
-    console.log("   - Key:", window.SUPABASE_ANON_KEY ? "Preenchida (OK)" : "Vazia (MOCK)");
+    
+    
+    
     
     const hasCdn = (typeof window.supabaseLib !== 'undefined' && (typeof window.supabaseLib.createClient === 'function' || typeof window.supabaseLib === 'function')) || typeof supabaseJs !== 'undefined';
-    console.log("   - CDN Biblioteca:", hasCdn ? "Carregada (OK)" : "Não detectada (BLOQUEADA ou ERRO)");
+    
 
     const isPlaceholder = finalAnonKey === "COLE_AQUI_A_SUA_ANON_KEY_REAL" || finalAnonKey.startsWith("sb_publishable_");
 
@@ -38,39 +36,39 @@ try {
             const clientCreator = typeof creator === 'function' ? creator : creator.createClient;
             window.supabase = clientCreator(finalUrl, finalAnonKey);
             window.isOfflineMode = false;
-            console.log("🧶 Supabase: Conectado com sucesso ao banco remoto.");
+            
         } else {
-            console.warn("⚠️ A biblioteca CDN do Supabase não forneceu o criador de cliente.");
+            
             window.isOfflineMode = true;
         }
     } else {
         if (!finalUrl || finalUrl.trim() === "") {
-            console.error("❌ Erro de Inicialização do Supabase: SUPABASE_URL está ausente.");
+            
         }
         if (!finalAnonKey || finalAnonKey.trim() === "" || isPlaceholder) {
-            console.error("❌ Erro de Inicialização do Supabase: SUPABASE_ANON_KEY está ausente ou inválida (formato incorreto ou placeholder).");
+            
         }
         window.isOfflineMode = true;
     }
 } catch (error) {
-    console.warn("⚠️ Falha na inicialização do Supabase remoto. Entrando em modo Offline / LocalStorage:", error);
+    
     window.isOfflineMode = true;
 }
 
-// Trava de segurança estrita para produção: impede modo offline fora de ambiente de desenvolvimento local
+
 if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
     window.isOfflineMode = false;
-    console.log("🔒 [Segurança]: Modo offline desativado estritamente em ambiente de produção.");
+    
 }
 
 if (window.isOfflineMode) {
-    console.log("🔌 Fio Vermelho Rodando em Modo Protótipo (Offline / LocalStorage).");
+    
 }
 
-// Utilitário para salvar informações de sessão mockadas ou reais
+
 window.sessionHelper = {
     setSession: function(userEmail, isVerified = true, userId = null) {
-        // Tenta obter o ID existente da sessão anterior para preservá-lo caso não tenha sido fornecido
+        
         let finalUserId = userId;
         if (!finalUserId) {
             const oldSession = this.getSession();
@@ -79,7 +77,7 @@ window.sessionHelper = {
             }
         }
         
-        // Se ainda estiver vazio e não for modo offline, tenta obter do cliente Supabase
+        
         if (!finalUserId && !window.isOfflineMode && window.supabase) {
             try {
                 if (typeof window.supabase.auth.user === 'function') {
@@ -91,7 +89,7 @@ window.sessionHelper = {
                     if (s && s.user) finalUserId = s.user.id;
                 }
             } catch (e) {
-                console.warn("Erro ao ler usuário do Supabase em setSession:", e);
+                
             }
         }
 

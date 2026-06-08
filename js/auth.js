@@ -1,17 +1,15 @@
-/* ==========================================================================
-   INDEX.HTML AUTHENTICATION, AGE GATE, REAL MERCADO PAGO PIX & CO-ORDINATION
-   ========================================================================== */
+﻿
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Trava de Segurança Estrita: Forçar Modo Online em Produção ---
+    
     if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
         window.isOfflineMode = false;
     }
 
-    // --- Configurações Globais de Checkout ---
-    const CHAPTER_PRICE = 1.50; // Preço oficial do capítulo/validação
+    
+    const CHAPTER_PRICE = 1.50; 
 
-    // --- DOM Elements ---
+    
     const stepAgeGate = document.getElementById('step-age-gate');
     const stepPixPayment = document.getElementById('step-pix-payment');
     const stepSignup = document.getElementById('step-signup');
@@ -38,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let activePixListener = null;
 
-    // Redireciona se o usuário já estiver ativo e verificado
+    
     if (window.sessionHelper && window.sessionHelper.getSession()) {
         const session = window.sessionHelper.getSession();
         if (session.is_verified) {
@@ -47,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 1. Máscara Dinâmica de CPF (000.000.000-00) ---
+    
     if (signupCpfInput) {
         signupCpfInput.addEventListener('input', (e) => {
             let value = e.target.value.replace(/\D/g, "");
@@ -63,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 2. Máscara Dinâmica de Data de Nascimento (DD/MM/AAAA) ---
+    
     if (signupBirthdateInput) {
         signupBirthdateInput.addEventListener('input', (e) => {
             let value = e.target.value.replace(/\D/g, "");
@@ -78,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 3. Algoritmo de Validação de CPF (Módulo 11) ---
+    
     function validateCPF(cpf) {
         cpf = cpf.replace(/[^\d]+/g, '');
         if (cpf.length !== 11) return false;
@@ -103,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
-    // --- 4. Algoritmo de Checagem de Idade (ECA 18+) ---
+    
     function getAge(birthDateString) {
         const parts = birthDateString.split('/');
         if (parts.length !== 3) return 0;
@@ -119,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return age;
     }
 
-    // --- Helper: Alternar Passos da Autenticação ---
+    
     function showStep(stepElement) {
         [stepAgeGate, stepPixPayment, stepSignup, stepLogin].forEach(el => {
             if (el) el.classList.remove('active');
@@ -127,10 +125,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (stepElement) stepElement.classList.add('active');
     }
 
-    // --- Navegação entre passos ---
+    
     if (btnAgreeAge) {
         btnAgreeAge.addEventListener('click', () => {
-            showStep(stepSignup); // Vai direto para Cadastro no novo fluxo!
+            showStep(stepSignup); 
         });
     }
 
@@ -159,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- FORMULÁRIO DE CADASTRO E GERAÇÃO PIX REAL ---
+    
     if (signupForm) {
         signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -171,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const submitBtn = signupForm.querySelector('button[type="submit"]');
 
             const cleanCpf = cpfValue.replace(/[^\d]+/g, '');
-            const cleanBirthdate = birthdateValue.split('/').reverse().join('-'); // Formato YYYY-MM-DD
+            const cleanBirthdate = birthdateValue.split('/').reverse().join('-'); 
 
             submitBtn.classList.add('btn-disabled');
             submitBtn.innerHTML = '<div class="pix-status-spinner" style="margin-right: 8px;"></div> Gerando Pix...';
@@ -179,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let userId = null;
 
             if (window.isOfflineMode) {
-                // Modo Protótipo Local (Mock)
+                
                 userId = "usr_" + Math.random().toString(36).substring(2, 15);
                 let mockUsers = JSON.parse(localStorage.getItem('fio-mock-users') || '[]');
                 
@@ -188,7 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const rawStatus = existingUser.status ? existingUser.status.toLowerCase().trim() : '';
                     const isPending = rawStatus !== 'verificado' && rawStatus !== 'pago' && rawStatus !== 'approved';
                     if (isPending) {
-                        console.log("[auth.js] [Mock] Usuário existente com status pendente. Redirecionando para Pix.");
                         if (window.sessionHelper) {
                             window.sessionHelper.setSession(email, false, existingUser.id);
                         }
@@ -222,11 +219,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     alert("🧶 Bem-vindo, Administrador! Cadastro efetuado com verificação automática.");
                     window.location.href = 'dashboard.html';
                 } else {
-                    // Dispara Geração de Pix
+                    
                     await initiatePixGeneration(email, cleanCpf, userId, submitBtn);
                 }
             } else {
-                // Modo Produção Remoto (Validação centralizada na API do servidor)
+                
                 try {
                     const response = await fetch('/api/auth-operations', {
                         method: 'POST',
@@ -246,12 +243,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         const rawStatus = data.status ? data.status.toLowerCase().trim() : '';
                         const isPending = rawStatus !== 'verificado' && rawStatus !== 'pago' && rawStatus !== 'approved';
                         if (data.error === 'Este e-mail já está cadastrado.' && isPending && data.userId && data.cpf) {
-                            console.log("[auth.js] Usuário existente com status pendente. Redirecionando para Pix.");
                             if (window.supabase) {
                                 await window.supabase.auth.signInWithPassword({
                                     email: email,
                                     password: password
-                                }).catch(e => console.warn("Auto-login failed:", e));
+                                }).catch(e => {});
                             }
                             if (window.sessionHelper) {
                                 window.sessionHelper.setSession(email, false, data.userId);
@@ -264,13 +260,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     userId = data.userId;
 
-                    // Efetua login automático do usuário no Supabase para iniciar sessão
+                    
                     if (window.supabase) {
                         const { error: loginError } = await window.supabase.auth.signInWithPassword({
                             email: email,
                             password: password
                         });
-                        if (loginError) console.warn("Aviso: Login automático pós-cadastro falhou, mas cadastro foi criado.");
+                        if (loginError) 
                     }
 
                     if (window.sessionHelper) {
@@ -281,11 +277,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         alert("🧶 Bem-vindo, Administrador! Cadastro efetuado com verificação automática.");
                         window.location.href = 'dashboard.html';
                     } else {
-                        // Dispara Geração de Pix Real
+                        
                         await initiatePixGeneration(email, cleanCpf, userId, submitBtn);
                     }
                 } catch (err) {
-                    console.error("Erro no cadastro:", err.message);
+                    
                     alert("Erro no cadastro: " + err.message);
                     resetSubmitButton(submitBtn, '<i class="fa-solid fa-qrcode" style="margin-right: 8px;"></i> Gerar Pix de Validação');
                 }
@@ -293,9 +289,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- GERAÇÃO DO PIX DINÂMICO (MERCADO PAGO API) ---
+    
     async function initiatePixGeneration(email, cpf, userId, submitBtn) {
-        // Limpeza de placeholders antigos e preparação visual
+        
         if (pixQrElement) pixQrElement.src = '';
         if (pixCodeField) pixCodeField.value = 'Gerando código Pix...';
         if (pixSpinner) pixSpinner.style.display = 'block';
@@ -306,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Em produção ou local, chama o endpoint da Vercel /api/criar-pix
+            
             const response = await fetch('/api/criar-pix', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -316,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 const charge = await response.json();
                 
-                // Renderiza o QR Code e código real retornados pelo Mercado Pago
+                
                 if (pixQrElement) pixQrElement.src = `data:image/jpeg;base64,${charge.qrCodeUrl}`;
                 if (pixCodeField) pixCodeField.value = charge.copyPasteCode;
                 
@@ -327,47 +323,55 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(errData.error || 'Erro na API');
             }
         } catch (error) {
-            console.error("❌ Erro ao gerar Pix no gateway Mercado Pago:", error.message);
+            
             alert("⚠️ Não foi possível gerar a cobrança Pix de validação de maioridade no momento: " + error.message);
         } finally {
             resetSubmitButton(submitBtn, '<i class="fa-solid fa-qrcode" style="margin-right: 8px;"></i> Gerar Pix de Validação');
         }
     }
 
-    // --- MONITORAMENTO PROD: POLLING REAL NA API DO MERCADO PAGO ---
+    
     function startProductionPixMonitoring(transactionId, email, userId) {
         if (pixSpinner) pixSpinner.style.display = 'block';
         if (pixSuccessText) pixSuccessText.style.display = 'none';
         if (pixStatusText) {
             pixStatusText.style.display = 'inline';
-            pixStatusText.textContent = "Aguardando confirmação do pagamento real...";
+            pixStatusText.textContent = "Aguardando confirmação do pagamento...";
         }
 
+        const startTime = Date.now();
+        const timeoutMs = 15 * 60 * 1000; 
+
         const interval = setInterval(async () => {
+            
+            if (Date.now() - startTime >= timeoutMs) {
+                clearInterval(interval);
+                if (pixSpinner) pixSpinner.style.display = 'none';
+                if (pixStatusText) {
+                    pixStatusText.innerHTML = '<span style="color: var(--primary-red); font-weight: 600;"><i class="fa-solid fa-clock" style="margin-right: 6px;"></i> O código PIX expirou. Por favor, reinicie o cadastro para gerar um novo Pix.</span>';
+                }
+                return;
+            }
+
             try {
                 const res = await fetch(`/api/checar-pix?payment_id=${transactionId}&user_id=${userId}&_t=${Date.now()}`);
                 if (res.ok) {
                     const data = await res.json();
                     
-                    // Depuração explícita a cada 3 segundos para acompanhar a batida do relógio
-                    console.log("Rodando Polling...", data);
-
-                    // Restaura o texto original de aguardando se a requisição voltou a funcionar
                     if (pixStatusText) {
-                        pixStatusText.innerHTML = 'Aguardando confirmação do pagamento real...';
+                        pixStatusText.innerHTML = 'Aguardando confirmação do pagamento...';
                     }
 
-                    // Condição de parada flexível (seja por status aprovado ou flag de verificação ativa)
+                    
                     if (data.status === 'pago' || data.status === 'approved' || data.status === 'verificado' || data.status === true) {
-                        // Limpa o intervalo IMEDIATAMENTE para evitar chamadas órfãs
+                        
                         clearInterval(interval);
                         
-                        // Atualiza localmente no mock caso esteja em modo offline
                         if (window.isOfflineMode) {
                             updateMockUserStatus(email, 'pago');
                         }
 
-                        // Redireciona e libera o acesso de forma segura com o ID do usuário
+                        
                         handleSuccessfulPayment(email, userId);
                     } else if (data.status === 'rejected' || data.status === 'cancelled') {
                         clearInterval(interval);
@@ -377,23 +381,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     const errData = await res.json().catch(() => ({}));
                     const errMsg = errData.error || "Erro na conexão com o gateway de pagamento.";
-                    console.error("Erro retornado pelo backend:", errMsg);
                     if (pixStatusText) {
-                        pixStatusText.innerHTML = `<span style="color: var(--primary-red); font-weight: 600;"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i> Erro Vercel: ${errMsg}</span>`;
+                        pixStatusText.innerHTML = `<span style="color: var(--primary-red); font-weight: 600;"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i> Erro: ${errMsg}</span>`;
                     }
                 }
             } catch (err) {
-                console.error("Erro ao verificar Pix no backend:", err);
                 if (pixStatusText) {
                     pixStatusText.innerHTML = `<span style="color: var(--primary-red); font-weight: 600;"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i> Falha de rede. Tentando reconectar...</span>`;
                 }
             }
-        }, 3000); // Polling a cada 3 segundos
+        }, 3000); 
 
         activePixListener = { cancel: () => clearInterval(interval) };
     }
 
-    // Auxiliar: Altera status no mock local (Apenas em modo offline)
+    
     function updateMockUserStatus(email, newStatus) {
         let mockUsers = JSON.parse(localStorage.getItem('fio-mock-users') || '[]');
         const idx = mockUsers.findIndex(u => u.email === email);
@@ -403,11 +405,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Ação: Sucesso no Pagamento e Redirecionamento
+    
     async function handleSuccessfulPayment(email, userId = null) {
         let finalUserId = userId;
         
-        // Se o userId não foi passado ou está ausente, tenta recuperar direto da sessão ativa do Supabase
+        
         if (!finalUserId && !window.isOfflineMode && window.supabase) {
             try {
                 if (typeof window.supabase.auth.getUser === 'function') {
@@ -423,12 +425,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (u) finalUserId = u.id;
                 }
             } catch (e) {
-                console.error("Erro ao recuperar ID do usuário logado na verificação do pagamento:", e);
+                
             }
         }
 
         if (window.sessionHelper) {
-            window.sessionHelper.setSession(email, true, finalUserId); // true = verificado!
+            window.sessionHelper.setSession(email, true, finalUserId); 
         }
         
         if (pixSpinner) pixSpinner.style.display = 'none';
@@ -440,7 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1800);
     }
 
-    // Copiar Código de barras / Copia e Cola
+    
     if (btnCopyPix && pixCodeField) {
         btnCopyPix.addEventListener('click', () => {
             pixCodeField.select();
@@ -458,12 +460,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     }, 2000);
                 })
                 .catch(err => {
-                    console.error("Falha ao copiar:", err);
+                    
                 });
         });
     }
 
-    // --- FORMULÁRIO DE LOGIN (SUPABASE / OFFLINE) ---
+    
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -475,7 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.innerHTML = '<div class="pix-status-spinner" style="margin-right: 8px;"></div> Autenticando...';
 
             if (window.isOfflineMode) {
-                // Modo Protótipo Local (Mock)
+                
                 setTimeout(async () => {
                     const mockUsers = JSON.parse(localStorage.getItem('fio-mock-users') || '[]');
                     const foundUser = mockUsers.find(u => u.email === email && u.password === password);
@@ -501,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }, 800);
             } else {
-                // Modo Produção Remoto (Supabase)
+                
                 try {
                     if (window.supabase) {
                         const { data, error } = await window.supabase.auth.signInWithPassword({
@@ -511,7 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         if (error) throw error;
 
-                        // Consulta o status e o CPF de forma tolerante a falhas usando maybeSingle
+                        
                         const { data: profile, error: profileError } = await window.supabase
                             .from('profiles')
                             .select('status, cpf')
@@ -520,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         if (profileError) throw profileError;
 
-                        // Sobregravação/Override de Conveniência e Segurança para administradores!
+                        
                         let isUserAdmin = false;
                         if (window.isOfflineMode) {
                             isUserAdmin = email.includes("admin");
@@ -541,7 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     }
                                 }
                             } catch (e) {
-                                console.error("Falha ao verificar status de admin no login:", e);
+                                
                             }
                         }
 
@@ -553,7 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             return;
                         }
 
-                        // Se não for administrador, verifica o status do perfil
+                        
                         const rawStatus = profile && profile.status ? profile.status.toLowerCase().trim() : '';
                         const isVerifiedStatus = rawStatus === 'verificado' || rawStatus === 'pago' || rawStatus === 'approved';
 
@@ -571,7 +573,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         window.location.href = 'dashboard.html';
                     }
                 } catch (err) {
-                    console.error("Erro no login:", err.message);
+                    
                     alert("Erro de autenticação: " + err.message);
                     resetSubmitButton(submitBtn, '<i class="fa-solid fa-arrow-right-to-bracket" style="margin-right: 8px;"></i> Entrar no Painel');
                 }
@@ -584,7 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.innerHTML = originalHTML;
     }
 
-    // --- FORMULÁRIO DA NEWSLETTER (SUPABASE / LOCAL STORAGE) ---
+    
     const newsletterForm = document.getElementById('newsletter-form');
     const newsletterEmailInput = document.getElementById('newsletter-email');
     const newsletterMessage = document.getElementById('newsletter-message');
@@ -596,7 +598,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const email = newsletterEmailInput.value.trim();
             if (!email) return;
 
-            // Feedback visual de carregamento
+            
             btnNewsletterSubscribe.classList.add('btn-disabled');
             const originalBtnHTML = btnNewsletterSubscribe.innerHTML;
             btnNewsletterSubscribe.innerHTML = '<div class="pix-status-spinner" style="margin-right: 8px; width: 14px; height: 14px;"></div>';
@@ -606,7 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
             newsletterMessage.textContent = '';
 
             if (window.isOfflineMode) {
-                // Modo Protótipo Local (Mock)
+                
                 setTimeout(() => {
                     let mockNewsletter = JSON.parse(localStorage.getItem('fio-mock-newsletter') || '[]');
                     
@@ -626,7 +628,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnNewsletterSubscribe.innerHTML = originalBtnHTML;
                 }, 800);
             } else {
-                // Modo Produção Remoto (API Serverless)
+                
                 try {
                     const response = await fetch('/api/newsletter', {
                         method: 'POST',
@@ -646,7 +648,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     newsletterMessage.classList.add('success');
                     newsletterForm.reset();
                 } catch (err) {
-                    console.error("Erro na inscrição da newsletter:", err);
+                    
                     newsletterMessage.textContent = err.message || 'Falha ao cadastrar e-mail. Tente novamente mais tarde.';
                     newsletterMessage.classList.add('error');
                 } finally {
@@ -657,7 +659,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Alternar Visibilidade da Senha (Olhinho) ---
+    
     const togglePasswordButtons = document.querySelectorAll('.btn-toggle-password');
     togglePasswordButtons.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -679,7 +681,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- 7. Recuperação de Senha (Esqueceu a Senha) ---
+    
     const btnForgot = document.getElementById('btn-forgot-password');
     const forgotModal = document.getElementById('forgot-password-modal');
     const btnCloseForgotModal = document.getElementById('btn-close-forgot-modal');
@@ -740,7 +742,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 if (window.isOfflineMode) {
-                    // --- MODO SIMULADO / OFFLINE ---
+                    
                     await new Promise(resolve => setTimeout(resolve, 1000));
                     if (forgotStatusBox) {
                         forgotStatusBox.style.color = 'var(--success-green)';
@@ -751,7 +753,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (forgotInputArea) forgotInputArea.style.display = 'none';
                     if (forgotMessageArea) forgotMessageArea.style.display = 'block';
                 } else {
-                    // --- MODO REAL SUPABASE ---
+                    
                     if (window.supabase) {
                         const { error } = await window.supabase.auth.resetPasswordForEmail(email, {
                             redirectTo: window.location.origin + '/index.html'
@@ -772,7 +774,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             } catch (err) {
-                console.error("Erro ao enviar recuperação de senha:", err);
+                
                 if (forgotStatusBox) {
                     forgotStatusBox.style.color = 'var(--primary-red)';
                     forgotStatusBox.style.backgroundColor = 'rgba(255, 42, 59, 0.05)';

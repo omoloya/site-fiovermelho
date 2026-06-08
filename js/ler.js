@@ -1,16 +1,14 @@
-/* ==========================================================================
-   LER.HTML INTERACTIVE WEBTOON READER LOGIC
-   ========================================================================== */
+﻿
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Evitar que o navegador restaure a posição do scroll ao recarregar
+    
     if ('scrollRestoration' in history) {
         history.scrollRestoration = 'manual';
     }
 
-    // --- 1. Proteção de Rota & Verificação de Sessão ---
+    
     if (!window.sessionHelper) {
-        console.error("Erro: sessionHelper não foi inicializado.");
+        
         window.location.replace('index.html');
         return;
     }
@@ -21,55 +19,55 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // --- 1.2 Proteção de Propriedade Intelectual (ECA & Direitos Autorais) ---
-    // --- 1.2 Proteção de Propriedade Intelectual (ECA & Direitos Autorais) ---
+    
+    
     let isSuperAdmin = false;
 
     function applyIntellectualPropertyProtection() {
         if (!isSuperAdmin) {
-            // Bloquear Clique Direito (contextmenu) nas imagens e página
+            
             document.addEventListener('contextmenu', (e) => {
                 if (isSuperAdmin) return;
                 e.preventDefault();
                 return false;
             });
 
-            // Bloquear Atalhos de Cópia e Ferramentas do Desenvolvedor (F12, Ctrl+S, Ctrl+C, Ctrl+Shift+I, Cmd+Option+I)
+            
             document.addEventListener('keydown', (e) => {
                 if (isSuperAdmin) return;
-                // F12
+                
                 if (e.key === 'F12' || e.keyCode === 123) {
                     e.preventDefault();
                     return false;
                 }
-                // Ctrl+S / Cmd+S
+                
                 if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                     e.preventDefault();
                     return false;
                 }
-                // Ctrl+C / Cmd+C
+                
                 if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
                     e.preventDefault();
                     return false;
                 }
-                // Ctrl+Shift+I / Cmd+Option+I
+                
                 if ((e.ctrlKey && e.shiftKey && e.key === 'I') || (e.metaKey && e.altKey && e.key === 'i')) {
                     e.preventDefault();
                     return false;
                 }
-                // Ctrl+Shift+J / Cmd+Option+J
+                
                 if ((e.ctrlKey && e.shiftKey && e.key === 'J') || (e.metaKey && e.altKey && e.key === 'j')) {
                     e.preventDefault();
                     return false;
                 }
-                // Ctrl+U / Cmd+U (View Source)
+                
                 if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
                     e.preventDefault();
                     return false;
                 }
             });
 
-            // Bloquear Arrastar (Drag and Drop)
+            
             document.addEventListener('dragstart', (e) => {
                 if (isSuperAdmin) return;
                 if (e.target.tagName === 'IMG') {
@@ -78,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Aplicar draggable="false" e classe protected-image periodicamente nas imagens
+            
             const protectInterval = setInterval(() => {
                 if (isSuperAdmin) {
                     clearInterval(protectInterval);
@@ -94,10 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Inicializa a proteção imediatamente por segurança
+    
     applyIntellectualPropertyProtection();
 
-    // Valida dinamicamente se o usuário é super admin e remove a proteção se for
+    
     (async () => {
         if (window.isOfflineMode) {
             isSuperAdmin = session && session.user && session.user.email.includes("admin");
@@ -118,15 +116,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         isSuperAdmin = adminCheckJson.isAdmin;
                     } else {
                         const errJson = await adminCheckRes.json().catch(() => ({}));
-                        console.error("[verifyAdminStatus] Erro ao verificar admin no leitor:", adminCheckRes.status, errJson.error || errJson);
+                        
                     }
                 }
             } catch (e) {
-                console.error("Falha ao verificar status de admin no leitor:", e);
+                
             }
         }
 
-        // Se for admin, garante que nenhuma trava ou classe protected permaneça ativa
+        
         if (isSuperAdmin) {
             document.querySelectorAll('img').forEach(img => {
                 img.classList.remove('protected-image');
@@ -135,32 +133,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     })();
 
-    // --- 1.1 Verificação de Maioridade / Status do Perfil (ECA) ---
+    
     checkProfileStatus();
 
     async function checkProfileStatus() {
         let status = 'pendente_verificacao';
         let userId = null;
 
-        // Recuperação estrita do ID autenticado diretamente do Supabase Client
+        
         if (!window.isOfflineMode && window.supabase) {
             try {
                 if (typeof window.supabase.auth.getUser === 'function') {
                     const { data } = await window.supabase.auth.getUser();
                     if (data && data.user) {
                         userId = data.user.id;
-                        // Sincroniza a sessão local defensivamente se necessário
+                        
                         if (window.sessionHelper && session) {
                             window.sessionHelper.setSession(session.user.email, session.is_verified, userId);
                         }
                     }
                 }
             } catch (e) {
-                console.error("[ler.js] Falha ao recuperar usuário autenticado:", e);
+                
             }
         }
 
-        // Fallback para sessão local se offline ou se a chamada falhou
+        
         if (!userId) {
             userId = session && session.user && session.user.id;
         }
@@ -173,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 if (window.supabase) {
                     if (!userId) {
-                        console.error("[ler.js] ID do usuário está undefined na sessão. Bloqueando por segurança.");
+                        
                         status = 'pendente_verificacao';
                     } else {
                         const { data: profile, error } = await window.supabase
@@ -188,11 +186,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             } catch (err) {
-                console.error("Erro ao verificar status no Supabase:", err);
+                
             }
         }
 
-        // Sobregravação automática de verificação para e-mails administradores autorizados!
+        
         let isUserAdmin = false;
         if (window.isOfflineMode) {
             isUserAdmin = session && session.user && session.user.email.includes("admin");
@@ -213,11 +211,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         isUserAdmin = adminCheckJson.isAdmin;
                     } else {
                         const errJson = await adminCheckRes.json().catch(() => ({}));
-                        console.error("[verifyAdminStatus Check] Erro ao verificar admin no leitor status check:", adminCheckRes.status, errJson.error || errJson);
+                        
                     }
                 }
             } catch (e) {
-                console.error("Falha ao verificar status de admin no leitor status check:", e);
+                
             }
         }
 
@@ -225,13 +223,13 @@ document.addEventListener('DOMContentLoaded', () => {
             status = 'verificado';
         }
 
-        // Se o status for pendente_verificacao, expulsa do leitor de volta para o dashboard lock
+        
         if (status === 'pendente_verificacao') {
             window.location.replace('dashboard.html');
         }
     }
 
-    // --- Dados Dinâmicos dos Capítulos ---
+    
     const defaultChapters = {
         "1": { title: "O Elo Perdido", pagesCount: 4, releaseDate: "20 de Maio, 2026" },
         "2": { title: "Cortes no Destino", pagesCount: 4, releaseDate: "25 de Maio, 2026" },
@@ -240,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let chaptersData = { ...defaultChapters };
 
-    // --- DOM Elements ---
+    
     const chapterTitleEl = document.getElementById('current-chapter-title');
     const chapterSelectEl = document.getElementById('reader-chapter-select');
     const canvasContainer = document.getElementById('webtoon-canvas-container');
@@ -248,16 +246,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnPrev = document.getElementById('btn-prev-chapter');
     const btnNext = document.getElementById('btn-next-chapter');
 
-    // --- 2. Leitura dos Parâmetros da URL (Query Params) ---
+    
     const urlParams = new URLSearchParams(window.location.search);
     let currentChapterId = urlParams.get('cap') || "1";
 
     async function initializeReader() {
-        // Forçar rolagem para o topo absoluto imediatamente ao iniciar
+        
         window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-        // 1. Carrega os capítulos de forma assíncrona
+        
         if (window.isOfflineMode) {
-            // Mescla capítulos mockados locais
+            
             const mockChapters = JSON.parse(localStorage.getItem('fio-mock-chapters') || '[]');
             mockChapters.forEach(c => {
                 chaptersData[c.id.toString()] = {
@@ -267,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             });
         } else {
-            // Mescla do Supabase Database
+            
             try {
                 if (window.supabase) {
                     const { data, error } = await window.supabase
@@ -288,24 +286,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             } catch (err) {
-                console.error("Erro ao carregar capítulos:", err);
+                
             }
         }
 
-        // Valida se o capítulo atual existe nos dados carregados
+        
         if (!chaptersData[currentChapterId]) {
             currentChapterId = Object.keys(chaptersData)[0] || "1";
         }
 
         const currentChapter = chaptersData[currentChapterId];
-        console.log(`🧶 [Reader] Lendo Capítulo ${currentChapterId}: ${currentChapter.title}`);
+        
 
-        // --- 3. Atualizar Estado Inicial da Interface ---
+        
         if (chapterTitleEl) {
             chapterTitleEl.textContent = `Capítulo ${currentChapterId.padStart(2, '0')}: ${currentChapter.title}`;
         }
 
-        // Reconstrói dinamicamente as opções do dropdown para cobrir capítulos extras
+        
         if (chapterSelectEl) {
             chapterSelectEl.innerHTML = '';
             Object.keys(chaptersData).forEach(id => {
@@ -317,19 +315,19 @@ document.addEventListener('DOMContentLoaded', () => {
             chapterSelectEl.value = currentChapterId;
         }
 
-        // --- 4. Marca o Capítulo Atual Como Lido no localStorage Automaticamente ---
+        
         const userKey = `fio-read-chapters-${session.user.email}`;
         let readChapters = JSON.parse(localStorage.getItem(userKey) || '[]');
         if (!readChapters.includes(currentChapterId)) {
             readChapters.push(currentChapterId);
             localStorage.setItem(userKey, JSON.stringify(readChapters));
-            console.log(`🧶 [Reader] Capítulo ${currentChapterId} marcado automaticamente como lido.`);
+            
         }
 
-        // --- 5. Renderização Vertical das Páginas do Webtoon ---
+        
         renderWebtoonPages(currentChapter);
 
-        // --- 6. Configurar Navegação Dinâmica ---
+        
         setupNavigation(chaptersData);
     }
 
@@ -337,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!canvasContainer) return;
         canvasContainer.innerHTML = '';
         
-        // Garante o topo absoluto na renderização das páginas
+        
         window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
         
         const totalPages = currentChapter.pagesCount;
@@ -355,12 +353,12 @@ document.addEventListener('DOMContentLoaded', () => {
             img.className = 'webtoon-page-img';
             img.alt = `Página ${i} do Capítulo ${currentChapterId}`;
             
-            // Define o endereço da imagem de acordo com o modo
-            let imageSource = `assets/cap${currentChapterId}_pag${i}.jpg`; // Fallback físico original
+            
+            let imageSource = `assets/cap${currentChapterId}_pag${i}.jpg`; 
             let isUsingSupabase = false;
             
             if (!window.isOfflineMode && window.supabase) {
-                // Modo Produção: Tenta carregar primeiro do Storage do Supabase (para todos os capítulos)
+                
                 try {
                     const res = window.supabase.storage
                         .from('paginas-quadrinho')
@@ -376,10 +374,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         isUsingSupabase = true;
                     }
                 } catch (urlErr) {
-                    console.error("Erro ao obter URL publica do storage:", urlErr);
+                    
                 }
             } else {
-                // Modo Offline: Verifica sessionStorage para Blob URLs de pré-visualização ao vivo
+                
                 const sessionKey = `fio-temp-page-${currentChapterId}-${i}`;
                 const tempBlobUrl = sessionStorage.getItem(sessionKey);
                 if (tempBlobUrl) {
@@ -387,12 +385,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Registra handlers antes de definir .src para evitar condições de corrida com cache
+            
             img.onload = function() {
                 if (img.dataset.loadedEventFired) return;
                 img.dataset.loadedEventFired = "true";
                 
-                // Limpa absolutamente tudo de dentro do wrapper e insere apenas a imagem limpa
+                
                 pageWrapper.innerHTML = '';
                 pageWrapper.appendChild(img);
                 
@@ -403,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 img.classList.add('loaded');
 
-                // --- Tap-to-Zoom Localizado (Lupa Direta) ---
+                
                 let imgTransX = 0;
                 let startX = 0;
                 let initTransX = 0;
@@ -488,10 +486,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 function handleTapOrClick(e) {
                     if (img.classList.contains('is-zoomed')) {
-                        // Se já estiver ampliado, toque simples retira o zoom imediatamente
+                        
                         toggleZoom(e);
                     } else {
-                        // Se não estiver ampliado, espera double tap (intervalo < 300ms)
+                        
                         clickCount++;
                         if (clickCount === 1) {
                             clickTimeout = setTimeout(() => {
@@ -522,10 +520,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const touchY = clientY - rect.top;
 
                     if (!img.classList.contains('is-zoomed')) {
-                        // Salva a posição exata de scroll antes de ampliar
+                        
                         scrollPositionBeforeZoom = window.scrollY || document.documentElement.scrollTop;
 
-                        // Limpa zoom de todas as outras imagens antes de aplicar (Zoom único)
+                        
                         document.querySelectorAll('.webtoon-page-img.is-zoomed').forEach(el => {
                             el.style.transform = 'scale(1)';
                             el.style.transformOrigin = 'center center';
@@ -537,7 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         img.style.transform = 'scale(1.8) translate(0px, 0px)';
                         img.classList.add('is-zoomed');
                     } else {
-                        // Remove o zoom e restaura instantaneamente o scroll para evitar "pulos"
+                        
                         img.style.transform = 'scale(1)';
                         img.style.transformOrigin = 'center center';
                         img.classList.remove('is-zoomed');
@@ -551,12 +549,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         window.scrollTo(0, 0);
                         document.documentElement.scrollTop = 0;
                         document.body.scrollTop = 0;
-                    }, 150); // Aumentado ligeiramente para garantir o cálculo do DOM
+                    }, 150); 
                 }
             };
 
             img.onerror = function() {
-                // Se falhou ao tentar carregar o arquivo customizado do Supabase, tenta carregar o fallback físico local
+                
                 if (isUsingSupabase) {
                     isUsingSupabase = false;
                     img.src = `assets/cap${currentChapterId}_pag${i}.jpg`;
@@ -582,7 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             img.src = imageSource;
             
-            // Se a imagem já estiver no cache e carregada completa
+            
             if (img.complete) {
                 img.onload();
             }
@@ -596,7 +594,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const sortedKeys = Object.keys(chaptersData).sort((a, b) => parseInt(a) - parseInt(b));
         const currentIndex = sortedKeys.indexOf(currentChapterId);
         
-        // Botão Anterior
+        
         if (btnPrev) {
             if (currentIndex <= 0) {
                 btnPrev.classList.add('btn-disabled');
@@ -604,7 +602,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 btnPrev.classList.remove('btn-disabled');
                 btnPrev.disabled = false;
-                // Cria clone para limpar listeners antigos
+                
                 if (btnPrev.parentNode) {
                     const newBtnPrev = btnPrev.cloneNode(true);
                     btnPrev.parentNode.replaceChild(newBtnPrev, btnPrev);
@@ -616,7 +614,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Botão Próximo
+        
         if (btnNext && btnNext.parentNode) {
             const newBtnNext = btnNext.cloneNode(true);
             btnNext.parentNode.replaceChild(newBtnNext, btnNext);
@@ -635,9 +633,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Sincronizar Seletor de Capítulos
+        
         if (chapterSelectEl && chapterSelectEl.parentNode) {
-            // Remove listeners antigos substituindo por ele mesmo
+            
             const newSelect = chapterSelectEl.cloneNode(true);
             chapterSelectEl.parentNode.replaceChild(newSelect, chapterSelectEl);
             newSelect.addEventListener('change', (e) => {
@@ -647,27 +645,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Interceptar o botão Voltar físico/gestual do celular e retornar ao Painel de Capítulos
+    
     history.pushState({ reading: true }, '', `#leitura-cap-${currentChapterId}`);
     window.addEventListener('popstate', () => {
-        // Substitui a rota para o dashboard de forma limpa, sem reacumular histórico redundante
+        
         window.location.replace('dashboard.html');
     });
 
-    // Interface Limpa Mobile (Modo Imersivo): Esconde header no scroll down, revela no scroll up
+    
     let lastScrollTop = 0;
     const readerHeader = document.querySelector('.reader-header');
     
     window.addEventListener('scroll', () => {
         let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         if (scrollTop > lastScrollTop && scrollTop > 60) {
-            // Rolar para baixo -> Esconde cabeçalho para foco total na arte
+            
             if (readerHeader) {
                 readerHeader.style.transform = 'translateY(-100%)';
                 readerHeader.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
             }
         } else {
-            // Rolar para cima -> Mostra cabeçalho suavemente
+            
             if (readerHeader) {
                 readerHeader.style.transform = 'translateY(0)';
                 readerHeader.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
@@ -676,6 +674,6 @@ document.addEventListener('DOMContentLoaded', () => {
         lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
     }, { passive: true });
 
-    // Inicializa a carga dinâmica
+    
     initializeReader();
 });

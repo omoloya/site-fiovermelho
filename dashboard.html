@@ -1,18 +1,18 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fio Vermelho | Painel do Leitor</title>
     
-    <!-- Meta Tags para SEO -->
+    
     <meta name="description" content="Acesse o hub do leitor de Fio Vermelho. Acompanhe os capítulos, marque seus lidos e receba atualizações exclusivas.">
     
-    <!-- Google Fonts & FontAwesome -->
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     
-    <!-- Proteção Rápida de Rota (Prevenir piscada de conteúdo privado) -->
+    
     <script>
         // Verificação imediata síncrona com localStorage local para evitar carregamento visual antes do JS completo
         (function() {
@@ -27,7 +27,7 @@
 </head>
 <body>
 
-    <!-- ==================== BLOQUEIO DE SEGURANÇA E LEITURA (ECA) ==================== -->
+    
     <div id="dashboard-lock-overlay" class="lock-overlay" style="display: none;">
         <div class="lock-card glass-card">
             <div class="age-gate-icon" style="font-size: 3.5rem; color: var(--primary-red); margin-bottom: 24px;">
@@ -52,12 +52,12 @@
         </div>
     </div>
 
-    <!-- ==================== HEADER & NAVEGAÇÃO ==================== -->
+    
     <header class="nav-container">
         <a href="dashboard.html" class="nav-logo">Fio <span>Vermelho</span></a>
         
         <div class="nav-actions">
-            <!-- E-mail do usuário ativo -->
+            
             <span id="user-display-email" style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; display: none;">
                 <i class="fa-regular fa-user" style="margin-right: 6px;"></i> leitor@exemplo.com
             </span>
@@ -70,15 +70,15 @@
         </div>
     </header>
 
-    <!-- ==================== HERO / BANNER PRINCIPAL ==================== -->
+    
     <section class="hero-wrapper" aria-label="Apresentação do Quadrinho">
-        <!-- Banner de fundo escurecido -->
+        
         <div class="hero-banner-bg">
             <img src="https://placehold.co/1200x500/000000/ffffff?text=Fio+Vermelho" alt="Fio Vermelho Banner Art" id="hero-banner-image" onerror="this.onerror=null; this.src='https://placehold.co/1200x500/000000/ffffff?text=Fio+Vermelho';">
         </div>
         
         <div class="hero-content">
-            <!-- Capa estilo livro/quadrinho com sombra e rotação -->
+            
             <div class="hero-cover-container">
                 <img src="assets/capa1.webp" alt="Fio Vermelho Capa Oficial" class="hero-cover-img" id="hero-portrait-image">
             </div>
@@ -117,21 +117,21 @@
         </div>
     </section>
 
-    <!-- ==================== LISTA DE CAPÍTULOS ==================== -->
+    
     <section class="chapters-section" id="chapters-list">
         <header class="section-header">
             <h2 class="section-title">Capítulos <span>Disponíveis</span></h2>
         </header>
         
-        <!-- Lista de Capítulos (Gerados Dinamicamente pelo JS) -->
+        
         <div class="chapter-list" id="chapter-list-container">
-            <!-- Os capítulos serão renderizados dinamicamente pelo JavaScript (dashboard.js) -->
+            
         </div>
     </section>
 
 
 
-    <!-- ==================== CAPTURA DE LEADS (NEWSLETTER) ==================== -->
+    
     <section class="lead-section">
         <div class="lead-card glass-card">
             <h2 class="lead-title">Não perca o próximo <span>capítulo</span>!</h2>
@@ -152,7 +152,7 @@
         </div>
     </section>
 
-    <!-- ==================== APOIO / DOAÇÃO (PIX DINÂMICO) ==================== -->
+    
     <section class="donation-section" id="donation-area">
         <div class="donation-card glass-card">
             <div class="donation-icon" style="font-size: 2.5rem; color: var(--primary-red);">
@@ -168,7 +168,7 @@
         </div>
     </section>
 
-    <!-- ==================== RODAPÉ PRINCIPAL ==================== -->
+    
     <footer class="site-footer">
         <div class="footer-content">
             <div class="nav-logo" style="font-size: 1.2rem;">Fio <span>Vermelho</span></div>
@@ -183,7 +183,7 @@
         </div>
     </footer>
 
-    <!-- ==================== MODAL DE DOAÇÃO (VALOR LIVRE) ==================== -->
+    
     <div id="donation-modal" class="modal-overlay" style="display: none;">
         <div class="modal-card glass-card">
             <button class="modal-close-btn" id="btn-close-donation-modal">&times;</button>
@@ -205,7 +205,7 @@
                 </button>
             </div>
 
-            <!-- Área de Resultados (QR Code e Copia e Cola) -->
+            
             <div class="donation-modal-results" id="donation-modal-pix-area" style="display: none;">
                 <div class="pix-status-box" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2); padding: 12px; border-radius: var(--radius-sm); color: var(--success-green); font-weight: 600; font-size: 0.85rem; text-align: center; border: 1px solid rgba(16, 185, 129, 0.25);">
                     <i class="fa-solid fa-face-smile-wink"></i> "Valeu kyoudai! O bando agradece o fortalecimento. Tamo junto!"
@@ -228,10 +228,10 @@
 
 
 
-    <!-- Supabase JS CDN -->
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- Scripts da Rota -->
+    
     <script src="js/supabase-config.js"></script>
     <script src="js/dashboard.js?v=atualizacao_agora"></script>
 </body>
